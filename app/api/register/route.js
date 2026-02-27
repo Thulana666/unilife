@@ -8,32 +8,66 @@ export async function POST(req) {
 
     await connectDB();
 
-    const { name, email, password, role, year, semester } = await req.json();
+    const { name, email, password, year, semester } = await req.json();
 
-    // check if user already exists
+    // Validate required fields
+
+    if (!name || !email || !password || !year || !semester) {
+
+      return Response.json(
+        { error: "All fields are required" },
+        { status: 400 }
+      );
+
+    }
+
+    // Validate SLIIT email
+
+    const emailRegex = /^[A-Za-z0-9._%+-]+@my\.sliit\.lk$/;
+
+    if (!emailRegex.test(email)) {
+
+      return Response.json(
+        { error: "Use your campus email (example: IT12345678@my.sliit.lk)" },
+        { status: 400 }
+      );
+
+    }
+
+    // Validate password length
+
+    if (password.length < 6) {
+
+      return Response.json(
+        { error: "Password must be at least 6 characters" },
+        { status: 400 }
+      );
+
+    }
+
+    // Check existing user
 
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
 
-      return Response.json({
-        error: "User already exists"
-      }, { status: 400 });
+      return Response.json(
+        { error: "User already exists" },
+        { status: 400 }
+      );
 
     }
 
-    // hash password
+    // Hash password
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // create user
-
-    const user = await User.create({
+    await User.create({
 
       name,
       email,
       password: hashedPassword,
-      role,
+      role: "student",
       year,
       semester
 
@@ -41,20 +75,18 @@ export async function POST(req) {
 
     return Response.json({
 
-      message: "User created successfully",
-      user
+      message: "Account created successfully"
 
     });
 
   }
 
-  catch (error) {
+  catch {
 
-    return Response.json({
-
-      error: error.message
-
-    }, { status: 500 });
+    return Response.json(
+      { error: "Registration failed" },
+      { status: 500 }
+    );
 
   }
 
