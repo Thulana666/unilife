@@ -1,0 +1,31 @@
+﻿
+> unilife@0.1.0 lint
+> eslint
+
+
+C:\Users\Thulana De Silva\OneDrive - Sri Lanka Institute of Information Technology\Desktop\unilife\app\dashboard\chat\[semester]\page.js
+   50:6   warning  React Hook useEffect has a missing dependency: 'fetchMessages'. Either include it or remove the dependency array                                                                                                                                                                         react-hooks/exhaustive-deps
+  319:33  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\Thulana De Silva\OneDrive - Sri Lanka Institute of Information Technology\Desktop\unilife\app\dashboard\layout.js
+  46:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  44 |     // Load theme from localStorage on mount
+  45 |     useEffect(() => {
+> 46 |         setMounted(true);
+     |         ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  47 |         const savedTheme = localStorage.getItem("theme");
+  48 |         if (savedTheme === "dark" || (!savedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+  49 |             setDarkMode(true);  react-hooks/set-state-in-effect
+
+C:\Users\Thulana De Silva\OneDrive - Sri Lanka Institute of Information Technology\Desktop\unilife\app\login\page.js
+  125:16  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+Γ£û 4 problems (2 errors, 2 warnings)
+

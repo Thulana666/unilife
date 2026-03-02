@@ -21,13 +21,19 @@ const UserSchema = new mongoose.Schema({
   role: {
     type: String,
     enum: ["student", "lecturer", "admin"],
+    required: true,
     default: "student"
   },
 
-  year: Number,
+  year: {
+    type: Number
+  },
 
-  semester: Number
+  semester: {
+    type: Number
+  }
 
 }, { timestamps: true });
 
-export default mongoose.models.User || mongoose.model("User", UserSchema);
+export default mongoose.models.User ||
+mongoose.model("User", UserSchema);

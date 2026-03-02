@@ -8,33 +8,36 @@ export async function POST(req) {
 
     await connectDB();
 
-    const { name, email, password, year, semester } = await req.json();
+    const { name, email, password, role, year, semester } = await req.json();
 
-    // Validate required fields
 
-    if (!name || !email || !password || !year || !semester) {
+    // ✅ Validate basic required fields
+
+    if (!name || !email || !password || !role) {
 
       return Response.json(
-        { error: "All fields are required" },
+        { error: "Name, email, password and role are required" },
         { status: 400 }
       );
 
     }
 
-    // Validate SLIIT email
+
+    // ✅ Validate SLIIT email
 
     const emailRegex = /^[A-Za-z0-9._%+-]+@my\.sliit\.lk$/;
 
     if (!emailRegex.test(email)) {
 
       return Response.json(
-        { error: "Use your campus email (example: IT12345678@my.sliit.lk)" },
+        { error: "Use your campus email (example: IT23319110@my.sliit.lk)" },
         { status: 400 }
       );
 
     }
 
-    // Validate password length
+
+    // ✅ Validate password length
 
     if (password.length < 6) {
 
@@ -45,7 +48,24 @@ export async function POST(req) {
 
     }
 
-    // Check existing user
+
+    // ✅ Student must have year & semester
+
+    if (role === "student") {
+
+      if (!year || !semester) {
+
+        return Response.json(
+          { error: "Year and semester are required for students" },
+          { status: 400 }
+        );
+
+      }
+
+    }
+
+
+    // ✅ Check existing user
 
     const existingUser = await User.findOne({ email });
 
@@ -58,20 +78,27 @@ export async function POST(req) {
 
     }
 
-    // Hash password
+
+    // ✅ Hash password
 
     const hashedPassword = await bcrypt.hash(password, 10);
+
+
+    // ✅ Create user properly based on role
 
     await User.create({
 
       name,
       email,
       password: hashedPassword,
-      role: "student",
-      year,
-      semester
+      role,
+
+      year: role === "student" ? year : null,
+
+      semester: role === "student" ? semester : null
 
     });
+
 
     return Response.json({
 
@@ -79,9 +106,10 @@ export async function POST(req) {
 
     });
 
+
   }
 
-  catch {
+  catch (error) {
 
     return Response.json(
       { error: "Registration failed" },
