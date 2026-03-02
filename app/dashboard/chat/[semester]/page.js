@@ -15,6 +15,9 @@ export default function CommunityChat() {
   const [attachedFile, setAttachedFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [editingId, setEditingId] = useState(null);
+  const [editText, setEditText] = useState("");
+  const [confirmModal, setConfirmModal] = useState({ open: false, messageId: null });
 
   const messagesEndRef = useRef(null);
   const scrollContainerRef = useRef(null);
@@ -180,25 +183,55 @@ export default function CommunityChat() {
     }
   };
 
-  const handleDeleteMessage = async (messageId) => {
+  const handleDeleteMessage = (messageId) => {
     if (!messageId) return;
+    setConfirmModal({ open: true, messageId });
+  };
 
-    // Optional confirm prompt for safety
-    if (!window.confirm("Are you sure you want to permanently delete this message?")) return;
-
+  const executeDelete = async () => {
+    const messageId = confirmModal.messageId;
+    setConfirmModal({ open: false, messageId: null });
+    if (!messageId) return;
     try {
-      const res = await fetch(`/api/chat?messageId=${messageId}`, {
+      const email = session?.user?.email || "";
+      const res = await fetch(`/api/chat?messageId=${messageId}&email=${encodeURIComponent(email)}`, {
         method: "DELETE",
       });
-
       if (res.ok) {
-        // Optimistically remove from UI
         setMessages((prev) => prev.filter((msg) => msg._id !== messageId));
       } else {
-        alert("Failed to delete message. Check console for details.");
+        const data = await res.json();
+        alert(data.error || "Failed to delete message.");
       }
     } catch (error) {
       console.error("Error deleting message:", error);
+    }
+  };
+
+  const handleEditMessage = (msg) => {
+    setEditingId(msg._id);
+    setEditText(msg.text || "");
+  };
+
+  const handleSaveEdit = async (messageId) => {
+    if (!editText.trim()) return;
+    try {
+      const res = await fetch(`/api/chat?messageId=${messageId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: editText, email: session?.user?.email }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setMessages((prev) => prev.map((m) => (m._id === messageId ? { ...m, text: updated.text, edited: true } : m)));
+        setEditingId(null);
+        setEditText("");
+      } else {
+        const data = await res.json();
+        alert(data.error || "Failed to edit message.");
+      }
+    } catch (error) {
+      console.error("Error editing message:", error);
     }
   };
 
@@ -462,41 +495,86 @@ export default function CommunityChat() {
                           </div>
                         )}
 
-                        {/* Text */}
-                        {msg.text && (
-                          <div className={hasAttachment ? 'px-1' : ''}>
-                            {msg.text}
+                        {/* Text or Inline Edit */}
+                        {editingId === msg._id ? (
+                          <div className="flex flex-col gap-2 min-w-[200px]">
+                            <textarea
+                              value={editText}
+                              onChange={(e) => setEditText(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSaveEdit(msg._id); }
+                                if (e.key === 'Escape') { setEditingId(null); }
+                              }}
+                              className="w-full bg-white/20 text-white placeholder-white/60 border border-white/30 rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-white/40"
+                              rows={Math.min(editText.split('\n').length + 1, 5)}
+                              autoFocus
+                            />
+                            <div className="flex gap-2 justify-end">
+                              <button onClick={() => setEditingId(null)} className="text-xs px-3 py-1 rounded-lg bg-white/20 hover:bg-white/30 text-white font-semibold transition-colors">Cancel</button>
+                              <button onClick={() => handleSaveEdit(msg._id)} className="text-xs px-3 py-1 rounded-lg bg-white text-indigo-700 font-bold hover:bg-indigo-50 transition-colors">Save</button>
+                            </div>
                           </div>
+                        ) : (
+                          msg.text && (
+                            <div className={hasAttachment ? 'px-1' : ''}>
+                              {msg.text}
+                              {msg.edited && <span className="ml-1.5 text-[10px] opacity-60 font-medium">(edited)</span>}
+                            </div>
+                          )
                         )}
 
-                        {/* Timestamp & Admin Controls */}
-                        <div className={`flex items-center justify-end gap-1.5 mt-1.5 -mb-0.5 select-none ${hasAttachment && !msg.text ? 'absolute bottom-3 right-3 bg-black/40 text-white px-2 py-0.5 rounded-full backdrop-blur-md' : (isMe ? 'text-indigo-200' : 'text-slate-400')}`}>
-                          <span className="text-[10px] font-bold tracking-wider">
-                            {formatTime(msg.timestamp || new Date().toISOString())}
-                          </span>
+                        {/* Timestamp & own-message controls */}
+                        {editingId !== msg._id && (
+                          <div className={`flex items-center justify-end gap-1.5 mt-1.5 -mb-0.5 select-none ${hasAttachment && !msg.text ? 'absolute bottom-3 right-3 bg-black/40 text-white px-2 py-0.5 rounded-full backdrop-blur-md' : (isMe ? 'text-indigo-200' : 'text-slate-400')}`}>
+                            <span className="text-[10px] font-bold tracking-wider">
+                              {formatTime(msg.timestamp || new Date().toISOString())}
+                            </span>
 
-                          {/* Admin Only Delete Hook */}
-                          {session?.user?.role === "admin" && msg._id && !msg.isOptimistic && (
-                            <button
-                              onClick={() => handleDeleteMessage(msg._id)}
-                              className="opacity-0 group-hover:opacity-100 transition-opacity ml-1.5 text-rose-400 hover:text-rose-600 focus:outline-none"
-                              title="Admin: Delete Message"
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
-                            </button>
-                          )}
+                            {/* Own-message or admin: Edit button (text-only messages) */}
+                            {isMe && msg._id && !msg.isOptimistic && msg.text && (
+                              <button
+                                onClick={() => handleEditMessage(msg)}
+                                className="opacity-0 group-hover:opacity-100 transition-opacity ml-1 text-indigo-200 hover:text-white focus:outline-none"
+                                title="Edit message"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+                              </button>
+                            )}
 
-                          {isMe && !msg.isOptimistic && (
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="opacity-90">
-                              <polyline points="20 6 9 17 4 12"></polyline>
-                            </svg>
-                          )}
-                          {isMe && msg.isOptimistic && (
-                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="opacity-70 animate-pulse">
-                              <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
-                            </svg>
-                          )}
-                        </div>
+                            {/* Own-message or admin: Delete button */}
+                            {(isMe || session?.user?.role === "admin") && msg._id && !msg.isOptimistic && (
+                              <button
+                                onClick={() => handleDeleteMessage(msg._id)}
+                                className="opacity-0 group-hover:opacity-100 transition-opacity ml-0.5 text-rose-300 hover:text-rose-500 focus:outline-none"
+                                title="Delete message"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /></svg>
+                              </button>
+                            )}
+
+                            {/* Other users' messages: admin-only delete */}
+                            {!isMe && session?.user?.role === "admin" && msg._id && !msg.isOptimistic && (
+                              <button
+                                onClick={() => handleDeleteMessage(msg._id)}
+                                className="opacity-0 group-hover:opacity-100 transition-opacity ml-1 text-rose-400 hover:text-rose-600 focus:outline-none"
+                                title="Admin: Delete message"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /></svg>
+                              </button>
+                            )}
+
+                            {isMe && !msg.isOptimistic && (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="opacity-90">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                              </svg>
+                            )}
+                            {isMe && msg.isOptimistic && (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="opacity-70 animate-pulse">
+                                <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
+                              </svg>
+                            )}
+                          </div>
+                        )}
 
                       </div>
                     </div>
@@ -613,6 +691,45 @@ export default function CommunityChat() {
           </form>
         </div>
       </main>
+
+      {/* ── Delete Confirmation Modal ── */}
+      {confirmModal.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 border border-slate-100 animate-in fade-in zoom-in-95 duration-200">
+
+            {/* Icon */}
+            <div className="flex items-center justify-center w-14 h-14 rounded-full bg-red-100 text-red-600 mb-5 mx-auto">
+              <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                <line x1="10" y1="11" x2="10" y2="17"></line>
+                <line x1="14" y1="11" x2="14" y2="17"></line>
+              </svg>
+            </div>
+
+            <h3 className="text-xl font-bold text-center text-slate-900 mb-2">Delete Message</h3>
+            <p className="text-center text-slate-500 text-sm mb-7">
+              This message will be permanently removed and cannot be recovered.
+            </p>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setConfirmModal({ open: false, messageId: null })}
+                className="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl text-slate-700 font-semibold hover:bg-slate-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={executeDelete}
+                className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-colors shadow-sm shadow-red-200 focus:ring-4 focus:ring-red-100"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

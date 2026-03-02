@@ -23,9 +23,19 @@ export async function DELETE(req) {
 
     await connectDB();
 
-    const { id } = await req.json();
+    // Frontend sends the id as a query param: DELETE /api/admin/users/delete?id=...
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
 
-    await User.findByIdAndDelete(id);
+    if (!id) {
+      return Response.json({ error: "User ID is required" }, { status: 400 });
+    }
+
+    const deleted = await User.findByIdAndDelete(id);
+
+    if (!deleted) {
+      return Response.json({ error: "User not found" }, { status: 404 });
+    }
 
     return Response.json({
 

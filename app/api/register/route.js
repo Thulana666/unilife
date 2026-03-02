@@ -1,6 +1,7 @@
 import connectDB from "@/lib/db";
 import User from "@/models/User";
 import bcrypt from "bcrypt";
+import { pushNotification } from "@/lib/pushNotification";
 
 export async function POST(req) {
 
@@ -100,10 +101,18 @@ export async function POST(req) {
     });
 
 
+    // Notify admins of new user registration
+    await pushNotification({
+      recipientRole: "admin",
+      title: "👤 New User Registered",
+      message: `${name} (${role}) has joined UniLife.`,
+      link: "/dashboard/admin/users",
+      type: "user",
+      createdBy: email,
+    });
+
     return Response.json({
-
       message: "Account created successfully"
-
     });
 
 
