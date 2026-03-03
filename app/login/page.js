@@ -47,8 +47,8 @@ export default function LoginPage() {
       <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100">
 
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-sky-600 rounded-2xl mx-auto flex items-center justify-center mb-4 shadow-md transform rotate-3">
-            <span className="text-white text-3xl font-bold -rotate-3">U</span>
+          <div className="w-16 h-16 bg-indigo-600 rounded-2xl mx-auto flex items-center justify-center mb-4 shadow-md transform -rotate-3">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" y1="8" x2="19" y2="14"></line><line x1="22" y1="11" x2="16" y2="11"></line></svg>
           </div>
           <h1 className="text-2xl font-bold text-slate-800 tracking-tight">UniLife Login</h1>
           <p className="text-sm text-slate-500 mt-1 font-medium">Smart Student Productivity Platform</p>
@@ -62,7 +62,7 @@ export default function LoginPage() {
               type="button"
               onClick={() => setRole(r)}
               className={`flex-1 py-2 text-sm font-semibold rounded-lg capitalize transition-all duration-200 ${role === r
-                ? "bg-white text-sky-600 shadow-sm border border-slate-200"
+                ? "bg-white text-indigo-600 shadow-sm border border-slate-200"
                 : "text-slate-500 hover:text-slate-700"
                 }`}
             >
@@ -88,7 +88,7 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@my.sliit.lk"
               required
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all placeholder:text-slate-400"
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all placeholder:text-slate-400"
             />
           </div>
 
@@ -102,14 +102,14 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               required
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all placeholder:text-slate-400"
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all placeholder:text-slate-400"
             />
           </div>
 
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-sky-600 hover:bg-sky-700 text-white font-semibold py-3 rounded-xl shadow-md hover:shadow-lg transition-all active:scale-[0.98] disabled:opacity-70 disabled:active:scale-100 flex items-center justify-center gap-2"
+            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl shadow-md hover:shadow-lg transition-all active:scale-[0.98] disabled:opacity-70 disabled:active:scale-100 flex items-center justify-center gap-2"
           >
             {isLoading ? (
               <>
@@ -123,7 +123,7 @@ export default function LoginPage() {
         <div className="mt-8 text-center">
           <p className="text-sm text-slate-600">
             Don't have an account?{" "}
-            <Link href="/register" className="font-semibold text-sky-600 hover:text-sky-700 hover:underline transition-colors">
+            <Link href="/register" className="font-semibold text-indigo-600 hover:text-indigo-700 hover:underline transition-colors">
               Register
             </Link>
           </p>

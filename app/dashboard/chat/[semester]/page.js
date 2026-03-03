@@ -57,13 +57,13 @@ export default function CommunityChat() {
   useEffect(() => {
     if (status === "authenticated") {
       fetchMessages();
-      // Poll every 5 seconds since we aren't using WebSockets
-      const interval = setInterval(fetchMessages, 5000);
+      // Poll every 1.5 seconds for a near-real-time feel
+      const interval = setInterval(fetchMessages, 1500);
       return () => clearInterval(interval);
     }
   }, [status, year, semester]);
 
-  const fetchMessages = async () => {
+  const fetchMessages = async (force = false) => {
     try {
       const res = await fetch(`/api/chat?year=${year}&semester=${semester}`);
       if (!res.ok) throw new Error("Failed to fetch messages");
@@ -72,11 +72,18 @@ export default function CommunityChat() {
       const incomingMessages = Array.isArray(data) ? data : (data.messages || []);
 
       setMessages((prev) => {
-        // Only update if array lengths are different to prevent react re-render flashes,
-        // (A more robust solution in production would compare IDs or last message timestamps)
-        if (prev.length !== incomingMessages.length) {
-          return incomingMessages;
-        }
+        // Force-update after sending (replaces optimistic placeholder).
+        // During polling: update if length changed, OR if the last message id/content changed
+        // (catches new messages from others AND edited messages).
+        if (force) return incomingMessages;
+        if (prev.length !== incomingMessages.length) return incomingMessages;
+        // Check if any optimistic message still exists
+        if (prev.some((m) => m.isOptimistic)) return incomingMessages;
+        // Check last message id & edited flag to catch edits / deletions
+        const lastPrev = prev[prev.length - 1];
+        const lastNew = incomingMessages[incomingMessages.length - 1];
+        if (!lastPrev || !lastNew) return incomingMessages;
+        if (lastPrev._id !== lastNew._id || lastPrev.edited !== lastNew.edited) return incomingMessages;
         return prev;
       });
 
@@ -173,7 +180,7 @@ export default function CommunityChat() {
       });
 
       if (res.ok) {
-        fetchMessages();
+        fetchMessages(true); // force=true: replace optimistic message with real one
       }
     } catch (error) {
       console.error("Failed to send message:", error);
@@ -240,6 +247,32 @@ export default function CommunityChat() {
     if (!isoString) return "";
     const date = new Date(isoString);
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  // Date label helper — WhatsApp style
+  const formatDateLabel = (isoString) => {
+    if (!isoString) return "";
+    const date = new Date(isoString);
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+
+    const sameDay = (a, b) =>
+      a.getFullYear() === b.getFullYear() &&
+      a.getMonth() === b.getMonth() &&
+      a.getDate() === b.getDate();
+
+    if (sameDay(date, today)) return "Today";
+    if (sameDay(date, yesterday)) return "Yesterday";
+    return date.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric', year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined });
+  };
+
+  // Extract a comparable date-only string from a message
+  const getMsgDateKey = (msg) => {
+    const iso = msg.createdAt || msg.timestamp;
+    if (!iso) return null;
+    const d = new Date(iso);
+    return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
   };
 
   const isImage = (fileName = "", fileType = "") => {
@@ -382,6 +415,11 @@ export default function CommunityChat() {
                 // dynamic margins
                 const blockMargin = isConsecutivePrev ? 'mt-1' : 'mt-6';
 
+                // Date separator logic
+                const msgDateKey = getMsgDateKey(msg);
+                const prevDateKey = prevMsg ? getMsgDateKey(prevMsg) : null;
+                const showDateSeparator = msgDateKey && msgDateKey !== prevDateKey;
+
                 // File parsing
                 const hasAttachment = !!msg.fileUrl;
                 const isMsgImage = hasAttachment && isImage(msg.fileName, msg.fileType);
@@ -407,181 +445,190 @@ export default function CommunityChat() {
                 // Render Notice Message styling
                 if (msg.isNotice) {
                   return (
-                    <div key={msg._id || idx} className="flex justify-center w-full my-6 relative group px-2">
-                      <div className="bg-[#FFF8E6] border border-[#FFE58F] shadow-sm rounded-2xl p-4 sm:p-5 w-full max-w-[90%] sm:max-w-[75%] relative overflow-hidden flex flex-col items-center text-center">
-                        <div className="absolute top-0 left-0 w-full h-1 bg-amber-400"></div>
-                        <div className="flex items-center gap-2 mb-3">
-                          <div className="text-amber-500 bg-amber-100 rounded-md p-1.5 flex items-center justify-center shrink-0">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                          </div>
-                          <span className="text-sm sm:text-base font-extrabold text-amber-600 tracking-widest uppercase">Special Notice</span>
+                    <>
+                      {showDateSeparator && (
+                        <div className="flex items-center justify-center my-4">
+                          <span className="px-3 py-1 text-[11px] font-semibold text-slate-500 bg-slate-200/70 rounded-full shadow-sm">
+                            {formatDateLabel(msg.createdAt || msg.timestamp)}
+                          </span>
                         </div>
-                        <p className="text-slate-800 font-bold text-[15px] sm:text-[17px] leading-relaxed break-words whitespace-pre-wrap">
-                          {msg.text}
-                        </p>
-                        <div className="mt-4 flex items-center text-xs font-bold text-amber-600/70 bg-amber-100/50 px-3 py-1 rounded-full gap-2 shrink-0">
-                          <span>Sent by {msg.sender}</span>
-                          <span className="w-1 h-1 rounded-full bg-amber-300"></span>
-                          <span>{formatTime(msg.timestamp || new Date().toISOString())}</span>
+                      )}
+                      <div key={msg._id || idx} className="flex justify-center w-full my-6 relative group px-2">
+                        <div className="bg-[#FFF8E6] border border-[#FFE58F] shadow-sm rounded-2xl p-4 sm:p-5 w-full max-w-[90%] sm:max-w-[75%] relative overflow-hidden flex flex-col items-center text-center">
+                          <div className="absolute top-0 left-0 w-full h-1 bg-amber-400"></div>
+                          <div className="flex items-center gap-2 mb-3">
+                            <div className="text-amber-500 bg-amber-100 rounded-md p-1.5 flex items-center justify-center shrink-0">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                            </div>
+                            <span className="text-sm sm:text-base font-extrabold text-amber-600 tracking-widest uppercase">Special Notice</span>
+                          </div>
+                          <p className="text-slate-800 font-bold text-[15px] sm:text-[17px] leading-relaxed break-words whitespace-pre-wrap">
+                            {msg.text}
+                          </p>
+                          <div className="mt-4 flex items-center text-xs font-bold text-amber-600/70 bg-amber-100/50 px-3 py-1 rounded-full gap-2 shrink-0">
+                            <span>Sent by {msg.sender}</span>
+                            <span className="w-1 h-1 rounded-full bg-amber-300"></span>
+                            <span>{formatTime(msg.createdAt || msg.timestamp)}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    </>
                   );
                 }
 
                 return (
-                  <div key={msg._id || idx} className={`flex w-full ${isMe ? 'justify-end' : 'justify-start'} ${blockMargin} relative group`}>
-
-                    {/* Sender Avatar Column */}
-                    {!isMe && (
-                      <div className="w-9 shrink-0 flex flex-col justify-end pb-1 mr-2 relative">
-                        {!isConsecutiveNext && (
-                          <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-sky-400 to-indigo-500 text-white flex items-center justify-center text-xs font-bold shadow-sm select-none absolute bottom-0">
-                            {msg.sender ? msg.sender.charAt(0).toUpperCase() : "?"}
-                          </div>
-                        )}
+                  <>
+                    {showDateSeparator && (
+                      <div className="flex items-center justify-center my-4">
+                        <span className="px-3 py-1 text-[11px] font-semibold text-slate-500 bg-slate-200/70 rounded-full shadow-sm">
+                          {formatDateLabel(msg.createdAt || msg.timestamp)}
+                        </span>
                       </div>
                     )}
+                    <div key={msg._id || idx} className={`flex w-full ${isMe ? 'justify-end' : 'justify-start'} ${blockMargin} relative group`}>
 
-                    <div className={`flex flex-col max-w-[85%] sm:max-w-[75%] md:max-w-[65%] ${isMe ? 'items-end' : 'items-start'}`}>
-
-                      {/* Sender Name label */}
-                      {!isMe && !isConsecutivePrev && (
-                        <span className="text-[12px] font-bold text-slate-500 ml-1 mb-1.5 tracking-tight">{msg.sender}</span>
+                      {/* Sender Avatar Column */}
+                      {!isMe && (
+                        <div className="w-9 shrink-0 flex flex-col justify-end pb-1 mr-2 relative">
+                          {!isConsecutiveNext && (
+                            <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-sky-400 to-indigo-500 text-white flex items-center justify-center text-xs font-bold shadow-sm select-none absolute bottom-0">
+                              {msg.sender ? msg.sender.charAt(0).toUpperCase() : "?"}
+                            </div>
+                          )}
+                        </div>
                       )}
 
-                      {/* Actual Chat Bubble */}
-                      <div className={`relative ${hasAttachment && !msg.text ? 'p-1.5' : 'px-4 py-2.5'} text-[15px] transform transition-all 
+                      <div className={`flex flex-col max-w-[85%] sm:max-w-[75%] md:max-w-[65%] ${isMe ? 'items-end' : 'items-start'}`}>
+
+                        {/* Sender Name label */}
+                        {!isMe && !isConsecutivePrev && (
+                          <span className="text-[12px] font-bold text-slate-500 ml-1 mb-1.5 tracking-tight">{msg.sender}</span>
+                        )}
+
+                        {/* Actual Chat Bubble */}
+                        <div className={`relative ${hasAttachment && !msg.text ? 'p-1.5' : 'px-4 py-2.5'} text-[15px] transform transition-all 
                         ${bubbleClass} ${radiusClass} 
                         ${msg.isOptimistic ? 'opacity-70 scale-[0.98]' : 'scale-100'} break-words whitespace-pre-wrap leading-relaxed`}>
 
-                        {/* ATTACHMENT */}
-                        {hasAttachment && (
-                          <div className={`overflow-hidden ${msg.text ? 'mb-2' : ''} ${isMe ? 'bg-indigo-700/40 rounded-xl' : 'bg-slate-50 rounded-xl border border-slate-100'}`}>
-                            {isMsgImage ? (
-                              <a href={msg.fileUrl} target="_blank" rel="noopener noreferrer" className="block relative group/img cursor-zoom-in">
-                                <img
-                                  src={msg.fileUrl}
-                                  alt={msg.fileName || "Attachment"}
-                                  className="max-w-full max-h-72 object-contain rounded-xl transition-all duration-300 group-hover/img:brightness-90"
-                                />
-                                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity">
-                                  <div className="bg-black/50 p-2 rounded-full text-white backdrop-blur-sm">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+                          {/* ATTACHMENT */}
+                          {hasAttachment && (
+                            <div className={`overflow-hidden ${msg.text ? 'mb-2' : ''} ${isMe ? 'bg-indigo-700/40 rounded-xl' : 'bg-slate-50 rounded-xl border border-slate-100'}`}>
+                              {isMsgImage ? (
+                                <a href={msg.fileUrl} target="_blank" rel="noopener noreferrer" className="block relative group/img cursor-zoom-in">
+                                  <img
+                                    src={msg.fileUrl}
+                                    alt={msg.fileName || "Attachment"}
+                                    className="max-w-full max-h-72 object-contain rounded-xl transition-all duration-300 group-hover/img:brightness-90"
+                                  />
+                                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity">
+                                    <div className="bg-black/50 p-2 rounded-full text-white backdrop-blur-sm">
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+                                    </div>
+                                  </div>
+                                </a>
+                              ) : (
+                                <div className="p-3 sm:p-4 flex items-center gap-3 w-full sm:min-w-[260px]">
+                                  <div className={`w-11 h-11 shrink-0 rounded-xl flex items-center justify-center text-xl shadow-sm ${isMe ? 'bg-indigo-500 text-white border border-indigo-400' : 'bg-white text-slate-600 border border-slate-200'}`}>
+                                    {getFileIcon(msg.fileName)}
+                                  </div>
+                                  <div className="flex-1 min-w-0 pr-2">
+                                    <p className={`text-[14px] leading-tight font-bold truncate ${isMe ? 'text-white' : 'text-slate-700'}`}>
+                                      {msg.fileName || "Document"}
+                                    </p>
+                                    <a
+                                      href={msg.fileUrl}
+                                      target="_blank"
+                                      download
+                                      className={`text-[12px] font-bold hover:underline inline-flex items-center gap-1 mt-1 transition-colors ${isMe ? 'text-indigo-200 hover:text-white' : 'text-indigo-600 hover:text-indigo-800'}`}
+                                    >
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                      Download File
+                                    </a>
                                   </div>
                                 </div>
-                              </a>
-                            ) : (
-                              <div className="p-3 sm:p-4 flex items-center gap-3 w-full sm:min-w-[260px]">
-                                <div className={`w-11 h-11 shrink-0 rounded-xl flex items-center justify-center text-xl shadow-sm ${isMe ? 'bg-indigo-500 text-white border border-indigo-400' : 'bg-white text-slate-600 border border-slate-200'}`}>
-                                  {getFileIcon(msg.fileName)}
-                                </div>
-                                <div className="flex-1 min-w-0 pr-2">
-                                  <p className={`text-[14px] leading-tight font-bold truncate ${isMe ? 'text-white' : 'text-slate-700'}`}>
-                                    {msg.fileName || "Document"}
-                                  </p>
-                                  <a
-                                    href={msg.fileUrl}
-                                    target="_blank"
-                                    download
-                                    className={`text-[12px] font-bold hover:underline inline-flex items-center gap-1 mt-1 transition-colors ${isMe ? 'text-indigo-200 hover:text-white' : 'text-indigo-600 hover:text-indigo-800'}`}
-                                  >
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                                    Download File
-                                  </a>
-                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Text or Inline Edit */}
+                          {editingId === msg._id ? (
+                            <div className="flex flex-col gap-2 min-w-[200px]">
+                              <textarea
+                                value={editText}
+                                onChange={(e) => setEditText(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSaveEdit(msg._id); }
+                                  if (e.key === 'Escape') { setEditingId(null); }
+                                }}
+                                className="w-full bg-white/20 text-white placeholder-white/60 border border-white/30 rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-white/40"
+                                rows={Math.min(editText.split('\n').length + 1, 5)}
+                                autoFocus
+                              />
+                              <div className="flex gap-2 justify-end">
+                                <button onClick={() => setEditingId(null)} className="text-xs px-3 py-1 rounded-lg bg-white/20 hover:bg-white/30 text-white font-semibold transition-colors">Cancel</button>
+                                <button onClick={() => handleSaveEdit(msg._id)} className="text-xs px-3 py-1 rounded-lg bg-white text-indigo-700 font-bold hover:bg-indigo-50 transition-colors">Save</button>
                               </div>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Text or Inline Edit */}
-                        {editingId === msg._id ? (
-                          <div className="flex flex-col gap-2 min-w-[200px]">
-                            <textarea
-                              value={editText}
-                              onChange={(e) => setEditText(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSaveEdit(msg._id); }
-                                if (e.key === 'Escape') { setEditingId(null); }
-                              }}
-                              className="w-full bg-white/20 text-white placeholder-white/60 border border-white/30 rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-white/40"
-                              rows={Math.min(editText.split('\n').length + 1, 5)}
-                              autoFocus
-                            />
-                            <div className="flex gap-2 justify-end">
-                              <button onClick={() => setEditingId(null)} className="text-xs px-3 py-1 rounded-lg bg-white/20 hover:bg-white/30 text-white font-semibold transition-colors">Cancel</button>
-                              <button onClick={() => handleSaveEdit(msg._id)} className="text-xs px-3 py-1 rounded-lg bg-white text-indigo-700 font-bold hover:bg-indigo-50 transition-colors">Save</button>
                             </div>
-                          </div>
-                        ) : (
-                          msg.text && (
-                            <div className={hasAttachment ? 'px-1' : ''}>
-                              {msg.text}
-                              {msg.edited && <span className="ml-1.5 text-[10px] opacity-60 font-medium">(edited)</span>}
+                          ) : (
+                            msg.text && (
+                              <div className={hasAttachment ? 'px-1' : ''}>
+                                {msg.text}
+                                {msg.edited && <span className="ml-1.5 text-[10px] opacity-60 font-medium">(edited)</span>}
+                              </div>
+                            )
+                          )}
+
+                          {/* Timestamp & own-message controls */}
+                          {editingId !== msg._id && (
+                            <div className={`flex items-center justify-end gap-1.5 mt-1.5 -mb-0.5 select-none ${hasAttachment && !msg.text ? 'absolute bottom-3 right-3 bg-black/40 text-white px-2 py-0.5 rounded-full backdrop-blur-md' : (isMe ? 'text-indigo-200' : 'text-slate-400')}`}>
+                              <span className="text-[10px] font-bold tracking-wider">
+                                {formatTime(msg.createdAt || msg.timestamp)}
+                              </span>
+
+                              {/* Own-message or admin: Edit button (text-only messages) */}
+                              {isMe && msg._id && !msg.isOptimistic && msg.text && (
+                                <button
+                                  onClick={() => handleEditMessage(msg)}
+                                  className="opacity-0 group-hover:opacity-100 transition-opacity ml-1 text-indigo-200 hover:text-white focus:outline-none"
+                                  title="Edit message"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+                                </button>
+                              )}
+
+                              {/* Own-message or admin: Delete button */}
+                              {(isMe || session?.user?.role === "admin") && msg._id && !msg.isOptimistic && (
+                                <button
+                                  onClick={() => handleDeleteMessage(msg._id)}
+                                  className="opacity-0 group-hover:opacity-100 transition-opacity ml-0.5 text-rose-300 hover:text-rose-500 focus:outline-none"
+                                  title="Delete message"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /></svg>
+                                </button>
+                              )}
+
+
+
+                              {isMe && !msg.isOptimistic && (
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="opacity-90">
+                                  <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                              )}
+                              {isMe && msg.isOptimistic && (
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="opacity-70 animate-pulse">
+                                  <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                              )}
                             </div>
-                          )
-                        )}
+                          )}
 
-                        {/* Timestamp & own-message controls */}
-                        {editingId !== msg._id && (
-                          <div className={`flex items-center justify-end gap-1.5 mt-1.5 -mb-0.5 select-none ${hasAttachment && !msg.text ? 'absolute bottom-3 right-3 bg-black/40 text-white px-2 py-0.5 rounded-full backdrop-blur-md' : (isMe ? 'text-indigo-200' : 'text-slate-400')}`}>
-                            <span className="text-[10px] font-bold tracking-wider">
-                              {formatTime(msg.timestamp || new Date().toISOString())}
-                            </span>
-
-                            {/* Own-message or admin: Edit button (text-only messages) */}
-                            {isMe && msg._id && !msg.isOptimistic && msg.text && (
-                              <button
-                                onClick={() => handleEditMessage(msg)}
-                                className="opacity-0 group-hover:opacity-100 transition-opacity ml-1 text-indigo-200 hover:text-white focus:outline-none"
-                                title="Edit message"
-                              >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
-                              </button>
-                            )}
-
-                            {/* Own-message or admin: Delete button */}
-                            {(isMe || session?.user?.role === "admin") && msg._id && !msg.isOptimistic && (
-                              <button
-                                onClick={() => handleDeleteMessage(msg._id)}
-                                className="opacity-0 group-hover:opacity-100 transition-opacity ml-0.5 text-rose-300 hover:text-rose-500 focus:outline-none"
-                                title="Delete message"
-                              >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /></svg>
-                              </button>
-                            )}
-
-                            {/* Other users' messages: admin-only delete */}
-                            {!isMe && session?.user?.role === "admin" && msg._id && !msg.isOptimistic && (
-                              <button
-                                onClick={() => handleDeleteMessage(msg._id)}
-                                className="opacity-0 group-hover:opacity-100 transition-opacity ml-1 text-rose-400 hover:text-rose-600 focus:outline-none"
-                                title="Admin: Delete message"
-                              >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /></svg>
-                              </button>
-                            )}
-
-                            {isMe && !msg.isOptimistic && (
-                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="opacity-90">
-                                <polyline points="20 6 9 17 4 12"></polyline>
-                              </svg>
-                            )}
-                            {isMe && msg.isOptimistic && (
-                              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="opacity-70 animate-pulse">
-                                <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
-                              </svg>
-                            )}
-                          </div>
-                        )}
-
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </>
                 );
               })}
-            </div>
+            </div >
           )}
 
           {/* Invisible anchor for scrolling */}

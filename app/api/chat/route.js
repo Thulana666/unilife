@@ -2,6 +2,8 @@ import connectDB from "@/lib/db";
 import Message from "@/models/Message";
 import cloudinary from "@/lib/cloudinary";
 import { pushNotification } from "@/lib/pushNotification";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/authOptions";
 
 export async function GET(req) {
     try {
@@ -106,9 +108,14 @@ export async function POST(req) {
 export async function DELETE(req) {
     try {
         await connectDB();
+
+        const session = await getServerSession(authOptions);
+        if (!session) {
+            return Response.json({ error: "Unauthorised" }, { status: 401 });
+        }
+
         const { searchParams } = new URL(req.url);
         const messageId = searchParams.get("messageId");
-        const callerEmail = searchParams.get("email"); // passed by the client
 
         if (!messageId) {
             return Response.json({ error: "Message ID is required" }, { status: 400 });
@@ -119,10 +126,10 @@ export async function DELETE(req) {
             return Response.json({ error: "Message not found" }, { status: 404 });
         }
 
-        // Only the message owner OR an admin caller (identified by email) can delete.
-        // We keep this simple – the true role check remains in the UI; server just
-        // confirms the email matches the message sender email.
-        if (callerEmail && msg.email && msg.email !== callerEmail) {
+        const isAdmin = session.user.role === "admin";
+        const isOwner = msg.email && msg.email === session.user.email;
+
+        if (!isAdmin && !isOwner) {
             return Response.json({ error: "Not authorised to delete this message" }, { status: 403 });
         }
 

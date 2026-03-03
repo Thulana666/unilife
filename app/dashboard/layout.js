@@ -320,6 +320,7 @@ export default function DashboardLayout({ children }) {
     const navigation = {
         common: [
             { name: "Dashboard", href: role === "admin" ? "/dashboard/admin" : role === "lecturer" ? "/dashboard/lecturer" : "/dashboard", icon: "LayoutDashboard" },
+            { name: "Profile", href: "/dashboard/profile", icon: "UserCircle" },
         ],
         student: [
             { name: "Assignments", href: "/dashboard/assignments", icon: "BookOpenCheck" },
@@ -354,6 +355,7 @@ export default function DashboardLayout({ children }) {
 
     const renderIcon = (iconName) => {
         switch (iconName) {
+            case "UserCircle": return <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="5" /><path d="M20 21a8 8 0 1 0-16 0" /></svg>;
             case "LayoutDashboard": return <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="9" x="3" y="3" rx="1" /><rect width="7" height="5" x="14" y="3" rx="1" /><rect width="7" height="9" x="14" y="12" rx="1" /><rect width="7" height="5" x="3" y="16" rx="1" /></svg>;
             case "BookOpenCheck": return <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" /><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" /><path d="m16 13 2 2 4-4" /></svg>;
             case "Calendar": return <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2" /><line x1="16" x2="16" y1="2" y2="6" /><line x1="8" x2="8" y1="2" y2="6" /><line x1="3" x2="21" y1="10" y2="10" /></svg>;
@@ -403,7 +405,10 @@ export default function DashboardLayout({ children }) {
 
                     <nav className="space-y-1 px-3">
                         {navItems.map((item) => {
-                            const isActive = pathname === item.href || (pathname.startsWith(item.href) && item.href !== "/dashboard");
+                            const isDashboardItem = item.icon === "LayoutDashboard";
+                            const isActive = isDashboardItem
+                                ? pathname === item.href
+                                : pathname === item.href || pathname.startsWith(item.href + "/");
                             return (
                                 <Link
                                     key={item.name}
@@ -499,10 +504,10 @@ export default function DashboardLayout({ children }) {
                             <span className="sm:hidden">{role.charAt(0)}</span>
                         </div>
 
-                        {/* User Profile Avatar */}
-                        <div className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-700 font-bold shadow-sm cursor-pointer hover:bg-indigo-200 transition-colors shrink-0">
+                        {/* User Profile Avatar — links to profile page */}
+                        <Link href="/dashboard/profile" className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-700 font-bold shadow-sm cursor-pointer hover:bg-indigo-200 transition-colors shrink-0" title="My Profile">
                             {(session.user?.name || "?").charAt(0).toUpperCase()}
-                        </div>
+                        </Link>
                     </div>
                 </header>
 
