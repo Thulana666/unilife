@@ -33,11 +33,11 @@ export async function GET(req) {
   }
 }
 
-// POST: upload a note (lecturer / admin; supports multipart for file upload)
+// POST: upload a note (all roles; supports multipart for file upload)
 export async function POST(req) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session || session.user.role === "student") {
+    if (!session) {
       return Response.json({ error: "Access denied" }, { status: 403 });
     }
 
@@ -98,7 +98,7 @@ export async function POST(req) {
       recipientSemester: semester,
       title: "📝 New Notes Shared",
       message: `"${title}" has been uploaded for Year ${year} Semester ${semester}.`,
-      link: "/dashboard/notes",
+      link: `/dashboard/${semester}/notes`,
       type: "notes",
       createdBy: session.user.email,
     });
@@ -126,11 +126,11 @@ export async function POST(req) {
   }
 }
 
-// DELETE: remove note (lecturer / admin)
+// DELETE: remove note (admin or owner)
 export async function DELETE(req) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session || session.user.role === "student") {
+    if (!session) {
       return Response.json({ error: "Access denied" }, { status: 403 });
     }
 
@@ -140,10 +140,52 @@ export async function DELETE(req) {
     const id = searchParams.get("id");
     if (!id) return Response.json({ error: "ID required" }, { status: 400 });
 
+    const note = await Notes.findById(id);
+    if (!note) return Response.json({ error: "Note not found" }, { status: 404 });
+
+    if (session.user.role !== "admin" && note.uploadedBy !== session.user.email) {
+      return Response.json({ error: "Access denied: You can only delete your own notes." }, { status: 403 });
+    }
+
     await Notes.findByIdAndDelete(id);
     return Response.json({ message: "Note deleted" });
   } catch (err) {
     console.error("DELETE /api/notes:", err);
     return Response.json({ error: "Failed to delete note" }, { status: 500 });
+  }
+}
+
+// PUT: update note details (admin or owner)
+export async function PUT(req) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return Response.json({ error: "Access denied" }, { status: 403 });
+    }
+
+    await connectDB();
+
+    const body = await req.json();
+    const { id, title, description } = body;
+
+    if (!id || !title) {
+      return Response.json({ error: "ID and Title are required" }, { status: 400 });
+    }
+
+    const note = await Notes.findById(id);
+    if (!note) return Response.json({ error: "Note not found" }, { status: 404 });
+
+    if (session.user.role !== "admin" && note.uploadedBy !== session.user.email) {
+      return Response.json({ error: "Access denied: You can only update your own notes." }, { status: 403 });
+    }
+
+    note.title = title;
+    note.description = description || "";
+    await note.save();
+
+    return Response.json({ message: "Note updated successfully", note });
+  } catch (err) {
+    console.error("PUT /api/notes:", err);
+    return Response.json({ error: "Failed to update note" }, { status: 500 });
   }
 }

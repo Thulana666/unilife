@@ -16,7 +16,7 @@ export default function NotesRedirect() {
       // Default to user's year/semester, or fallback to 1
       const year = session.user.year || 1;
       const semester = session.user.semester || 1;
-      router.replace(`/dashboard/notes/${semester}`);
+      router.replace(`/dashboard/${semester}/notes`);
     }
   }, [session, status, router]);
 
