@@ -13,6 +13,14 @@ export async function GET(req) {
         await connectDB();
 
         const { searchParams } = new URL(req.url);
+        const isAdmin = session.user.role === "admin";
+
+        // Admin with admin=true flag → return every entry unfiltered
+        if (isAdmin && searchParams.get("admin") === "true") {
+            const entries = await Planner.find({}).sort({ date: 1, day: 1, createdAt: -1 });
+            return Response.json(entries);
+        }
+
         const year = parseInt(searchParams.get("year") || session.user.year || 1);
         const semester = parseInt(searchParams.get("semester") || session.user.semester || 1);
 

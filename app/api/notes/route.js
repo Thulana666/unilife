@@ -14,6 +14,14 @@ export async function GET(req) {
         await connectDB();
 
         const { searchParams } = new URL(req.url);
+        const isAdmin = session.user.role === "admin";
+
+        // Admin with admin=true flag → return all notes unfiltered
+        if (isAdmin && searchParams.get("admin") === "true") {
+            const notes = await Notes.find({}).sort({ createdAt: -1 });
+            return Response.json(notes);
+        }
+
         const year = parseInt(searchParams.get("year") || session.user.year || 1);
         const semester = parseInt(searchParams.get("semester") || session.user.semester || 1);
 
