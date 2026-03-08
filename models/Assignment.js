@@ -17,8 +17,13 @@ const AssignmentSchema = new mongoose.Schema({
 
   status: {
     type: String,
-    enum: ["pending", "submitted", "late"],
+    enum: ["pending", "submitted", "overdue"],
     default: "pending",
+  },
+
+  course: {
+    type: String,
+    required: true,
   },
 
   userId: {
@@ -26,8 +31,8 @@ const AssignmentSchema = new mongoose.Schema({
     required: true,
   },
 
-  year: Number,
-  semester: Number,
+  year: String,
+  semester: String,
 
 }, { timestamps: true });
 
