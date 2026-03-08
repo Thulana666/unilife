@@ -29,11 +29,18 @@ export async function POST(req) {
 export async function PUT(req) {
   await connectDB();
 
-  const { id, status } = await req.json();
+  const { id, status, title, description, dueDate, course } = await req.json();
+
+  const updateFields = {};
+  if (status !== undefined) updateFields.status = status;
+  if (title !== undefined) updateFields.title = title;
+  if (description !== undefined) updateFields.description = description;
+  if (dueDate !== undefined) updateFields.dueDate = dueDate;
+  if (course !== undefined) updateFields.course = course;
 
   const updated = await Assignment.findByIdAndUpdate(
     id,
-    { status },
+    updateFields,
     { new: true }
   );
 

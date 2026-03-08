@@ -13,13 +13,21 @@ const handler = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error("Invalid email or password");
+        }
+
         await connectDB();
 
         const user = await User.findOne({ email: credentials.email });
-        if (!user) throw new Error("User not found");
 
-        const isMatch = await bcrypt.compare(credentials.password, user.password);
-        if (!isMatch) throw new Error("Invalid password");
+        // Use a dummy hash when user not found to prevent timing-based user enumeration
+        const DUMMY_HASH = "$2a$06$DCq7YPn5Rq63x1Lad4cll.TV4S6ytwfsfvkgY8jIucDrjc8deX1s.";
+        const isMatch = await bcrypt.compare(
+          credentials.password,
+          user ? user.password : DUMMY_HASH
+        );
+        if (!user || !isMatch) throw new Error("Invalid email or password");
 
         // Return object becomes session.user
         return {
