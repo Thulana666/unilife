@@ -31,6 +31,10 @@ const AssignmentSchema = new mongoose.Schema({
     required: true,
   },
 
+  createdBy: {
+    type: String,
+  },
+
   year: String,
   semester: String,
 

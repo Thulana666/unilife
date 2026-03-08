@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { format, isSameDay, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, isToday, isBefore, startOfDay } from "date-fns";
-import { Calendar as CalendarIcon, CheckCircle2, Circle, Clock, Edit2, LayoutGrid, List, Plus, Trash2, X, ChevronLeft, ChevronRight, BookOpen, Loader2 } from "lucide-react";
+import { Calendar as CalendarIcon, CheckCircle2, Circle, Clock, Edit2, LayoutGrid, List, Plus, Trash2, X, ChevronLeft, ChevronRight, BookOpen, Loader2, AlertCircle, CheckCircle, ListTodo, BarChart3, Filter } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
@@ -16,6 +16,7 @@ export default function AssignmentsPage() {
   const [assignments, setAssignments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [view, setView] = useState("list");
+  const [filter, setFilter] = useState("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -111,6 +112,7 @@ export default function AssignmentsPage() {
           course,
           status,
           userId: session.user.id,
+          createdBy: session.user.email,
           year: session.user.year || 1,
           semester: session.user.semester || 1,
           // If params.semester has info, we could parse it, but let's just use semester from session or params
@@ -198,6 +200,25 @@ export default function AssignmentsPage() {
     return [...assignments].sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
   }, [assignments]);
 
+  const { total, pending, submitted, overdue } = useMemo(() => {
+    return {
+      total: assignments.length,
+      pending: assignments.filter(a => a.status === 'pending').length,
+      submitted: assignments.filter(a => a.status === 'submitted').length,
+      overdue: assignments.filter(a => a.status === 'overdue').length,
+    };
+  }, [assignments]);
+
+  const completionRate = total > 0 ? Math.round((submitted / total) * 100) : 0;
+
+  const filteredAssignments = useMemo(() => {
+    let filtered = [...assignments];
+    if (filter !== "all") {
+      filtered = filtered.filter(a => a.status === filter);
+    }
+    return filtered.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+  }, [assignments, filter]);
+
   if (!isMounted) {
     return null;
   }
@@ -244,10 +265,98 @@ export default function AssignmentsPage() {
 
       {/* Main Content */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        {/* Summary Section */}
+        <div className="mb-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="bg-white rounded-xl border border-zinc-200 p-4 shadow-sm flex items-center gap-4">
+              <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
+                <BarChart3 className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-zinc-500">Total</p>
+                <p className="text-2xl font-semibold text-zinc-900">{total}</p>
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-xl border border-zinc-200 p-4 shadow-sm flex items-center gap-4">
+              <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600">
+                <ListTodo className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-zinc-500">Pending</p>
+                <p className="text-2xl font-semibold text-zinc-900">{pending}</p>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl border border-zinc-200 p-4 shadow-sm flex items-center gap-4">
+              <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
+                <CheckCircle className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-zinc-500">Submitted</p>
+                <p className="text-2xl font-semibold text-zinc-900">{submitted}</p>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl border border-zinc-200 p-4 shadow-sm flex items-center gap-4">
+              <div className="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center text-red-600">
+                <AlertCircle className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-zinc-500">Overdue</p>
+                <p className="text-2xl font-semibold text-zinc-900">{overdue}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="bg-white rounded-xl border border-zinc-200 p-5 shadow-sm">
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="text-sm font-medium text-zinc-700">Completion Progress</h3>
+              <span className="text-sm font-semibold text-indigo-600">{completionRate}%</span>
+            </div>
+            <div className="w-full bg-zinc-100 rounded-full h-2.5 overflow-hidden">
+              <div 
+                className="bg-indigo-600 h-2.5 rounded-full transition-all duration-500 ease-out" 
+                style={{ width: `${completionRate}%` }}
+              ></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Filters */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-4 scrollbar-hide">
+          <button
+            onClick={() => setFilter("all")}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${filter === "all" ? "bg-zinc-900 text-white shadow-sm" : "bg-white text-zinc-600 border border-zinc-200 hover:bg-zinc-50"}`}
+          >
+            All
+          </button>
+          <button
+            onClick={() => setFilter("pending")}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${filter === "pending" ? "bg-amber-100 text-amber-800 shadow-sm border-amber-200 border" : "bg-white text-zinc-600 border border-zinc-200 hover:bg-zinc-50"}`}
+          >
+            Pending
+          </button>
+          <button
+            onClick={() => setFilter("submitted")}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${filter === "submitted" ? "bg-emerald-100 text-emerald-800 shadow-sm border-emerald-200 border" : "bg-white text-zinc-600 border border-zinc-200 hover:bg-zinc-50"}`}
+          >
+            Submitted
+          </button>
+          <button
+            onClick={() => setFilter("overdue")}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${filter === "overdue" ? "bg-red-100 text-red-800 shadow-sm border-red-200 border" : "bg-white text-zinc-600 border border-zinc-200 hover:bg-zinc-50"}`}
+          >
+            Overdue
+          </button>
+        </div>
+
         {view === "list" ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <AnimatePresence>
-              {sortedAssignments.map((assignment) => (
+              {filteredAssignments.map((assignment) => (
                 <motion.div
                   layout
                   initial={{ opacity: 0, y: 20 }}
@@ -282,6 +391,11 @@ export default function AssignmentsPage() {
                   <h3 className={`font-semibold text-lg mb-1 ${assignment.status === 'submitted' ? 'text-zinc-500 line-through' : 'text-zinc-900'}`}>
                     {assignment.title}
                   </h3>
+                  {assignment.createdBy && (
+                    <div className="text-xs text-zinc-500 mb-2">
+                      Created by: {assignment.createdBy}
+                    </div>
+                  )}
                   <p className="text-zinc-500 text-sm mb-4 line-clamp-2">
                     {assignment.description}
                   </p>
@@ -319,13 +433,15 @@ export default function AssignmentsPage() {
                 </motion.div>
               ))}
             </AnimatePresence>
-            {assignments.length === 0 && (
+            {filteredAssignments.length === 0 && (
               <div className="col-span-full py-12 text-center">
                 <div className="w-16 h-16 bg-zinc-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <BookOpen className="w-8 h-8 text-zinc-400" />
                 </div>
-                <h3 className="text-lg font-medium text-zinc-900 mb-1">No assignments yet</h3>
-                <p className="text-zinc-500">Get started by adding your first assignment.</p>
+                <h3 className="text-lg font-medium text-zinc-900 mb-1">No assignments found</h3>
+                <p className="text-zinc-500">
+                  {filter === "all" ? "Get started by adding your first assignment." : `No ${filter} assignments available.`}
+                </p>
               </div>
             )}
           </div>
