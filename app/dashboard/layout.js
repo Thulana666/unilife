@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-// ── Notification type → icon + color map ────────────────────────────────────
+// ââ Notification type â icon + color map ââââââââââââââââââââââââââââââââââââ
 function NotifIcon({ type }) {
     const cfg = {
         assignment: { bg: "bg-blue-100", text: "text-blue-600", path: "M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z M16 13l2 2 4-4" },
@@ -28,7 +28,7 @@ function NotifIcon({ type }) {
     );
 }
 
-// ── Relative time helper ─────────────────────────────────────────────────────
+// ââ Relative time helper âââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function relativeTime(iso) {
     const diff = Date.now() - new Date(iso).getTime();
     const m = Math.floor(diff / 60000);
@@ -39,7 +39,7 @@ function relativeTime(iso) {
     return `${Math.floor(h / 24)}d ago`;
 }
 
-// ── Notification Bell & Dropdown ─────────────────────────────────────────────
+// ââ Notification Bell & Dropdown âââââââââââââââââââââââââââââââââââââââââââââ
 function NotificationBell({ session }) {
     const [open, setOpen] = useState(false);
     const [notifications, setNotifications] = useState([]);
@@ -274,7 +274,7 @@ function NotificationBell({ session }) {
     );
 }
 
-// ── Main Dashboard Layout ─────────────────────────────────────────────────────
+// ââ Main Dashboard Layout âââââââââââââââââââââââââââââââââââââââââââââââââââââ
 export default function DashboardLayout({ children }) {
     const { data: session, status } = useSession();
     const router = useRouter();
@@ -317,25 +317,19 @@ export default function DashboardLayout({ children }) {
     const year = session.user?.year || 1;
     const semester = session.user?.semester || 1;
 
+    // Filtered Navigation based on explicitly only showing Notes to not cause conflicts
     const navigation = {
         common: [
             { name: "Dashboard", href: role === "admin" ? "/dashboard/admin" : role === "lecturer" ? "/dashboard/lecturer" : "/dashboard", icon: "LayoutDashboard" },
             { name: "Profile", href: "/dashboard/profile", icon: "UserCircle" },
         ],
         student: [
-            { name: "Assignments", href: "/dashboard/assignments", icon: "BookOpenCheck" },
-            { name: "Study Planner", href: "/dashboard/planner", icon: "Calendar" },
             { name: "Notes", href: "/dashboard/notes", icon: "Files" },
-            { name: "Community Chat", href: `/dashboard/chat/y${year}s${semester}`, icon: "MessageSquareText" },
         ],
         lecturer: [
             { name: "Manage Notes", href: "/dashboard/lecturer/notes", icon: "Library" },
-            { name: "Manage Assignments", href: "/dashboard/lecturer/assignments", icon: "FileSignature" },
-            { name: "Community Chat", href: "/dashboard/lecturer/chat", icon: "MessageSquareText" },
         ],
         admin: [
-            { name: "Manage Assignments", href: "/dashboard/admin/assignments", icon: "BookOpenCheck" },
-            { name: "Manage Planner", href: "/dashboard/admin/planner", icon: "Calendar" },
             { name: "Manage Notes", href: "/dashboard/admin/notes", icon: "Files" },
             { name: "System Chat", href: "/dashboard/admin/semesters", icon: "MessageSquareText" },
             { name: "Create User", href: "/dashboard/admin/create-user", icon: "UserPlus" },
@@ -491,7 +485,7 @@ export default function DashboardLayout({ children }) {
                     {/* Right section: Notification Bell + Role Badge + Avatar */}
                     <div className="flex items-center gap-2 md:gap-3 shrink-0">
 
-                        {/* 🔔 Notification Bell */}
+                        {/* ð Notification Bell */}
                         <NotificationBell session={session} />
 
                         {/* Role Badge */}
@@ -504,7 +498,7 @@ export default function DashboardLayout({ children }) {
                             <span className="sm:hidden">{role.charAt(0)}</span>
                         </div>
 
-                        {/* User Profile Avatar — links to profile page */}
+                        {/* User Profile Avatar â links to profile page */}
                         <Link href="/dashboard/profile" className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-700 font-bold shadow-sm cursor-pointer hover:bg-indigo-200 transition-colors shrink-0" title="My Profile">
                             {(session.user?.name || "?").charAt(0).toUpperCase()}
                         </Link>
