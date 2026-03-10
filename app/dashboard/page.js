@@ -80,7 +80,7 @@ export default function StudentDashboard() {
                             View, download, and share academic notes with your peers across all modules.
                         </p>
                     </div>
-                    <Link href="/dashboard/notes" className="z-10 relative">
+                    <Link href={`/dashboard/${year}/notes`} className="z-10 relative">
                         <button className="w-full flex items-center justify-center gap-2 py-3 px-6 bg-slate-50 text-amber-600 font-bold rounded-xl group-hover:bg-amber-50 transition-colors border border-slate-100 group-hover:border-amber-200">
                             Open Notes
                             <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 group-hover:translate-x-1 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
