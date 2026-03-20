@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
-import { format, isSameDay, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, isToday, isBefore, startOfDay } from "date-fns";
-import { Calendar as CalendarIcon, CheckCircle2, Circle, Clock, Edit2, LayoutGrid, List, Plus, Trash2, X, ChevronLeft, ChevronRight, BookOpen, Loader2, AlertCircle, CheckCircle, ListTodo, BarChart3, Filter } from "lucide-react";
+import { useState, useMemo, useEffect, useRef } from "react";
+import { format, isSameDay, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, isToday, isBefore, startOfDay, differenceInHours } from "date-fns";
+import { Calendar as CalendarIcon, CheckCircle2, Circle, Clock, Edit2, LayoutGrid, List, Plus, Trash2, X, ChevronLeft, ChevronRight, BookOpen, Loader2, AlertCircle, CheckCircle, ListTodo, BarChart3, Filter, UploadCloud } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
@@ -20,6 +20,14 @@ export default function AssignmentsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Submit modal state
+  const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
+  const [submittingAssignmentId, setSubmittingAssignmentId] = useState(null);
+  const [submitText, setSubmitText] = useState("");
+  const [submitUrl, setSubmitUrl] = useState("");
+  const [uploadedFile, setUploadedFile] = useState(null);
+  const fileInputRef = useRef(null);
   
   // Form state
   const [title, setTitle] = useState("");
@@ -185,6 +193,79 @@ export default function AssignmentsPage() {
       }
       return a;
     }));
+  };
+
+  const handleOpenSubmitModal = (assignment) => {
+    setSubmittingAssignmentId(assignment.id);
+    setSubmitText(assignment.submissionText || "");
+    setSubmitUrl(assignment.submissionUrl || "");
+    setIsSubmitModalOpen(true);
+  };
+
+  const handleCloseSubmitModal = () => {
+    setIsSubmitModalOpen(false);
+    setSubmittingAssignmentId(null);
+    setSubmitText("");
+    setSubmitUrl("");
+    setUploadedFile(null);
+  };
+
+  const handleFileDrop = (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer?.files?.[0];
+    if (file) setUploadedFile(file);
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) setUploadedFile(file);
+  };
+
+  const handleSubmitWork = async (e) => {
+    e.preventDefault();
+    if (!submittingAssignmentId) return;
+    setIsSubmitting(true);
+
+    try {
+      let finalUrl = submitUrl;
+      
+      if (uploadedFile) {
+        const formData = new FormData();
+        formData.append("file", uploadedFile);
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body: formData
+        });
+        if (res.ok) {
+          const data = await res.json();
+          finalUrl = data.url;
+        }
+      }
+
+      const now = new Date().toISOString();
+      await fetch("/api/assignments", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          id: submittingAssignmentId, 
+          status: "submitted",
+          submissionText: submitText,
+          submissionUrl: finalUrl,
+          submittedAt: now
+        })
+      });
+
+      setAssignments(assignments.map(a => 
+        a.id === submittingAssignmentId 
+          ? { ...a, status: "submitted", submissionText: submitText, submissionUrl: finalUrl, submittedAt: now } 
+          : a
+      ));
+    } catch (error) {
+      console.error("Failed to submit work:", error);
+    } finally {
+      setIsSubmitting(false);
+      handleCloseSubmitModal();
+    }
   };
 
   // Calendar logic
@@ -401,20 +482,50 @@ export default function AssignmentsPage() {
                   </p>
                   
                   <div className="flex items-center justify-between mt-auto pt-4 border-t border-zinc-100">
-                    <div className={`flex items-center gap-1.5 text-sm font-medium ${
-                      assignment.status === "overdue" ? "text-red-600" : 
-                      assignment.status === "submitted" ? "text-emerald-600" : "text-zinc-600"
-                    }`}>
-                      <Clock className="w-4 h-4" />
-                      {format(parseISO(assignment.dueDate), "MMM d, yyyy")}
+                    <div className={`flex flex-col gap-0.5`}>
+                      <div className={`flex items-center gap-1.5 text-sm font-medium ${
+                        assignment.status === "submitted" ? "text-emerald-600" :
+                        assignment.status === "overdue" ? "text-red-600" :
+                        (() => {
+                          const hoursLeft = differenceInHours(parseISO(assignment.dueDate), new Date());
+                          if (hoursLeft < 0) return "text-red-600";
+                          if (hoursLeft < 10) return "text-red-600";
+                          if (hoursLeft <= 72) return "text-amber-600";
+                          if (hoursLeft <= 168) return "text-emerald-600";
+                          return "text-zinc-600";
+                        })()
+                      }`}>
+                        <Clock className="w-4 h-4" />
+                        {format(parseISO(assignment.dueDate), "MMM d, yyyy")}
+                      </div>
+                      {assignment.status !== "submitted" && assignment.status !== "overdue" && (
+                        <div className={`text-xs ml-5 font-medium ${
+                          (() => {
+                            const hoursLeft = differenceInHours(parseISO(assignment.dueDate), new Date());
+                            if (hoursLeft < 0) return "text-red-600";
+                            if (hoursLeft < 10) return "text-red-600";
+                            if (hoursLeft <= 72) return "text-amber-600";
+                            if (hoursLeft <= 168) return "text-emerald-600";
+                            return "text-zinc-500 hidden";
+                          })()
+                        }`}>
+                          {(() => {
+                            const hoursLeft = differenceInHours(parseISO(assignment.dueDate), new Date());
+                            if (hoursLeft >= 0 && hoursLeft < 10) return "Due in < 10 hrs";
+                            if (hoursLeft >= 10 && hoursLeft <= 72) return "Due in < 3 days";
+                            if (hoursLeft > 72 && hoursLeft <= 168) return "Due in < 1 week";
+                            return "";
+                          })()}
+                        </div>
+                      )}
                     </div>
                     
                     <button
-                      onClick={() => handleToggleStatus(assignment.id)}
+                      onClick={() => assignment.status === "submitted" ? handleToggleStatus(assignment.id) : handleOpenSubmitModal(assignment)}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                         assignment.status === "submitted" 
                           ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200" 
-                          : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200"
+                          : "bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm"
                       }`}
                     >
                       {assignment.status === "submitted" ? (
@@ -424,8 +535,8 @@ export default function AssignmentsPage() {
                         </>
                       ) : (
                         <>
-                          <Circle className="w-4 h-4" />
-                          Mark Done
+                          <CheckCircle2 className="w-4 h-4" />
+                          Submit
                         </>
                       )}
                     </button>
@@ -607,6 +718,110 @@ export default function AssignmentsPage() {
                   >
                     {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
                     {editingId ? "Save Changes" : "Add Assignment"}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Submit Modal */}
+      <AnimatePresence>
+        {isSubmitModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-zinc-900/40 backdrop-blur-sm"
+              onClick={handleCloseSubmitModal}
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden"
+            >
+              <div className="flex items-center justify-between p-5 border-b border-zinc-100">
+                <h2 className="text-lg font-semibold text-zinc-900">
+                  Submit Assignment
+                </h2>
+                <button 
+                  onClick={handleCloseSubmitModal}
+                  className="p-1.5 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              
+              <form onSubmit={handleSubmitWork} className="p-5 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-zinc-700 mb-1">Upload File</label>
+                  <div 
+                    onDragOver={(e) => e.preventDefault()} 
+                    onDrop={handleFileDrop}
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`w-full border-2 border-dashed ${uploadedFile ? 'border-indigo-500 bg-indigo-50/50' : 'border-zinc-300'} rounded-xl p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-zinc-50 transition-colors`}
+                  >
+                    <UploadCloud className={`w-8 h-8 ${uploadedFile ? 'text-indigo-600' : 'text-zinc-400'} mb-2`} />
+                    <span className="text-sm font-medium text-zinc-700">
+                      {uploadedFile ? uploadedFile.name : "Click to upload or drag and drop"}
+                    </span>
+                    {uploadedFile && (
+                      <span className="text-xs text-indigo-500 mt-1">{(uploadedFile.size / 1024 / 1024).toFixed(2)} MB</span>
+                    )}
+                    {!uploadedFile && <span className="text-xs text-zinc-500 mt-1">PDF, DOCX, ZIP etc. up to 10MB</span>}
+                    <input 
+                      type="file" 
+                      ref={fileInputRef} 
+                      onChange={handleFileChange} 
+                      className="hidden" 
+                    />
+                  </div>
+                  
+                  <div className="flex items-center gap-3 my-4">
+                    <div className="h-px bg-zinc-200 flex-1"></div>
+                    <span className="text-xs text-zinc-400 font-medium uppercase">or paste link</span>
+                    <div className="h-px bg-zinc-200 flex-1"></div>
+                  </div>
+
+                  <label className="block text-sm font-medium text-zinc-700 mb-1">Submission Link</label>
+                  <input
+                    type="url"
+                    value={submitUrl}
+                    onChange={(e) => setSubmitUrl(e.target.value)}
+                    className="w-full px-3 py-2 border border-zinc-300 rounded-lg text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder="e.g. Google Drive link, GitHub repo..."
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-zinc-700 mb-1">Additional Text / Note</label>
+                  <textarea
+                    rows={4}
+                    value={submitText}
+                    onChange={(e) => setSubmitText(e.target.value)}
+                    className="w-full px-3 py-2 border border-zinc-300 rounded-lg text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
+                    placeholder="Add any required text for your submission..."
+                  />
+                </div>
+                
+                <div className="pt-4 flex items-center justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={handleCloseSubmitModal}
+                    className="px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 rounded-lg transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting || (!submitUrl && !submitText && !uploadedFile)}
+                    className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
+                    Submit Work
                   </button>
                 </div>
               </form>

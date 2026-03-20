@@ -35,6 +35,18 @@ const AssignmentSchema = new mongoose.Schema({
     type: String,
   },
 
+  submissionText: {
+    type: String,
+  },
+
+  submissionUrl: {
+    type: String,
+  },
+
+  submittedAt: {
+    type: Date,
+  },
+
   year: String,
   semester: String,
 
