@@ -65,12 +65,15 @@ function IconChevronRight() {
 function IconAlert() {
   return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>;
 }
+function IconMapPin() {
+  return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>;
+}
 
 // ── Priority config ───────────────────────────────────────────────────────────
 const PRIORITY = {
   High: { color: "#EF4444", bg: "#FEF2F2", border: "#FECACA", label: "High", dot: "#EF4444", tasks: "Exam · Presentation · Viva", icon: "🔴" },
-  Medium: { color: "#F59E0B", bg: "#FFFBEB", border: "#FDE68A", label: "Medium", dot: "#F59E0B", tasks: "Kuppi · Lab Test · Quiz", icon: "🟡" },
-  Low: { color: "#10B981", bg: "#ECFDF5", border: "#A7F3D0", label: "Low", dot: "#10B981", tasks: "Self Study · Reading · Revision", icon: "🟢" },
+  Medium: { color: "#F59E0B", bg: "#FFFBEB", border: "#FDE68A", label: "Medium", dot: "#F59E0B", tasks: "Lab Test · Quiz", icon: "🟡" },
+  Low: { color: "#10B981", bg: "#ECFDF5", border: "#A7F3D0", label: "Low", dot: "#10B981", tasks: "Revision", icon: "🟢" },
 };
 
 // ── Relative time helper ──────────────────────────────────────────────────────
@@ -113,7 +116,7 @@ export default function StudyPlanner({ params }) {
   const [deleteConfirm, setDeleteConfirm] = useState(null);
 
   const [formData, setFormData] = useState({
-    title: "", subject: "", time: "08:00", priority: "High",
+    title: "", subject: "", time: "08:00", priority: "Medium", venue: "",
     date: new Date().toISOString().split("T")[0],
   });
 
@@ -153,7 +156,7 @@ export default function StudyPlanner({ params }) {
 
   const openCreate = () => {
     setEditingTask(null);
-    setFormData({ title: "", subject: "", time: "08:00", priority: "High", date: new Date().toISOString().split("T")[0] });
+    setFormData({ title: "", subject: "", time: "08:00", priority: "Medium", venue: "", date: new Date().toISOString().split("T")[0] });
     setIsModalOpen(true);
   };
 
@@ -385,6 +388,9 @@ export default function StudyPlanner({ params }) {
                     <div style={{ display: "flex", flexDirection: "column", gap: "4px", marginBottom: "12px" }}>
                       <div style={{ fontSize: "11px", color: "#64748B", display: "flex", alignItems: "center", gap: "5px", fontWeight: 500 }}><IconCalendar /> {nextTask.date} · {relDate(nextTask.date)}</div>
                       <div style={{ fontSize: "11px", color: "#64748B", display: "flex", alignItems: "center", gap: "5px", fontWeight: 500 }}><IconClock /> {nextTask.time}</div>
+                      {nextTask.venue && (
+                        <div style={{ fontSize: "11px", color: "#64748B", display: "flex", alignItems: "center", gap: "5px", fontWeight: 500 }}><IconMapPin /> {nextTask.venue}</div>
+                      )}
                     </div>
                     {nextTask.createdBy === currentUserEmail && (
                       <button onClick={() => handleToggle(nextTask._id, "Pending")} className="planner-btn" style={{ width: "100%", padding: "10px", background: `linear-gradient(135deg,${pri.color},${pri.dot})`, color: "white", border: "none", borderRadius: "11px", fontWeight: 700, fontSize: "12px", cursor: "pointer", boxShadow: `0 4px 14px ${pri.dot}55` }}>✓ Mark Complete</button>
@@ -493,6 +499,14 @@ export default function StudyPlanner({ params }) {
                         <span style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", color: "#64748B", fontWeight: 500 }}>
                           <IconClock /> {t.time}
                         </span>
+                        {t.venue && (
+                          <span style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", color: "#64748B", fontWeight: 500, maxWidth: "200px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            <IconMapPin /> 
+                            {t.venue.startsWith("http") ? (
+                              <a href={t.venue} target="_blank" rel="noopener noreferrer" style={{ color: "#3B82F6", textDecoration: "none" }} onClick={e => e.stopPropagation()}>{t.venue}</a>
+                            ) : t.venue}
+                          </span>
+                        )}
                       </div>
                     </div>
 
@@ -715,6 +729,17 @@ export default function StudyPlanner({ params }) {
                     type="text" placeholder="e.g. Final Presentation" required
                     value={formData.title}
                     onChange={e => setFormData({ ...formData, title: e.target.value })}
+                    style={{ width: "100%", padding: "11px 14px", borderRadius: "10px", border: "1.5px solid #E2E8F0", fontSize: "14px", fontWeight: 600, background: "#FAFAFA", color: "black" }}
+                  />
+                </div>
+
+                {/* Venue / Link */}
+                <div>
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "#374151", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Venue or Meeting Link <span style={{ color: "#94A3B8", fontWeight: 500 }}>(Optional)</span></label>
+                  <input
+                    type="text" placeholder="e.g. F701 or https://zoom.us/..."
+                    value={formData.venue || ""}
+                    onChange={e => setFormData({ ...formData, venue: e.target.value })}
                     style={{ width: "100%", padding: "11px 14px", borderRadius: "10px", border: "1.5px solid #E2E8F0", fontSize: "14px", fontWeight: 600, background: "#FAFAFA", color: "black" }}
                   />
                 </div>

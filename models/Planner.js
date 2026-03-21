@@ -11,6 +11,7 @@ const PlannerSchema = new mongoose.Schema({
   status: { type: String, default: "Pending" }, // Pending / Completed
   semester: { type: String, required: true }, // "semester1", "semester2" etc.
   year: { type: Number },
+  venue: { type: String, default: "" },       // link or physical venue
   createdBy: { type: String },                // email
   createdAt: { type: Date, default: Date.now },
 }, { strict: false }); // strict:false keeps any extra fields already in DB
