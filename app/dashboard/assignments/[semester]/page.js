@@ -205,29 +205,46 @@ export default function AssignmentsPage() {
   };
 
   const handleToggleStatus = async (id) => {
+    // Capture previous state for rollback
+    const previousAssignments = [...assignments];
+    const assignment = assignments.find(a => a.id === id);
+    if (!assignment) return;
+
+    const newStatus = assignment.status === "submitted"
+      ? (isBefore(parseISO(assignment.dueDate), startOfDay(new Date())) ? "overdue" : "pending")
+      : "submitted";
+
+    // Optimistic update
     setAssignments(assignments.map(a => {
       if (a.id === id) {
-        const newStatus = a.status === "submitted"
-          ? (isBefore(parseISO(a.dueDate), startOfDay(new Date())) ? "overdue" : "pending")
-          : "submitted";
-
-        fetch("/api/assignments", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id, status: newStatus })
-        }).catch(console.error);
-
         return { ...a, status: newStatus };
       }
       return a;
     }));
+
+    try {
+      const res = await fetch("/api/assignments", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, status: newStatus })
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to update assignment status");
+      }
+    } catch (error) {
+      console.error("Error updating assignment status:", error);
+      // Rollback to previous state
+      setAssignments(previousAssignments);
+      alert("Failed to update assignment status. Please try again.");
+    }
   };
 
   // Check if the current user can edit/delete an assignment
   const canModifyAssignment = (assignment) => {
     if (!session?.user) return false;
 
-    const isCreator = assignment.userId === session.user.id;
+    const isCreator = String(assignment.userId) === String(session.user.id);
     const isAdmin = session.user.role === "admin";
     const isLecturer = session.user.role === "lecturer";
 

@@ -7,7 +7,6 @@ import Link from "next/link";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [role, setRole] = useState("student");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -49,23 +48,6 @@ export default function LoginPage() {
           </div>
           <h1 className="text-2xl font-bold text-slate-800 tracking-tight">UniLife Login</h1>
           <p className="text-sm text-slate-500 mt-1 font-medium">Smart Student Productivity Platform</p>
-        </div>
-
-        {/* Role Selection */}
-        <div className="flex p-1 bg-slate-100 rounded-xl mb-6 shadow-inner">
-          {["student", "lecturer", "admin"].map((r) => (
-            <button
-              key={r}
-              type="button"
-              onClick={() => setRole(r)}
-              className={`flex-1 py-2 text-sm font-semibold rounded-lg capitalize transition-all duration-200 ${role === r
-                ? "bg-white text-indigo-600 shadow-sm border border-slate-200"
-                : "text-slate-500 hover:text-slate-700"
-                }`}
-            >
-              {r}
-            </button>
-          ))}
         </div>
 
         {error && (

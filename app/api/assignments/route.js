@@ -46,7 +46,7 @@ export async function PUT(req) {
   }
 
   // Check authorization: only creator, admin, or lecturer can edit
-  const isCreator = assignment.userId === session.user.id;
+  const isCreator = String(assignment.userId) === String(session.user.id);
   const isAdmin = session.user.role === "admin";
   const isLecturer = session.user.role === "lecturer";
 
@@ -91,7 +91,7 @@ export async function DELETE(req) {
   }
 
   // Check authorization: only creator, admin, or lecturer can delete
-  const isCreator = assignment.userId === session.user.id;
+  const isCreator = String(assignment.userId) === String(session.user.id);
   const isAdmin = session.user.role === "admin";
   const isLecturer = session.user.role === "lecturer";
 
