@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { format, isSameDay, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, isToday, isBefore, startOfDay, differenceInHours } from "date-fns";
 import { Calendar as CalendarIcon, CheckCircle2, Circle, Clock, Edit2, LayoutGrid, List, Plus, Trash2, X, ChevronLeft, ChevronRight, BookOpen, Loader2, AlertCircle, CheckCircle, ListTodo, BarChart3, Filter, GraduationCap } from "lucide-react";
+import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
@@ -147,6 +148,9 @@ export default function AssignmentsPage() {
           return;
         }
 
+        const yearMatch = String(params.semester).match(/y(\d+)s\d+/i);
+        const yearNumber = yearMatch ? yearMatch[1] : (session.user.year || "1");
+
         const newAssignmentData = {
           title,
           description,
@@ -155,7 +159,8 @@ export default function AssignmentsPage() {
           status,
           userId: session.user.id,
           createdBy: session.user.email,
-          semester: params.semester  // Use the full semester string like "y1s1"
+          semester: params.semester,  // Use the full semester string like "y1s1"
+          year: yearNumber
         };
 
         const res = await fetch("/api/assignments", {
@@ -184,7 +189,7 @@ export default function AssignmentsPage() {
     }
   };
 
-  const handleDelete = async (id) => {
+  const proceedWithDelete = async (id) => {
     try {
       const res = await fetch("/api/assignments", {
         method: "DELETE",
@@ -194,45 +199,54 @@ export default function AssignmentsPage() {
 
       if (!res.ok) {
         const error = await res.json();
-        alert(error.error || "Failed to delete assignment");
+        toast.error(error.error || "Failed to delete assignment");
         return;
       }
 
-      setAssignments(assignments.filter(a => a.id !== id));
+      setAssignments(prev => prev.filter(a => a.id !== id));
+      toast.success("Assignment deleted successfully");
     } catch (err) {
       console.error("Failed to delete from database:", err);
-      alert("Failed to delete assignment");
+      toast.error("Failed to delete assignment");
     }
   };
 
-  const handleToggleStatus = async (id) => {
-    // Capture previous state for rollback
-    const previousAssignments = [...assignments];
-    const assignment = assignments.find(a => a.id === id);
-    if (!assignment) return;
+  const handleDelete = async (id) => {
+    toast.custom((t) => (
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm pointer-events-auto">
+        <div className={`${t.visible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'} transition-all duration-200 ease-in-out max-w-sm w-full bg-white shadow-2xl flex flex-col items-center text-center gap-4 p-6 rounded-3xl ring-1 ring-zinc-200`}>
+          <div className="w-14 h-14 rounded-full flex items-center justify-center shrink-0 bg-red-100 text-red-600">
+             <Trash2 className="w-6 h-6" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-lg font-bold text-zinc-900 mb-1">Delete Assignment?</p>
+            <p className="text-sm text-zinc-500">Are you sure you want to delete this assignment? This action cannot be undone.</p>
+          </div>
+          <div className="flex items-center gap-3 w-full mt-2">
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              className="flex-1 py-2.5 text-sm font-semibold text-zinc-600 bg-zinc-100 hover:bg-zinc-200 rounded-xl transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => {
+                toast.dismiss(t.id);
+                proceedWithDelete(id);
+              }}
+              className="flex-1 py-2.5 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors shadow-sm"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    ), { duration: Infinity });
+  };
 
-    // Get user's personal status - ALWAYS use studentCompletions for personalization
-    const getUserStatus = (assign) => {
-      if (assign.studentCompletions && Array.isArray(assign.studentCompletions)) {
-        const userCompletion = assign.studentCompletions.find(c => String(c.userId) === String(session.user.id));
-        if (userCompletion) return userCompletion.status;
-      }
-      // Fallback to global status if no personal completion found
-      return assign.status || "pending";
-    };
-
-    const currentStatus = getUserStatus(assignment);
-    const newStatus = currentStatus === "submitted"
-      ? (isBefore(parseISO(assignment.dueDate), startOfDay(new Date())) ? "overdue" : "pending")
-      : "submitted";
-
-    if (newStatus === "submitted") {
-      const isConfirmed = window.confirm("Are you sure you want to mark this assignment as done?");
-      if (!isConfirmed) return;
-    }
-
+  const proceedWithToggle = async (id, newStatus, previousAssignments) => {
     // Optimistic update - ALWAYS update studentCompletions
-    setAssignments(assignments.map(a => {
+    setAssignments(prev => prev.map(a => {
       if (a.id === id) {
         const completions = a.studentCompletions || [];
         const userIndex = completions.findIndex(c => String(c.userId) === String(session.user.id));
@@ -257,12 +271,72 @@ export default function AssignmentsPage() {
       if (!res.ok) {
         throw new Error("Failed to update assignment status");
       }
+      toast.success(newStatus === "submitted" ? "Assignment marked as done!" : "Assignment status reverted.");
     } catch (error) {
       console.error("Error updating assignment status:", error);
       // Rollback to previous state
       setAssignments(previousAssignments);
-      alert("Failed to update assignment status. Please try again.");
+      toast.error("Failed to update assignment status. Please try again.");
     }
+  };
+
+  const handleToggleStatus = async (id) => {
+    // Capture previous state for rollback
+    const previousAssignments = [...assignments];
+    const assignment = assignments.find(a => a.id === id);
+    if (!assignment) return;
+
+    // Get user's personal status - ALWAYS use studentCompletions for personalization
+    const getUserStatus = (assign) => {
+      if (assign.studentCompletions && Array.isArray(assign.studentCompletions)) {
+        const userCompletion = assign.studentCompletions.find(c => String(c.userId) === String(session.user.id));
+        if (userCompletion) return userCompletion.status;
+      }
+      // Fallback to global status if no personal completion found
+      return assign.status || "pending";
+    };
+
+    const currentStatus = getUserStatus(assignment);
+    const newStatus = currentStatus === "submitted"
+      ? (isBefore(parseISO(assignment.dueDate), startOfDay(new Date())) ? "overdue" : "pending")
+      : "submitted";
+
+    toast.custom((t) => (
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm pointer-events-auto">
+        <div className={`${t.visible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'} transition-all duration-200 ease-in-out max-w-sm w-full bg-white shadow-2xl flex flex-col items-center text-center gap-4 p-6 rounded-3xl ring-1 ring-zinc-200`}>
+          <div className={`w-14 h-14 rounded-full flex items-center justify-center shrink-0 ${newStatus === 'submitted' ? 'bg-indigo-100 text-indigo-600' : 'bg-amber-100 text-amber-600'}`}>
+             <CheckCircle2 className="w-6 h-6" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-lg font-bold text-zinc-900 mb-1">
+              {newStatus === "submitted" ? "Mark as Done?" : "Undo Submission?"}
+            </p>
+            <p className="text-sm text-zinc-500">
+              {newStatus === "submitted" ? "Are you sure you want to mark this complete? It will help you track your progress." : "This will revert the assignment to incomplete. You will need to complete it again to stay on track."}
+            </p>
+          </div>
+          <div className="flex items-center gap-3 w-full mt-2">
+            <button
+              onClick={() => {
+                toast.dismiss(t.id);
+              }}
+              className="flex-1 py-2.5 text-sm font-semibold text-zinc-600 bg-zinc-100 hover:bg-zinc-200 rounded-xl transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => {
+                toast.dismiss(t.id);
+                proceedWithToggle(id, newStatus, previousAssignments);
+              }}
+              className={`flex-1 py-2.5 text-sm font-semibold text-white rounded-xl transition-colors shadow-sm ${newStatus === 'submitted' ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-amber-600 hover:bg-amber-700'}`}
+            >
+              Confirm
+            </button>
+          </div>
+        </div>
+      </div>
+    ), { duration: Infinity });
   };
 
   // Check if the current user can edit/delete an assignment

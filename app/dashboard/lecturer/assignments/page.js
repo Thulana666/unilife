@@ -10,6 +10,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 
 export default function LecturerAssignmentsPage() {
@@ -202,9 +203,7 @@ export default function LecturerAssignmentsPage() {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm("Are you sure you want to delete this assignment?")) return;
-
+  const proceedWithDelete = async (id) => {
     try {
       const res = await fetch("/api/assignments", {
         method: "DELETE",
@@ -214,15 +213,47 @@ export default function LecturerAssignmentsPage() {
 
       if (!res.ok) {
         const error = await res.json();
-        alert(error.error || "Failed to delete assignment");
+        toast.error(error.error || "Failed to delete assignment");
         return;
       }
 
-      setAssignments(assignments.filter(a => a.id !== id));
+      setAssignments(prev => prev.filter(a => a.id !== id));
+      toast.success("Assignment deleted successfully");
     } catch (err) {
       console.error("Failed to delete:", err);
-      alert("Failed to delete assignment");
+      toast.error("Failed to delete assignment");
     }
+  };
+
+  const handleDelete = async (id) => {
+    toast.custom((t) => (
+      <div className={`${t.visible ? 'animate-enter' : 'animate-leave'} max-w-md w-full bg-white shadow-xl flex items-center gap-3 ring-1 ring-zinc-200 p-4 rounded-2xl pointer-events-auto`}>
+        <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-red-100 text-red-600">
+           <Trash2 className="w-5 h-5" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-zinc-900">Delete Assignment?</p>
+          <p className="text-sm text-zinc-500 truncate">Are you sure you want to delete this assignment?</p>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={() => toast.dismiss(t.id)}
+            className="px-3 py-1.5 text-sm font-medium text-zinc-600 hover:bg-zinc-100 rounded-lg transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => {
+              toast.dismiss(t.id);
+              proceedWithDelete(id);
+            }}
+            className="px-3 py-1.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors shadow-sm"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    ), { duration: 4000, position: 'top-center' });
   };
 
 

@@ -56,6 +56,11 @@ export async function GET(req) {
             const semNumStr = semesterNumber !== null ? String(semesterNumber) : null;
 
             if (userYear) {
+                if (typeof semester === 'string' && semester.startsWith('y')) {
+                    lecturerConditions.push({ isLecturerAssignment: true, semester: semester });
+                    lecturerConditions.push({ userId: { $ne: userId }, semester: semester });
+                }
+
                 lecturerConditions.push({ isLecturerAssignment: true, year: String(userYear), semester: semester });
                 lecturerConditions.push({ isLecturerAssignment: true, year: Number(userYear), semester: semester });
 
@@ -242,7 +247,17 @@ export async function DELETE(req) {
         if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
         const { searchParams } = new URL(req.url);
-        const id = searchParams.get("id");
+        let id = searchParams.get("id");
+        
+        if (!id) {
+            try {
+                const body = await req.json();
+                id = body.id;
+            } catch (e) {
+                // Ignore json parse error if body is empty
+            }
+        }
+
         if (!id) return Response.json({ error: "ID required" }, { status: 400 });
 
         const assignment = await Assignment.findById(id);
