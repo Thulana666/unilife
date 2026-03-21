@@ -21,15 +21,27 @@ export async function GET(req) {
             return Response.json(entries);
         }
 
-        const year = parseInt(searchParams.get("year") || session.user.year || 1);
-        const semester = searchParams.get("semester") || session.user.semester || "1";
+        let year = session.user.year || 1;
+        let semester = session.user.semester || 1;
+        
+        const semesterParam = searchParams.get("semester");
+        if (semesterParam && typeof semesterParam === "string" && semesterParam.includes("year") && semesterParam.includes("semester")) {
+            const match = semesterParam.match(/year(\d+)semester(\d+)/i);
+            if (match) {
+                year = Number(match[1]);
+                semester = Number(match[2]);
+            }
+        } else if (searchParams.get("year") || semesterParam) {
+            year = searchParams.get("year") ? Number(searchParams.get("year")) : year;
+            semester = semesterParam ? Number(semesterParam) : semester;
+        }
 
         let query = {};
         if (session.user.role === "student") {
             query = { year, semester };
         } else if (session.user.role === "lecturer") {
-            if (searchParams.get("year")) query.year = year;
-            if (searchParams.get("semester")) query.semester = semester;
+            if (year) query.year = year;
+            if (semester) query.semester = semester;
         }
 
         const entries = await Planner.find(query).sort({ date: 1, time: 1, createdAt: -1 });
@@ -51,7 +63,19 @@ export async function POST(req) {
         await connectDB();
 
         const data = await req.json();
-        const { title, year, semester } = data;
+        let { title, year, semester } = data;
+
+        // If the frontend sends something like "year1semester2" in 'semester' but no 'year', extract them
+        if (typeof semester === "string" && semester.includes("year") && semester.includes("semester")) {
+            const match = semester.match(/year(\d+)semester(\d+)/i);
+            if (match) {
+                year = Number(match[1]);
+                semester = Number(match[2]);
+            }
+        } else {
+            year = Number(year);
+            semester = Number(semester);
+        }
 
         if (!title || !year || !semester) {
             return Response.json({ error: "title, year and semester are required" }, { status: 400 });
@@ -59,6 +83,8 @@ export async function POST(req) {
 
         const entry = await Planner.create({
             ...data,
+            year,
+            semester,
             status: data.status || "Pending",
             createdBy: session.user.email,
         });
