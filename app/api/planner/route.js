@@ -22,7 +22,7 @@ export async function GET(req) {
         }
 
         const year = parseInt(searchParams.get("year") || session.user.year || 1);
-        const semester = parseInt(searchParams.get("semester") || session.user.semester || 1);
+        const semester = searchParams.get("semester") || session.user.semester || "1";
 
         let query = {};
         if (session.user.role === "student") {
@@ -32,7 +32,7 @@ export async function GET(req) {
             if (searchParams.get("semester")) query.semester = semester;
         }
 
-        const entries = await Planner.find(query).sort({ date: 1, createdAt: -1 });
+        const entries = await Planner.find(query).sort({ date: 1, time: 1, createdAt: -1 });
         return Response.json(entries);
     } catch (err) {
         console.error("GET /api/planner:", err);
@@ -50,17 +50,16 @@ export async function POST(req) {
 
         await connectDB();
 
-        const { title, description, date, year, semester } = await req.json();
+        const data = await req.json();
+        const { title, year, semester } = data;
+
         if (!title || !year || !semester) {
             return Response.json({ error: "title, year and semester are required" }, { status: 400 });
         }
 
         const entry = await Planner.create({
-            title,
-            description: description || "",
-            date: date ? new Date(date) : null,
-            year: Number(year),
-            semester: Number(semester),
+            ...data,
+            status: data.status || "Pending",
             createdBy: session.user.email,
         });
 
@@ -96,6 +95,29 @@ export async function POST(req) {
     } catch (err) {
         console.error("POST /api/planner:", err);
         return Response.json({ error: "Failed to create plan entry" }, { status: 500 });
+    }
+}
+
+// PATCH: edit a task or change its status (Complete/Pending)
+export async function PATCH(req) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session) return Response.json({ error: "Unauthorised" }, { status: 401 });
+
+        await connectDB();
+
+        const { id, ...updates } = await req.json();
+
+        const updatedTask = await Planner.findByIdAndUpdate(id, updates, { new: true });
+
+        if (!updatedTask) {
+            return Response.json({ error: "Task not found" }, { status: 404 });
+        }
+
+        return Response.json(updatedTask);
+    } catch (err) {
+        console.error("PATCH /api/planner:", err);
+        return Response.json({ error: "Failed to update task" }, { status: 500 });
     }
 }
 

@@ -9,15 +9,20 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@fullcalendar/daygrid": "^6.1.20",
+    "@fullcalendar/interaction": "^6.1.20",
+    "@fullcalendar/react": "^6.1.20",
+    "@fullcalendar/timegrid": "^6.1.20",
     "bcrypt": "^6.0.0",
     "cloudinary": "^2.9.0",
     "dotenv": "^17.3.1",
-    "framer-motion": "^12.34.3",
+    "framer-motion": "^12.35.1",
     "mongoose": "^9.2.1",
     "next": "16.1.6",
     "next-auth": "^4.24.13",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "react-hot-toast": "^2.6.0",
     "socket.io": "^4.8.3",
     "socket.io-client": "^4.8.3"
   },
