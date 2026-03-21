@@ -114,6 +114,11 @@ export default function StudyPlanner({ params }) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [toasts, setToasts] = useState([]);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  
+  const [search, setSearch] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterPriority, setFilterPriority] = useState("all");
+  const [filterSubject, setFilterSubject] = useState("all");
 
   const [formData, setFormData] = useState({
     title: "", subject: "", time: "08:00", priority: "Medium", venue: "",
@@ -181,6 +186,19 @@ export default function StudyPlanner({ params }) {
 
   const completed = tasks.filter(t => t.status === "Completed").length;
   const progress = tasks.length > 0 ? Math.round((completed / tasks.length) * 100) : 0;
+
+  const subjects = Array.from(new Set(tasks.map(t => t.subject).filter(Boolean))).sort();
+
+  const filteredTasks = tasks.filter(t => {
+    if (filterStatus !== "all" && t.status !== filterStatus) return false;
+    if (filterPriority !== "all" && t.priority !== filterPriority) return false;
+    if (filterSubject !== "all" && t.subject !== filterSubject) return false;
+    if (search) {
+      const q = search.toLowerCase();
+      if (!t.title?.toLowerCase().includes(q) && !t.subject?.toLowerCase().includes(q)) return false;
+    }
+    return true;
+  });
 
   // Calendar helpers
   const startDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
@@ -404,6 +422,20 @@ export default function StudyPlanner({ params }) {
           {/* ── Left: Tabs + Content ── */}
           <div style={{ flex: 1, minWidth: 0 }}>
 
+            {/* Filters Bar */}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginBottom: "16px", background: "white", padding: "12px 16px", borderRadius: "14px", border: "1px solid #E2E8F0", alignItems: "center" }}>
+              <input type="text" placeholder="Search tasks..." value={search} onChange={e => setSearch(e.target.value)} style={{ flex: 1, minWidth: "160px", padding: "8px 12px", borderRadius: "8px", border: "1px solid #CBD5E1", fontSize: "13px", color: "black", outline: "none" }} />
+              <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={{ padding: "8px 10px", borderRadius: "8px", border: "1px solid #CBD5E1", fontSize: "13px", color: "black", outline: "none", cursor: "pointer", background: "white" }}>
+                <option value="all">Any Status</option><option value="Pending">Pending</option><option value="Completed">Completed</option>
+              </select>
+              <select value={filterPriority} onChange={e => setFilterPriority(e.target.value)} style={{ padding: "8px 10px", borderRadius: "8px", border: "1px solid #CBD5E1", fontSize: "13px", color: "black", outline: "none", cursor: "pointer", background: "white" }}>
+                <option value="all">Any Priority</option><option value="High">High</option><option value="Medium">Medium</option><option value="Low">Low</option>
+              </select>
+              <select value={filterSubject} onChange={e => setFilterSubject(e.target.value)} style={{ padding: "8px 10px", borderRadius: "8px", border: "1px solid #CBD5E1", fontSize: "13px", color: "black", outline: "none", cursor: "pointer", background: "white", maxWidth: "120px", textOverflow: "ellipsis" }}>
+                <option value="all">Any Subject</option>{subjects.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+
             {/* Tab Bar */}
             <div style={{ display: "flex", gap: "4px", background: "#F1F5F9", borderRadius: "12px", padding: "4px", marginBottom: "20px", width: "fit-content" }}>
               {TABS.map(tab => (
@@ -423,14 +455,14 @@ export default function StudyPlanner({ params }) {
             {/* ── LIST VIEW ── */}
             {view === "list" && (
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                {tasks.length === 0 ? (
+                {filteredTasks.length === 0 ? (
                   <div style={{
                     background: "white", borderRadius: "16px", padding: "60px 40px",
                     textAlign: "center", border: "2px dashed #E2E8F0"
                   }}>
                     <div style={{ fontSize: "48px", marginBottom: "12px" }}>📭</div>
-                    <p style={{ margin: 0, fontWeight: 700, color: "#1E293B", fontSize: "16px" }}>No tasks yet</p>
-                    <p style={{ margin: "6px 0 20px", color: "#94A3B8", fontSize: "14px" }}>Add your first study task to get started</p>
+                    <p style={{ margin: 0, fontWeight: 700, color: "#1E293B", fontSize: "16px" }}>No tasks found</p>
+                    <p style={{ margin: "6px 0 20px", color: "#94A3B8", fontSize: "14px" }}>Try adjusting your filters or add a new task</p>
                     <button onClick={openCreate} className="planner-btn" style={{
                       background: "#4F46E5", color: "white", border: "none",
                       padding: "10px 20px", borderRadius: "10px", fontWeight: 600, fontSize: "13px", cursor: "pointer"
@@ -438,7 +470,7 @@ export default function StudyPlanner({ params }) {
                       + Add Task
                     </button>
                   </div>
-                ) : tasks.map(t => (
+                ) : filteredTasks.map(t => (
                   <div key={t._id} className="task-card" style={{
                     background: "white", borderRadius: "14px", padding: "16px 20px",
                     display: "flex", alignItems: "center", gap: "14px",
@@ -556,7 +588,7 @@ export default function StudyPlanner({ params }) {
                   ))}
                   {Array.from({ length: daysInMonth }).map((_, i) => {
                     const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}-${String(i + 1).padStart(2, "0")}`;
-                    const dayTasks = tasks.filter(t => t.date === dateStr);
+                    const dayTasks = filteredTasks.filter(t => t.date === dateStr);
                     const isToday = dateStr === new Date().toISOString().split("T")[0];
                     return (
                       <div key={i} className="cal-day" style={{
@@ -597,7 +629,7 @@ export default function StudyPlanner({ params }) {
                 <h3 style={{ margin: "0 0 20px", fontSize: "16px", fontWeight: 800, color: "#0F172A" }}>Weekly Schedule</h3>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: "10px" }}>
                   {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map(day => {
-                    const dayTasks = tasks.filter(t => t.day === day).sort((a, b) => a.time.localeCompare(b.time));
+                    const dayTasks = filteredTasks.filter(t => t.day === day).sort((a, b) => a.time.localeCompare(b.time));
                     return (
                       <div key={day} style={{ background: "#F8FAFC", borderRadius: "12px", overflow: "hidden", border: "1px solid #E2E8F0" }}>
                         <div style={{ padding: "10px 8px", background: "#F1F5F9", textAlign: "center", borderBottom: "1px solid #E2E8F0" }}>
