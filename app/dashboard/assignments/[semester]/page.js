@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useRef } from "react";
 import { format, isSameDay, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, isToday, isBefore, startOfDay, differenceInHours } from "date-fns";
-import { Calendar as CalendarIcon, CheckCircle2, Circle, Clock, Edit2, LayoutGrid, List, Plus, Trash2, X, ChevronLeft, ChevronRight, BookOpen, Loader2, AlertCircle, CheckCircle, ListTodo, BarChart3, Filter, UploadCloud } from "lucide-react";
+import { Calendar as CalendarIcon, CheckCircle2, Circle, Clock, Edit2, LayoutGrid, List, Plus, Trash2, X, ChevronLeft, ChevronRight, BookOpen, Loader2, AlertCircle, CheckCircle, ListTodo, BarChart3, Filter, GraduationCap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
@@ -21,14 +21,6 @@ export default function AssignmentsPage() {
   const [editingId, setEditingId] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Submit modal state
-  const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
-  const [submittingAssignmentId, setSubmittingAssignmentId] = useState(null);
-  const [submitText, setSubmitText] = useState("");
-  const [submitUrl, setSubmitUrl] = useState("");
-  const [uploadedFile, setUploadedFile] = useState(null);
-  const fileInputRef = useRef(null);
-  
   // Form state
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -46,7 +38,8 @@ export default function AssignmentsPage() {
     async function fetchAssignments() {
       if (!session?.user?.id || !params?.semester) return;
       try {
-        const response = await fetch(`/api/assignments?userId=${session.user.id}&semester=${params.semester}`);
+        const userYear = session.user.year || "";
+        const response = await fetch(`/api/assignments?userId=${session.user.id}&semester=${params.semester}${userYear ? `&year=${userYear}` : ""}`);
         if (response.ok) {
           const data = await response.json();
           // Map MongoDB _id to id for the frontend
@@ -95,6 +88,20 @@ export default function AssignmentsPage() {
   const handleSave = async (e) => {
     e.preventDefault();
     if (!session?.user?.id) return;
+
+    if (!title.trim()) {
+      alert("Please enter a valid title.");
+      return;
+    }
+    if (!course.trim()) {
+      alert("Please enter a valid course name.");
+      return;
+    }
+    if (!dueDate) {
+      alert("Please select a due date.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     // Determine status based on due date
@@ -133,6 +140,13 @@ export default function AssignmentsPage() {
         ));
       } else {
         // Create new assignment in MongoDB
+        // Ensure we use the semester from the URL params (e.g., "y1s1")
+        if (!params?.semester) {
+          alert("Semester information is missing. Please refresh the page.");
+          setIsSubmitting(false);
+          return;
+        }
+
         const newAssignmentData = {
           title,
           description,
@@ -141,26 +155,13 @@ export default function AssignmentsPage() {
           status,
           userId: session.user.id,
           createdBy: session.user.email,
-          year: session.user.year || 1,
-          semester: session.user.semester || 1,
-          // If params.semester has info, we could parse it, but let's just use semester from session or params
-          // Since the API searches by `semester`, let's just store `params.semester` to make it match.
-          // In the DB schema: year: Number, semester: Number. 
-          // But searchParams.get("semester") in GET uses it directly as if it matches.
-          // Wait, `params.semester` is like 'y1s1'. If db stores 'y1s1', it should be String.
-          // Let's just save it.
+          semester: params.semester  // Use the full semester string like "y1s1"
         };
-        
-        // In the existing schema, semester is Number. But the GET route does Assignment.find({userId, semester}).
-        // If they pass 'y1s1' as param, MongoDB expects a Number or String. We need to handle this properly.
-        // I will pass the string 'y1s1' as an additional property if needed, but let's just use the POST API.
+
         const res = await fetch("/api/assignments", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...newAssignmentData,
-            semester: params?.semester || session.user.semester
-          })
+          body: JSON.stringify(newAssignmentData)
         });
 
         if (res.ok) {
@@ -210,14 +211,38 @@ export default function AssignmentsPage() {
     const assignment = assignments.find(a => a.id === id);
     if (!assignment) return;
 
-    const newStatus = assignment.status === "submitted"
+    // Get user's personal status - ALWAYS use studentCompletions for personalization
+    const getUserStatus = (assign) => {
+      if (assign.studentCompletions && Array.isArray(assign.studentCompletions)) {
+        const userCompletion = assign.studentCompletions.find(c => String(c.userId) === String(session.user.id));
+        if (userCompletion) return userCompletion.status;
+      }
+      // Fallback to global status if no personal completion found
+      return assign.status || "pending";
+    };
+
+    const currentStatus = getUserStatus(assignment);
+    const newStatus = currentStatus === "submitted"
       ? (isBefore(parseISO(assignment.dueDate), startOfDay(new Date())) ? "overdue" : "pending")
       : "submitted";
 
-    // Optimistic update
+    if (newStatus === "submitted") {
+      const isConfirmed = window.confirm("Are you sure you want to mark this assignment as done?");
+      if (!isConfirmed) return;
+    }
+
+    // Optimistic update - ALWAYS update studentCompletions
     setAssignments(assignments.map(a => {
       if (a.id === id) {
-        return { ...a, status: newStatus };
+        const completions = a.studentCompletions || [];
+        const userIndex = completions.findIndex(c => String(c.userId) === String(session.user.id));
+        const newCompletions = [...completions];
+        if (userIndex >= 0) {
+          newCompletions[userIndex] = { ...newCompletions[userIndex], status: newStatus };
+        } else {
+          newCompletions.push({ userId: session.user.id, status: newStatus });
+        }
+        return { ...a, studentCompletions: newCompletions };
       }
       return a;
     }));
@@ -251,78 +276,6 @@ export default function AssignmentsPage() {
     return isCreator || isAdmin || isLecturer;
   };
 
-  const handleOpenSubmitModal = (assignment) => {
-    setSubmittingAssignmentId(assignment.id);
-    setSubmitText(assignment.submissionText || "");
-    setSubmitUrl(assignment.submissionUrl || "");
-    setIsSubmitModalOpen(true);
-  };
-
-  const handleCloseSubmitModal = () => {
-    setIsSubmitModalOpen(false);
-    setSubmittingAssignmentId(null);
-    setSubmitText("");
-    setSubmitUrl("");
-    setUploadedFile(null);
-  };
-
-  const handleFileDrop = (e) => {
-    e.preventDefault();
-    const file = e.dataTransfer?.files?.[0];
-    if (file) setUploadedFile(file);
-  };
-
-  const handleFileChange = (e) => {
-    const file = e.target.files?.[0];
-    if (file) setUploadedFile(file);
-  };
-
-  const handleSubmitWork = async (e) => {
-    e.preventDefault();
-    if (!submittingAssignmentId) return;
-    setIsSubmitting(true);
-
-    try {
-      let finalUrl = submitUrl;
-      
-      if (uploadedFile) {
-        const formData = new FormData();
-        formData.append("file", uploadedFile);
-        const res = await fetch("/api/upload", {
-          method: "POST",
-          body: formData
-        });
-        if (res.ok) {
-          const data = await res.json();
-          finalUrl = data.url;
-        }
-      }
-
-      const now = new Date().toISOString();
-      await fetch("/api/assignments", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          id: submittingAssignmentId, 
-          status: "submitted",
-          submissionText: submitText,
-          submissionUrl: finalUrl,
-          submittedAt: now
-        })
-      });
-
-      setAssignments(assignments.map(a => 
-        a.id === submittingAssignmentId 
-          ? { ...a, status: "submitted", submissionText: submitText, submissionUrl: finalUrl, submittedAt: now } 
-          : a
-      ));
-    } catch (error) {
-      console.error("Failed to submit work:", error);
-    } finally {
-      setIsSubmitting(false);
-      handleCloseSubmitModal();
-    }
-  };
 
   // Calendar logic
   const daysInMonth = eachDayOfInterval({
@@ -338,23 +291,41 @@ export default function AssignmentsPage() {
   }, [assignments]);
 
   const { total, pending, submitted, overdue } = useMemo(() => {
+    // Get personalized status for each assignment
+    const getPersonalStatus = (assignment) => {
+      if (assignment.studentCompletions && Array.isArray(assignment.studentCompletions) && session?.user?.id) {
+        const userCompletion = assignment.studentCompletions.find(c => String(c.userId) === String(session.user.id));
+        if (userCompletion) return userCompletion.status;
+      }
+      return assignment.status || "pending";
+    };
+
     return {
       total: assignments.length,
-      pending: assignments.filter(a => a.status === 'pending').length,
-      submitted: assignments.filter(a => a.status === 'submitted').length,
-      overdue: assignments.filter(a => a.status === 'overdue').length,
+      pending: assignments.filter(a => getPersonalStatus(a) === 'pending').length,
+      submitted: assignments.filter(a => getPersonalStatus(a) === 'submitted').length,
+      overdue: assignments.filter(a => getPersonalStatus(a) === 'overdue').length,
     };
-  }, [assignments]);
+  }, [assignments, session]);
 
   const completionRate = total > 0 ? Math.round((submitted / total) * 100) : 0;
 
   const filteredAssignments = useMemo(() => {
+    // Get personalized status for each assignment
+    const getPersonalStatus = (assignment) => {
+      if (assignment.studentCompletions && Array.isArray(assignment.studentCompletions) && session?.user?.id) {
+        const userCompletion = assignment.studentCompletions.find(c => String(c.userId) === String(session.user.id));
+        if (userCompletion) return userCompletion.status;
+      }
+      return assignment.status || "pending";
+    };
+
     let filtered = [...assignments];
     if (filter !== "all") {
-      filtered = filtered.filter(a => a.status === filter);
+      filtered = filtered.filter(a => getPersonalStatus(a) === filter);
     }
     return filtered.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
-  }, [assignments, filter]);
+  }, [assignments, filter, session]);
 
   if (!isMounted) {
     return null;
@@ -493,23 +464,45 @@ export default function AssignmentsPage() {
         {view === "list" ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <AnimatePresence>
-              {filteredAssignments.map((assignment) => (
+              {filteredAssignments.map((assignment) => {
+                const isLecturer = assignment.isLecturerAssignment;
+                // Get user's personal status - ALWAYS personalized for all assignments
+                const getUserStatus = () => {
+                  if (assignment.studentCompletions && Array.isArray(assignment.studentCompletions)) {
+                    const userCompletion = assignment.studentCompletions.find(c => String(c.userId) === String(session.user.id));
+                    if (userCompletion) return userCompletion.status;
+                  }
+                  // Fallback to global status if no personal completion found
+                  return assignment.status || "pending";
+                };
+                const userStatus = getUserStatus();
+                return (
                 <motion.div
                   layout
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   key={assignment.id}
-                  className={`bg-white rounded-xl border p-5 shadow-sm transition-shadow hover:shadow-md ${
-                    assignment.status === "submitted" ? "border-emerald-200 bg-emerald-50/30" :
-                    assignment.status === "overdue" ? "border-red-200 bg-red-50/30" : "border-zinc-200"
+                  className={`bg-white rounded-xl border p-5 shadow-sm transition-shadow hover:shadow-md flex flex-col gap-2 ${
+                    isLecturer ? "border-violet-200 bg-violet-50/20" :
+                    userStatus === "submitted" ? "border-emerald-200 bg-emerald-50/30" :
+                    userStatus === "overdue" ? "border-red-200 bg-red-50/30" : "border-zinc-200"
                   }`}
                 >
-                  <div className="flex justify-between items-start mb-3">
-                    <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-zinc-100 text-zinc-600">
-                      {assignment.course}
-                    </span>
-                    {canModifyAssignment(assignment) && (
+                  <div className="flex justify-between items-start">
+                    <div className="flex flex-col gap-1.5">
+                      <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-zinc-100 text-zinc-600 self-start">
+                        {assignment.course}
+                      </span>
+                      {isLecturer && (
+                        <span className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-violet-100 text-violet-700 border border-violet-200 self-start">
+                          <GraduationCap className="w-3 h-3" />
+                          From Lecturer
+                        </span>
+                      )}
+                    </div>
+                    {/* Only show edit/delete for student's own assignments */}
+                    {!isLecturer && canModifyAssignment(assignment) && (
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => handleOpenModal(assignment)}
@@ -526,24 +519,26 @@ export default function AssignmentsPage() {
                       </div>
                     )}
                   </div>
-                  
-                  <h3 className={`font-semibold text-lg mb-1 ${assignment.status === 'submitted' ? 'text-zinc-500 line-through' : 'text-zinc-900'}`}>
+
+                  <h3 className={`font-semibold text-lg leading-snug ${
+                    userStatus === 'submitted' ? 'text-zinc-500 line-through' : 'text-zinc-900'
+                  }`}>
                     {assignment.title}
                   </h3>
-                  {assignment.createdBy && (
-                    <div className="text-xs text-zinc-500 mb-2">
-                      Created by: {assignment.createdBy}
+                  {isLecturer && assignment.createdBy && (
+                    <div className="text-xs text-violet-600 font-medium">
+                      {assignment.createdBy}
                     </div>
                   )}
-                  <p className="text-zinc-500 text-sm mb-4 line-clamp-2">
+                  <p className="text-zinc-500 text-sm line-clamp-2">
                     {assignment.description}
                   </p>
-                  
+
                   <div className="flex items-center justify-between mt-auto pt-4 border-t border-zinc-100">
-                    <div className={`flex flex-col gap-0.5`}>
+                    <div className="flex flex-col gap-0.5">
                       <div className={`flex items-center gap-1.5 text-sm font-medium ${
-                        assignment.status === "submitted" ? "text-emerald-600" :
-                        assignment.status === "overdue" ? "text-red-600" :
+                        userStatus === "submitted" ? "text-emerald-600" :
+                        userStatus === "overdue" ? "text-red-600" :
                         (() => {
                           const hoursLeft = differenceInHours(parseISO(assignment.dueDate), new Date());
                           if (hoursLeft < 0) return "text-red-600";
@@ -556,7 +551,7 @@ export default function AssignmentsPage() {
                         <Clock className="w-4 h-4" />
                         {format(parseISO(assignment.dueDate), "MMM d, yyyy")}
                       </div>
-                      {assignment.status !== "submitted" && assignment.status !== "overdue" && (
+                      {userStatus !== "submitted" && userStatus !== "overdue" && (
                         <div className={`text-xs ml-5 font-medium ${
                           (() => {
                             const hoursLeft = differenceInHours(parseISO(assignment.dueDate), new Date());
@@ -577,30 +572,26 @@ export default function AssignmentsPage() {
                         </div>
                       )}
                     </div>
-                    
+
+                    {/* Both student and lecturer assignments: interactive button for marking done */}
                     <button
-                      onClick={() => assignment.status === "submitted" ? handleToggleStatus(assignment.id) : handleOpenSubmitModal(assignment)}
+                      onClick={() => handleToggleStatus(assignment.id)}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                        assignment.status === "submitted" 
-                          ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200" 
-                          : "bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm"
+                        userStatus === "submitted"
+                          ? isLecturer ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200" : "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+                          : isLecturer ? "bg-violet-100 text-violet-700 hover:bg-violet-200" : "bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm"
                       }`}
                     >
-                      {assignment.status === "submitted" ? (
-                        <>
-                          <CheckCircle2 className="w-4 h-4" />
-                          Submitted
-                        </>
+                      {userStatus === "submitted" ? (
+                        <><CheckCircle2 className="w-4 h-4" />Done</>
                       ) : (
-                        <>
-                          <CheckCircle2 className="w-4 h-4" />
-                          Submit
-                        </>
+                        <><CheckCircle2 className="w-4 h-4" />Mark Done</>
                       )}
                     </button>
                   </div>
                 </motion.div>
-              ))}
+                );
+              })}
             </AnimatePresence>
             {filteredAssignments.length === 0 && (
               <div className="col-span-full py-12 text-center">
@@ -650,27 +641,38 @@ export default function AssignmentsPage() {
               {daysInMonth.map((day, i) => {
                 const dayAssignments = assignments.filter(a => isSameDay(parseISO(a.dueDate), day));
                 return (
-                  <div 
-                    key={day.toISOString()} 
+                  <div
+                    key={day.toISOString()}
                     className={`min-h-[120px] p-2 border-b border-r border-zinc-100 transition-colors hover:bg-zinc-50 ${isToday(day) ? 'bg-indigo-50/30' : ''}`}
                   >
                     <div className={`text-sm font-medium mb-1 w-7 h-7 flex items-center justify-center rounded-full ${isToday(day) ? 'bg-indigo-600 text-white' : 'text-zinc-700'}`}>
                       {format(day, "d")}
                     </div>
                     <div className="space-y-1">
-                      {dayAssignments.map(assignment => (
-                        <div
-                          key={assignment.id}
-                          onClick={() => canModifyAssignment(assignment) && handleOpenModal(assignment)}
-                          className={`text-xs px-2 py-1.5 rounded truncate ${canModifyAssignment(assignment) ? 'cursor-pointer' : 'cursor-default'} transition-colors font-medium border ${
-                            assignment.status === 'submitted' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' :
-                            assignment.status === 'overdue' ? 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100' :
-                            'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100'
-                          }`}
-                        >
-                          {assignment.title}
-                        </div>
-                      ))}
+                      {dayAssignments.map(assignment => {
+                        // Get user's personal status - ALWAYS personalized
+                        const getUserStatus = () => {
+                          if (assignment.studentCompletions && Array.isArray(assignment.studentCompletions)) {
+                            const userCompletion = assignment.studentCompletions.find(c => String(c.userId) === String(session.user.id));
+                            if (userCompletion) return userCompletion.status;
+                          }
+                          return assignment.status || "pending";
+                        };
+                        const userStatus = getUserStatus();
+                        return (
+                          <div
+                            key={assignment.id}
+                            onClick={() => canModifyAssignment(assignment) && handleOpenModal(assignment)}
+                            className={`text-xs px-2 py-1.5 rounded truncate ${canModifyAssignment(assignment) ? 'cursor-pointer' : 'cursor-default'} transition-colors font-medium border ${
+                              userStatus === 'submitted' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' :
+                              userStatus === 'overdue' ? 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100' :
+                              'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100'
+                            }`}
+                          >
+                            {assignment.title}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 );
@@ -784,109 +786,7 @@ export default function AssignmentsPage() {
         )}
       </AnimatePresence>
 
-      {/* Submit Modal */}
-      <AnimatePresence>
-        {isSubmitModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-zinc-900/40 backdrop-blur-sm"
-              onClick={handleCloseSubmitModal}
-            />
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden"
-            >
-              <div className="flex items-center justify-between p-5 border-b border-zinc-100">
-                <h2 className="text-lg font-semibold text-zinc-900">
-                  Submit Assignment
-                </h2>
-                <button 
-                  onClick={handleCloseSubmitModal}
-                  className="p-1.5 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 rounded-lg transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-              
-              <form onSubmit={handleSubmitWork} className="p-5 space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-zinc-700 mb-1">Upload File</label>
-                  <div 
-                    onDragOver={(e) => e.preventDefault()} 
-                    onDrop={handleFileDrop}
-                    onClick={() => fileInputRef.current?.click()}
-                    className={`w-full border-2 border-dashed ${uploadedFile ? 'border-indigo-500 bg-indigo-50/50' : 'border-zinc-300'} rounded-xl p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-zinc-50 transition-colors`}
-                  >
-                    <UploadCloud className={`w-8 h-8 ${uploadedFile ? 'text-indigo-600' : 'text-zinc-400'} mb-2`} />
-                    <span className="text-sm font-medium text-zinc-700">
-                      {uploadedFile ? uploadedFile.name : "Click to upload or drag and drop"}
-                    </span>
-                    {uploadedFile && (
-                      <span className="text-xs text-indigo-500 mt-1">{(uploadedFile.size / 1024 / 1024).toFixed(2)} MB</span>
-                    )}
-                    {!uploadedFile && <span className="text-xs text-zinc-500 mt-1">PDF, DOCX, ZIP etc. up to 10MB</span>}
-                    <input 
-                      type="file" 
-                      ref={fileInputRef} 
-                      onChange={handleFileChange} 
-                      className="hidden" 
-                    />
-                  </div>
-                  
-                  <div className="flex items-center gap-3 my-4">
-                    <div className="h-px bg-zinc-200 flex-1"></div>
-                    <span className="text-xs text-zinc-400 font-medium uppercase">or paste link</span>
-                    <div className="h-px bg-zinc-200 flex-1"></div>
-                  </div>
 
-                  <label className="block text-sm font-medium text-zinc-700 mb-1">Submission Link</label>
-                  <input
-                    type="url"
-                    value={submitUrl}
-                    onChange={(e) => setSubmitUrl(e.target.value)}
-                    className="w-full px-3 py-2 border border-zinc-300 rounded-lg text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    placeholder="e.g. Google Drive link, GitHub repo..."
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-zinc-700 mb-1">Additional Text / Note</label>
-                  <textarea
-                    rows={4}
-                    value={submitText}
-                    onChange={(e) => setSubmitText(e.target.value)}
-                    className="w-full px-3 py-2 border border-zinc-300 rounded-lg text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
-                    placeholder="Add any required text for your submission..."
-                  />
-                </div>
-                
-                <div className="pt-4 flex items-center justify-end gap-3">
-                  <button
-                    type="button"
-                    onClick={handleCloseSubmitModal}
-                    className="px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 rounded-lg transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSubmitting || (!submitUrl && !submitText && !uploadedFile)}
-                    className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
-                  >
-                    {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                    Submit Work
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

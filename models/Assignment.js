@@ -47,8 +47,25 @@ const AssignmentSchema = new mongoose.Schema({
     type: Date,
   },
 
-  year: String,
-  semester: String,
+  year: String,      // e.g. "1", "2", "3", "4"
+  semester: String,  // e.g. "y1s1", "y2s2"
+
+  // True when the assignment was created by a lecturer (visible to all matching students)
+  isLecturerAssignment: {
+    type: Boolean,
+    default: false,
+  },
+
+  // Track completion status per user (for lecturer assignments)
+  studentCompletions: [{
+    userId: String,
+    status: {
+      type: String,
+      enum: ["pending", "submitted", "overdue"],
+      default: "pending"
+    },
+    submittedAt: Date
+  }],
 
 }, { timestamps: true });
 
