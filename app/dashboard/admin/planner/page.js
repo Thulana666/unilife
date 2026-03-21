@@ -13,7 +13,7 @@ const PRIORITY_STYLES = {
 
 const STATUS_STYLES = {
     Pending: "bg-slate-100 text-slate-600 border-slate-200",
-    Done: "bg-indigo-100 text-indigo-700 border-indigo-200",
+    Completed: "bg-indigo-100 text-indigo-700 border-indigo-200",
 };
 
 const DAY_ORDER = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
@@ -163,7 +163,7 @@ export default function AdminPlanner() {
                 {[
                     { label: "Total Entries", value: events.length, color: "text-orange-600", bg: "bg-orange-50" },
                     { label: "Pending", value: events.filter(e => e.status === "Pending").length, color: "text-slate-600", bg: "bg-slate-50" },
-                    { label: "Done", value: events.filter(e => e.status === "Done").length, color: "text-indigo-600", bg: "bg-indigo-50" },
+                    { label: "Completed", value: events.filter(e => e.status === "Completed").length, color: "text-indigo-600", bg: "bg-indigo-50" },
                     { label: "High Priority", value: events.filter(e => e.priority === "High").length, color: "text-rose-600", bg: "bg-rose-50" },
                 ].map(({ label, value, color, bg }) => (
                     <div key={label} className={`${bg} rounded-2xl p-4 border border-white shadow-sm`}>
@@ -191,7 +191,7 @@ export default function AdminPlanner() {
                     className="px-3 py-2 text-sm border border-slate-200 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-orange-400/40 text-slate-700 font-medium">
                     <option value="all">All Statuses</option>
                     <option value="Pending">Pending</option>
-                    <option value="Done">Done</option>
+                    <option value="Completed">Completed</option>
                 </select>
                 <select value={filterPriority} onChange={e => setFilterPriority(e.target.value)}
                     className="px-3 py-2 text-sm border border-slate-200 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-orange-400/40 text-slate-700 font-medium">
