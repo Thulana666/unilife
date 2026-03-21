@@ -134,11 +134,16 @@ export async function PATCH(req) {
 
         const { id, ...updates } = await req.json();
 
-        const updatedTask = await Planner.findByIdAndUpdate(id, updates, { new: true });
-
-        if (!updatedTask) {
+        const task = await Planner.findById(id);
+        if (!task) {
             return Response.json({ error: "Task not found" }, { status: 404 });
         }
+
+        if (task.createdBy !== session.user.email && session.user.role !== "admin") {
+            return Response.json({ error: "Access denied" }, { status: 403 });
+        }
+
+        const updatedTask = await Planner.findByIdAndUpdate(id, updates, { new: true });
 
         return Response.json(updatedTask);
     } catch (err) {
@@ -160,6 +165,13 @@ export async function DELETE(req) {
         const { searchParams } = new URL(req.url);
         const id = searchParams.get("id");
         if (!id) return Response.json({ error: "ID required" }, { status: 400 });
+
+        const task = await Planner.findById(id);
+        if (!task) return Response.json({ error: "Task not found" }, { status: 404 });
+
+        if (task.createdBy !== session.user.email && session.user.role !== "admin") {
+            return Response.json({ error: "Access denied" }, { status: 403 });
+        }
 
         await Planner.findByIdAndDelete(id);
         return Response.json({ message: "Planner entry deleted" });

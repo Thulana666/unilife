@@ -1,5 +1,6 @@
 "use client";
 import { useState, use, useEffect } from "react";
+import { useSession } from "next-auth/react";
 
 // ── SVG Icon Components ───────────────────────────────────────────────────────
 function IconEdit() {
@@ -94,6 +95,8 @@ const TABS = [
 export default function StudyPlanner({ params }) {
   const resolvedParams = use(params);
   const semester = resolvedParams.semester;
+  const { data: session } = useSession();
+  const currentUserEmail = session?.user?.email;
 
   const semesterLabel = (() => {
     const match = semester?.match(/year(\d+)semester(\d+)/i);
@@ -383,7 +386,9 @@ export default function StudyPlanner({ params }) {
                       <div style={{ fontSize: "11px", color: "#64748B", display: "flex", alignItems: "center", gap: "5px", fontWeight: 500 }}><IconCalendar /> {nextTask.date} · {relDate(nextTask.date)}</div>
                       <div style={{ fontSize: "11px", color: "#64748B", display: "flex", alignItems: "center", gap: "5px", fontWeight: 500 }}><IconClock /> {nextTask.time}</div>
                     </div>
-                    <button onClick={() => handleToggle(nextTask._id, "Pending")} className="planner-btn" style={{ width: "100%", padding: "10px", background: `linear-gradient(135deg,${pri.color},${pri.dot})`, color: "white", border: "none", borderRadius: "11px", fontWeight: 700, fontSize: "12px", cursor: "pointer", boxShadow: `0 4px 14px ${pri.dot}55` }}>✓ Mark Complete</button>
+                    {nextTask.createdBy === currentUserEmail && (
+                      <button onClick={() => handleToggle(nextTask._id, "Pending")} className="planner-btn" style={{ width: "100%", padding: "10px", background: `linear-gradient(135deg,${pri.color},${pri.dot})`, color: "white", border: "none", borderRadius: "11px", fontWeight: 700, fontSize: "12px", cursor: "pointer", boxShadow: `0 4px 14px ${pri.dot}55` }}>✓ Mark Complete</button>
+                    )}
                   </div>
                 </div>
               );
@@ -435,16 +440,28 @@ export default function StudyPlanner({ params }) {
                     opacity: t.status === "Completed" ? 0.7 : 1,
                   }}>
                     {/* Checkbox */}
-                    <button onClick={() => handleToggle(t._id, t.status)} style={{
-                      width: "24px", height: "24px", borderRadius: "7px", cursor: "pointer",
-                      border: t.status === "Completed" ? "none" : "2px solid #CBD5E1",
-                      background: t.status === "Completed" ? "#10B981" : "white",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      flexShrink: 0, transition: "all 0.2s ease", padding: 0,
-                      color: "white"
-                    }}>
-                      {t.status === "Completed" && <IconCheck />}
-                    </button>
+                    {t.createdBy === currentUserEmail ? (
+                      <button onClick={() => handleToggle(t._id, t.status)} style={{
+                        width: "24px", height: "24px", borderRadius: "7px", cursor: "pointer",
+                        border: t.status === "Completed" ? "none" : "2px solid #CBD5E1",
+                        background: t.status === "Completed" ? "#10B981" : "white",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        flexShrink: 0, transition: "all 0.2s ease", padding: 0,
+                        color: "white"
+                      }}>
+                        {t.status === "Completed" && <IconCheck />}
+                      </button>
+                    ) : (
+                      <div style={{
+                        width: "24px", height: "24px", borderRadius: "7px",
+                        border: t.status === "Completed" ? "none" : "2px solid #E2E8F0",
+                        background: t.status === "Completed" ? "#10B981" : "#F8FAFC",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        flexShrink: 0, color: "white", opacity: 0.6
+                      }}>
+                        {t.status === "Completed" && <IconCheck />}
+                      </div>
+                    )}
 
                     {/* Info */}
                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -480,22 +497,24 @@ export default function StudyPlanner({ params }) {
                     </div>
 
                     {/* Action Buttons */}
-                    <div style={{ display: "flex", gap: "6px", flexShrink: 0 }}>
-                      <button className="action-btn planner-btn" onClick={() => openEdit(t)} title="Edit" style={{
-                        width: "34px", height: "34px", borderRadius: "9px", border: "1px solid #E2E8F0",
-                        background: "white", color: "#4F46E5", cursor: "pointer",
-                        display: "flex", alignItems: "center", justifyContent: "center"
-                      }}>
-                        <IconEdit />
-                      </button>
-                      <button className="action-btn planner-btn" onClick={() => setDeleteConfirm(t._id)} title="Delete" style={{
-                        width: "34px", height: "34px", borderRadius: "9px", border: "1px solid #E2E8F0",
-                        background: "white", color: "#EF4444", cursor: "pointer",
-                        display: "flex", alignItems: "center", justifyContent: "center"
-                      }}>
-                        <IconTrash />
-                      </button>
-                    </div>
+                    {t.createdBy === currentUserEmail && (
+                      <div style={{ display: "flex", gap: "6px", flexShrink: 0 }}>
+                        <button className="action-btn planner-btn" onClick={() => openEdit(t)} title="Edit" style={{
+                          width: "34px", height: "34px", borderRadius: "9px", border: "1px solid #E2E8F0",
+                          background: "white", color: "#4F46E5", cursor: "pointer",
+                          display: "flex", alignItems: "center", justifyContent: "center"
+                        }}>
+                          <IconEdit />
+                        </button>
+                        <button className="action-btn planner-btn" onClick={() => setDeleteConfirm(t._id)} title="Delete" style={{
+                          width: "34px", height: "34px", borderRadius: "9px", border: "1px solid #E2E8F0",
+                          background: "white", color: "#EF4444", cursor: "pointer",
+                          display: "flex", alignItems: "center", justifyContent: "center"
+                        }}>
+                          <IconTrash />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
