@@ -29,11 +29,8 @@ export default function LoginPage() {
         setError("Invalid email or password");
         setIsLoading(false);
       } else {
-        // Redirect based on selected role tab (actual role enforcement is in the dashboard)
-        if (role === "student") router.push("/dashboard");
-        else if (role === "lecturer") router.push("/dashboard/lecturer");
-        else if (role === "admin") router.push("/dashboard/admin");
-        else router.push("/dashboard");
+        // Redirect to dashboard for all roles
+        router.push("/dashboard");
       }
     } catch (err) {
       console.error(err);

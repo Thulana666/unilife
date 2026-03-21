@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Link from "next/link";
 
-export default function StudentDashboard() {
+export default function Dashboard() {
     const { data: session, status } = useSession();
     const router = useRouter();
 
@@ -13,29 +13,23 @@ export default function StudentDashboard() {
     useEffect(() => {
         if (status === "unauthenticated") {
             router.push("/login");
-        } else if (status === "authenticated") {
-            if (session?.user?.role === "admin") {
-                router.push("/dashboard/admin");
-            } else if (session?.user?.role === "lecturer") {
-                router.push("/dashboard/lecturer");
-            }
         }
-    }, [status, session, router]);
+    }, [status, router]);
 
     // Prevent rendering incorrect UI while redirecting or loading
-    if (status === "loading" || !session || session.user.role !== "student") {
+    if (status === "loading" || !session) {
         return null;
     }
 
     // Extract Session Data safely
-    const { name = "Student", year = 1, semester = 1 } = session.user;
+    const { name = "User", role = "student", year = 1, semester = 1 } = session.user;
 
     return (
         <div className="space-y-8">
             {/* Header & Student Info Cards */}
             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 mb-8">
                 <div>
-                    <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">Student Dashboard</h1>
+                    <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">Dashboard</h1>
                     <p className="text-slate-500 mt-2 text-lg">
                         Welcome, <span className="font-semibold text-slate-800">{name}</span> 👋
                     </p>
@@ -49,7 +43,7 @@ export default function StudentDashboard() {
                     <div className="flex gap-4 sm:gap-6 px-2 sm:px-4 flex-nowrap">
                         <div>
                             <p className="text-xs font-medium text-slate-500 mb-0.5 uppercase tracking-wider">Role</p>
-                            <p className="font-bold text-slate-900">Student</p>
+                            <p className="font-bold text-slate-900 capitalize">{role}</p>
                         </div>
                         <div className="w-px h-10 bg-slate-200"></div>
                         <div>

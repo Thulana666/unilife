@@ -96,7 +96,7 @@ export default function AssignmentsPage() {
     e.preventDefault();
     if (!session?.user?.id) return;
     setIsSubmitting(true);
-    
+
     // Determine status based on due date
     let status = "pending";
     if (isBefore(parseISO(dueDate), startOfDay(new Date()))) {
@@ -105,10 +105,30 @@ export default function AssignmentsPage() {
 
     try {
       if (editingId) {
-        // Optimistic update locally - full DB update not fully implemented in API yet for all fields
-        setAssignments(assignments.map(a => 
-          a.id === editingId 
-            ? { ...a, title, description, dueDate: new Date(dueDate).toISOString(), course, status: a.status === "submitted" ? "submitted" : status } 
+        // Update assignment via API
+        const res = await fetch("/api/assignments", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: editingId,
+            title,
+            description,
+            dueDate: new Date(dueDate).toISOString(),
+            course
+          })
+        });
+
+        if (!res.ok) {
+          const error = await res.json();
+          alert(error.error || "Failed to update assignment");
+          setIsSubmitting(false);
+          return;
+        }
+
+        const updated = await res.json();
+        setAssignments(assignments.map(a =>
+          a.id === editingId
+            ? { ...updated, id: updated._id }
             : a
         ));
       } else {
@@ -165,34 +185,53 @@ export default function AssignmentsPage() {
 
   const handleDelete = async (id) => {
     try {
-      await fetch("/api/assignments", {
+      const res = await fetch("/api/assignments", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id })
       });
+
+      if (!res.ok) {
+        const error = await res.json();
+        alert(error.error || "Failed to delete assignment");
+        return;
+      }
+
       setAssignments(assignments.filter(a => a.id !== id));
     } catch (err) {
       console.error("Failed to delete from database:", err);
+      alert("Failed to delete assignment");
     }
   };
 
   const handleToggleStatus = async (id) => {
     setAssignments(assignments.map(a => {
       if (a.id === id) {
-        const newStatus = a.status === "submitted" 
-          ? (isBefore(parseISO(a.dueDate), startOfDay(new Date())) ? "overdue" : "pending") 
+        const newStatus = a.status === "submitted"
+          ? (isBefore(parseISO(a.dueDate), startOfDay(new Date())) ? "overdue" : "pending")
           : "submitted";
-          
+
         fetch("/api/assignments", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ id, status: newStatus })
         }).catch(console.error);
-          
+
         return { ...a, status: newStatus };
       }
       return a;
     }));
+  };
+
+  // Check if the current user can edit/delete an assignment
+  const canModifyAssignment = (assignment) => {
+    if (!session?.user) return false;
+
+    const isCreator = assignment.userId === session.user.id;
+    const isAdmin = session.user.role === "admin";
+    const isLecturer = session.user.role === "lecturer";
+
+    return isCreator || isAdmin || isLecturer;
   };
 
   const handleOpenSubmitModal = (assignment) => {
@@ -453,20 +492,22 @@ export default function AssignmentsPage() {
                     <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-zinc-100 text-zinc-600">
                       {assignment.course}
                     </span>
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => handleOpenModal(assignment)}
-                        className="p-1.5 text-zinc-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(assignment.id)}
-                        className="p-1.5 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+                    {canModifyAssignment(assignment) && (
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => handleOpenModal(assignment)}
+                          className="p-1.5 text-zinc-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(assignment.id)}
+                          className="p-1.5 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                   
                   <h3 className={`font-semibold text-lg mb-1 ${assignment.status === 'submitted' ? 'text-zinc-500 line-through' : 'text-zinc-900'}`}>
@@ -601,10 +642,10 @@ export default function AssignmentsPage() {
                     </div>
                     <div className="space-y-1">
                       {dayAssignments.map(assignment => (
-                        <div 
+                        <div
                           key={assignment.id}
-                          onClick={() => handleOpenModal(assignment)}
-                          className={`text-xs px-2 py-1.5 rounded truncate cursor-pointer transition-colors font-medium border ${
+                          onClick={() => canModifyAssignment(assignment) && handleOpenModal(assignment)}
+                          className={`text-xs px-2 py-1.5 rounded truncate ${canModifyAssignment(assignment) ? 'cursor-pointer' : 'cursor-default'} transition-colors font-medium border ${
                             assignment.status === 'submitted' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' :
                             assignment.status === 'overdue' ? 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100' :
                             'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100'
