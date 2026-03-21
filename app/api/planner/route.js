@@ -56,7 +56,7 @@ export async function GET(req) {
 export async function POST(req) {
     try {
         const session = await getServerSession(authOptions);
-        if (!session || session.user.role === "student") {
+        if (!session) {
             return Response.json({ error: "Access denied" }, { status: 403 });
         }
 
@@ -151,7 +151,7 @@ export async function PATCH(req) {
 export async function DELETE(req) {
     try {
         const session = await getServerSession(authOptions);
-        if (!session || session.user.role === "student") {
+        if (!session) {
             return Response.json({ error: "Access denied" }, { status: 403 });
         }
 
