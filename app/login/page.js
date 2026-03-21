@@ -28,8 +28,16 @@ export default function LoginPage() {
         setError("Invalid email or password");
         setIsLoading(false);
       } else {
-        // Redirect to dashboard for all roles
-        router.push("/dashboard");
+        // Fetch session to get user role
+        const response = await fetch("/api/auth/session");
+        const session = await response.json();
+
+        // Redirect based on role
+        if (session?.user?.role === "lecturer") {
+          router.push("/dashboard/lecturer");
+        } else {
+          router.push("/dashboard");
+        }
       }
     } catch (err) {
       console.error(err);

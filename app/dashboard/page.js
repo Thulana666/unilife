@@ -13,8 +13,10 @@ export default function Dashboard() {
     useEffect(() => {
         if (status === "unauthenticated") {
             router.push("/login");
+        } else if (session?.user?.role === "lecturer" && status === "authenticated") {
+            router.push("/dashboard/lecturer");
         }
-    }, [status, router]);
+    }, [status, session, router]);
 
     // Prevent rendering incorrect UI while redirecting or loading
     if (status === "loading" || !session) {
