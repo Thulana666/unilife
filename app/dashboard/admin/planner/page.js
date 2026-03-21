@@ -36,6 +36,7 @@ export default function AdminPlanner() {
 
     const [events, setEvents] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [filterYear, setFilterYear] = useState("all");
     const [filterSemester, setFilterSemester] = useState("all");
     const [filterStatus, setFilterStatus] = useState("all");
     const [filterPriority, setFilterPriority] = useState("all");
@@ -84,11 +85,13 @@ export default function AdminPlanner() {
     };
 
     // Derived filter values
+    const years = useMemo(() => [...new Set(events.map(e => e.year).filter(Boolean))].sort(), [events]);
     const semesters = useMemo(() => [...new Set(events.map(e => e.semester).filter(Boolean))].sort(), [events]);
 
     const filtered = useMemo(() => {
         return events.filter(e => {
-            if (filterSemester !== "all" && e.semester !== filterSemester) return false;
+            if (filterYear !== "all" && String(e.year) !== String(filterYear)) return false;
+            if (filterSemester !== "all" && String(e.semester) !== String(filterSemester)) return false;
             if (filterStatus !== "all" && e.status !== filterStatus) return false;
             if (filterPriority !== "all" && e.priority !== filterPriority) return false;
             if (search) {
@@ -100,7 +103,7 @@ export default function AdminPlanner() {
             }
             return true;
         });
-    }, [events, filterSemester, filterStatus, filterPriority, search]);
+    }, [events, filterYear, filterSemester, filterStatus, filterPriority, search]);
 
     // Group by day
     const grouped = useMemo(() => {
@@ -169,10 +172,15 @@ export default function AdminPlanner() {
                     onChange={e => setSearch(e.target.value)}
                     className="flex-1 min-w-[180px] px-3 py-2 text-sm border border-slate-200 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-orange-400/40 focus:border-orange-400 text-slate-700 placeholder:text-slate-400"
                 />
+                <select value={filterYear} onChange={e => setFilterYear(e.target.value)}
+                    className="px-3 py-2 text-sm border border-slate-200 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-orange-400/40 text-slate-700 font-medium">
+                    <option value="all">All Years</option>
+                    {years.map(y => <option key={y} value={y}>Year {y}</option>)}
+                </select>
                 <select value={filterSemester} onChange={e => setFilterSemester(e.target.value)}
                     className="px-3 py-2 text-sm border border-slate-200 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-orange-400/40 text-slate-700 font-medium">
                     <option value="all">All Semesters</option>
-                    {semesters.map(s => <option key={s} value={s}>{s}</option>)}
+                    {semesters.map(s => <option key={s} value={s}>Semester {s}</option>)}
                 </select>
                 <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
                     className="px-3 py-2 text-sm border border-slate-200 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-orange-400/40 text-slate-700 font-medium">
@@ -269,10 +277,10 @@ export default function AdminPlanner() {
                                                         </div>
                                                     )}
                                                     {/* Semester */}
-                                                    {evt.semester && (
+                                                    {(evt.year || evt.semester) && (
                                                         <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
                                                             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z" /><path d="M6 12v5c3 3 9 3 12 0v-5" /></svg>
-                                                            {evt.semester}
+                                                            {evt.year ? `Y${evt.year}` : ""}{evt.semester ? ` S${evt.semester}` : ""}
                                                         </div>
                                                     )}
                                                     {/* Created by */}
