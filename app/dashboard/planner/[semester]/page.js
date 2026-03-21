@@ -695,7 +695,7 @@ export default function StudyPlanner({ params }) {
                       type="text" placeholder="e.g. ITPM" required
                       value={formData.subject}
                       onChange={e => setFormData({ ...formData, subject: e.target.value.toUpperCase() })}
-                      style={{ width: "100%", padding: "11px 14px", borderRadius: "10px", border: "1.5px solid #E2E8F0", fontSize: "14px", fontWeight: 600, background: "#FAFAFA" }}
+                      style={{ width: "100%", padding: "11px 14px", borderRadius: "10px", border: "1.5px solid #E2E8F0", fontSize: "14px", fontWeight: 600, background: "#FAFAFA", color: "black" }}
                     />
                   </div>
                   <div>
@@ -703,7 +703,7 @@ export default function StudyPlanner({ params }) {
                     <input
                       type="date" required value={formData.date}
                       onChange={e => setFormData({ ...formData, date: e.target.value })}
-                      style={{ width: "100%", padding: "11px 14px", borderRadius: "10px", border: "1.5px solid #E2E8F0", fontSize: "14px", fontWeight: 600, background: "#FAFAFA" }}
+                      style={{ width: "100%", padding: "11px 14px", borderRadius: "10px", border: "1.5px solid #E2E8F0", fontSize: "14px", fontWeight: 600, background: "#FAFAFA", color: "black" }}
                     />
                   </div>
                 </div>
@@ -715,7 +715,7 @@ export default function StudyPlanner({ params }) {
                     type="text" placeholder="e.g. Final Presentation" required
                     value={formData.title}
                     onChange={e => setFormData({ ...formData, title: e.target.value })}
-                    style={{ width: "100%", padding: "11px 14px", borderRadius: "10px", border: "1.5px solid #E2E8F0", fontSize: "14px", fontWeight: 600, background: "#FAFAFA" }}
+                    style={{ width: "100%", padding: "11px 14px", borderRadius: "10px", border: "1.5px solid #E2E8F0", fontSize: "14px", fontWeight: 600, background: "#FAFAFA", color: "black" }}
                   />
                 </div>
 
@@ -726,7 +726,7 @@ export default function StudyPlanner({ params }) {
                     <input
                       type="time" value={formData.time}
                       onChange={e => setFormData({ ...formData, time: e.target.value })}
-                      style={{ width: "100%", padding: "11px 14px", borderRadius: "10px", border: "1.5px solid #E2E8F0", fontSize: "14px", fontWeight: 600, background: "#FAFAFA" }}
+                      style={{ width: "100%", padding: "11px 14px", borderRadius: "10px", border: "1.5px solid #E2E8F0", fontSize: "14px", fontWeight: 600, background: "#FAFAFA", color: "black" }}
                     />
                   </div>
                   <div>
@@ -734,7 +734,7 @@ export default function StudyPlanner({ params }) {
                     <select
                       value={formData.priority}
                       onChange={e => setFormData({ ...formData, priority: e.target.value })}
-                      style={{ width: "100%", padding: "11px 14px", borderRadius: "10px", border: "1.5px solid #E2E8F0", fontSize: "14px", fontWeight: 600, background: "#FAFAFA", cursor: "pointer" }}
+                      style={{ width: "100%", padding: "11px 14px", borderRadius: "10px", border: "1.5px solid #E2E8F0", fontSize: "14px", fontWeight: 600, background: "#FAFAFA", cursor: "pointer", color: "black" }}
                     >
                       <option value="High">🔴 High</option>
                       <option value="Medium">🟠 Medium</option>
