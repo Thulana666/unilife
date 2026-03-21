@@ -50,8 +50,8 @@ const AssignmentSchema = new mongoose.Schema({
     type: Date,
   },
 
-  year: { type: Number },
-  semester: { type: Number },
+  year: { type: mongoose.Schema.Types.Mixed },
+  semester: { type: mongoose.Schema.Types.Mixed },
 
   // True when the assignment was created by a lecturer (visible to all matching students)
   isLecturerAssignment: {

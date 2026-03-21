@@ -323,11 +323,7 @@ export default function DashboardLayout({ children }) {
             { name: "Profile", href: "/dashboard/profile", icon: "UserCircle" },
         ],
         student: [
-<<<<<<< HEAD
-            { name: "Assignments", href: "/dashboard/assignments", icon: "BookOpenCheck" },
-=======
             { name: "Assignments", href: `/dashboard/assignments/y${year}s${semester}`, icon: "BookOpenCheck" },
->>>>>>> remotes/origin/assignment
             { name: "Study Planner", href: "/dashboard/planner", icon: "Calendar" },
             { name: "Notes", href: "/dashboard/notes", icon: "Files" },
             { name: "Community Chat", href: `/dashboard/chat/y${year}s${semester}`, icon: "MessageSquareText" },
@@ -525,8 +521,4 @@ export default function DashboardLayout({ children }) {
 
         </div>
     );
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> remotes/origin/assignment

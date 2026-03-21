@@ -51,7 +51,6 @@ export default function Home() {
   };
 
   return (
-<<<<<<< HEAD
     <div className="font-sans text-slate-900 bg-white selection:bg-indigo-100 selection:text-indigo-800 overflow-x-hidden relative min-h-screen">
 
       {/* 1. Transparent Navbar */}
@@ -123,21 +122,6 @@ export default function Home() {
 
           <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-slate-900 mb-6 leading-[1.1]">
             UniLife <br /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-sky-500">Redefined.</span>
-=======
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-16 sm:py-32 px-6 sm:px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert mt-8 sm:mt-0"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.js file.
->>>>>>> remotes/origin/assignment
           </h1>
 
           <p className="mt-4 text-lg md:text-xl text-slate-600 max-w-xl mb-10 leading-relaxed font-medium">
