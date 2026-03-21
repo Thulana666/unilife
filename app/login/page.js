@@ -7,12 +7,18 @@ import Link from "next/link";
 
 export default function LoginPage() {
   const router = useRouter();
+<<<<<<< HEAD
   const [role, setRole] = useState("student");
+=======
+>>>>>>> remotes/origin/assignment
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+<<<<<<< HEAD
   const [showPassword, setShowPassword] = useState(false);
+=======
+>>>>>>> remotes/origin/assignment
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -24,17 +30,33 @@ export default function LoginPage() {
         redirect: false,
         email,
         password,
+<<<<<<< HEAD
         role, // Send the selected role
+=======
+>>>>>>> remotes/origin/assignment
       });
 
       if (res?.error) {
         setError("Invalid email or password");
         setIsLoading(false);
       } else {
+<<<<<<< HEAD
         // Redirection based on role
         if (role === "student") router.push("/dashboard");
         else if (role === "lecturer") router.push("/dashboard/lecturer");
         else if (role === "admin") router.push("/dashboard/admin");
+=======
+        // Fetch session to get user role
+        const response = await fetch("/api/auth/session");
+        const session = await response.json();
+
+        // Redirect based on role
+        if (session?.user?.role === "lecturer") {
+          router.push("/dashboard/lecturer");
+        } else {
+          router.push("/dashboard");
+        }
+>>>>>>> remotes/origin/assignment
       }
     } catch (err) {
       console.error(err);
@@ -45,7 +67,11 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 font-sans p-4">
+<<<<<<< HEAD
       <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100">
+=======
+      <div className="bg-white p-6 md:p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100">
+>>>>>>> remotes/origin/assignment
 
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-indigo-600 rounded-2xl mx-auto flex items-center justify-center mb-4 shadow-md transform -rotate-3">
@@ -55,6 +81,7 @@ export default function LoginPage() {
           <p className="text-sm text-slate-500 mt-1 font-medium">Smart Student Productivity Platform</p>
         </div>
 
+<<<<<<< HEAD
         {/* Role Selection */}
         <div className="flex p-1 bg-slate-100 rounded-xl mb-6 shadow-inner">
           {["student", "lecturer", "admin"].map((r) => (
@@ -72,6 +99,8 @@ export default function LoginPage() {
           ))}
         </div>
 
+=======
+>>>>>>> remotes/origin/assignment
         {error && (
           <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100 text-center font-medium">
             {error}
@@ -97,6 +126,7 @@ export default function LoginPage() {
             <label className="block text-sm font-semibold text-slate-700 mb-1">
               Password
             </label>
+<<<<<<< HEAD
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
@@ -120,6 +150,16 @@ export default function LoginPage() {
                 )}
               </button>
             </div>
+=======
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              required
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all placeholder:text-slate-400"
+            />
+>>>>>>> remotes/origin/assignment
           </div>
 
           <button
@@ -138,7 +178,11 @@ export default function LoginPage() {
 
         <div className="mt-8 text-center">
           <p className="text-sm text-slate-600">
+<<<<<<< HEAD
             Don't have an account?{" "}
+=======
+            Don&apos;t have an account?{" "}
+>>>>>>> remotes/origin/assignment
             <Link href="/register" className="font-semibold text-indigo-600 hover:text-indigo-700 hover:underline transition-colors">
               Register
             </Link>
