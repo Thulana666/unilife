@@ -28,7 +28,7 @@ export default function StudentDashboard() {
     }
 
     // Extract Session Data safely
-    const { name = "Student", year = 1, semester = 1 } = session.user;
+    const { name = "Student", role = "student", year = 1, semester = 1 } = session.user;
 
     return (
         <div className="space-y-8">
@@ -42,14 +42,14 @@ export default function StudentDashboard() {
                 </div>
 
                 {/* Academic Info Widget */}
-                <div className="flex items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-                    <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+                <div className="flex items-center gap-3 sm:gap-4 bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-slate-200 overflow-x-auto whitespace-nowrap">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
                     </div>
-                    <div className="flex gap-6 px-4">
+                    <div className="flex gap-4 sm:gap-6 px-2 sm:px-4 flex-nowrap">
                         <div>
                             <p className="text-xs font-medium text-slate-500 mb-0.5 uppercase tracking-wider">Role</p>
-                            <p className="font-bold text-slate-900">Student</p>
+                            <p className="font-bold text-slate-900 capitalize">{role}</p>
                         </div>
                         <div className="w-px h-10 bg-slate-200"></div>
                         <div>
