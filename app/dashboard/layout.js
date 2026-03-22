@@ -324,6 +324,8 @@ export default function DashboardLayout({ children }) {
             { name: "Profile", href: "/dashboard/profile", icon: "UserCircle" },
         ],
         student: [
+            { name: "Assignments", href: `/dashboard/assignments/y${year}s${semester}`, icon: "BookOpenCheck" },
+            { name: "Study Planner", href: "/dashboard/planner", icon: "Calendar" },
             { name: "Notes", href: "/dashboard/notes", icon: "Files" },
         ],
         lecturer: [
