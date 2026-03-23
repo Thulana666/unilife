@@ -29,9 +29,9 @@ export default function NotesSemesterGrid() {
     <div className="space-y-6">
 
       {/* Header Section */}
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 w-full relative overflow-hidden">
+      <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col xl:flex-row items-start xl:items-center justify-between gap-6 w-full relative overflow-hidden">
         <div className="absolute -right-10 -top-10 w-40 h-40 bg-indigo-50 rounded-full mix-blend-multiply opacity-70"></div>
-        <div className="relative z-10 w-full">
+        <div className="relative z-10 w-full xl:w-auto">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-xl flex justify-center items-center shadow-sm">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>
@@ -41,6 +41,35 @@ export default function NotesSemesterGrid() {
           <p className="text-slate-500 text-sm md:text-base max-w-2xl font-medium leading-relaxed">
             Select a specific semester to view its modules, read course materials, or upload new notes.
           </p>
+        </div>
+
+        {/* Academic Info Widget */}
+        <div className="relative z-10 flex items-center gap-3 sm:gap-4 bg-white/80 backdrop-blur p-3 sm:p-4 rounded-2xl shadow-sm border border-slate-200 overflow-x-auto whitespace-nowrap self-start xl:self-center">
+            <div className={`w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0 rounded-full flex items-center justify-center ${session?.user?.role === "admin" ? "bg-amber-50 text-amber-600" : session?.user?.role === "lecturer" ? "bg-purple-50 text-purple-600" : "bg-blue-50 text-blue-600"}`}>
+                {session?.user?.role === "admin" ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                ) : session?.user?.role === "lecturer" ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+                )}
+            </div>
+            <div className="flex gap-4 sm:gap-6 px-2 sm:px-4 flex-nowrap">
+                <div>
+                    <p className="text-xs font-medium text-slate-500 mb-0.5 uppercase tracking-wider">Role</p>
+                    <p className="font-bold text-slate-900 capitalize">{session?.user?.role || "student"}</p>
+                </div>
+                <div className="w-px h-10 bg-slate-200"></div>
+                <div>
+                    <p className="text-xs font-medium text-slate-500 mb-0.5 uppercase tracking-wider">Year</p>
+                    <p className="font-bold text-slate-900">{session?.user?.year || 1}</p>
+                </div>
+                <div className="w-px h-10 bg-slate-200"></div>
+                <div>
+                    <p className="text-xs font-medium text-slate-500 mb-0.5 uppercase tracking-wider">Semester</p>
+                    <p className="font-bold text-slate-900">{session?.user?.semester || 1}</p>
+                </div>
+            </div>
         </div>
       </div>
 

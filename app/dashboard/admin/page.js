@@ -24,16 +24,39 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-8">
-      {/* Dashboard Header */}
-      <div className="mb-10">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 text-sm font-semibold mb-4 border border-indigo-200 shadow-sm">
-          <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse"></span>
-          Admin Level Access
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 mb-8 mt-2 border-b border-slate-100 pb-6">
+        <div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 text-sm font-semibold mb-4 border border-indigo-200 shadow-sm">
+            <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse"></span>
+            Admin Level Access
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">Admin Dashboard</h1>
+          <p className="text-slate-500 mt-3 text-lg max-w-2xl leading-relaxed">
+            Welcome, <span className="font-semibold text-slate-700">{session?.user?.name || "Admin"}</span>. Manage your university platform users from this control center.
+          </p>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">Admin Dashboard</h1>
-        <p className="text-slate-500 mt-3 text-lg max-w-2xl leading-relaxed">
-          Welcome, <span className="font-semibold text-slate-700">{session.user.name || "Admin"}</span>. Manage your university platform users from this control center.
-        </p>
+        {/* Academic Info Widget */}
+        <div className="flex items-center gap-3 sm:gap-4 bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-slate-200 overflow-x-auto whitespace-nowrap">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            </div>
+            <div className="flex gap-4 sm:gap-6 px-2 sm:px-4 flex-nowrap">
+                <div>
+                    <p className="text-xs font-medium text-slate-500 mb-0.5 uppercase tracking-wider">Role</p>
+                    <p className="font-bold text-slate-900 capitalize">{session?.user?.role || "admin"}</p>
+                </div>
+                <div className="w-px h-10 bg-slate-200"></div>
+                <div>
+                    <p className="text-xs font-medium text-slate-500 mb-0.5 uppercase tracking-wider">Year</p>
+                    <p className="font-bold text-slate-900">{session?.user?.year || 1}</p>
+                </div>
+                <div className="w-px h-10 bg-slate-200"></div>
+                <div>
+                    <p className="text-xs font-medium text-slate-500 mb-0.5 uppercase tracking-wider">Semester</p>
+                    <p className="font-bold text-slate-900">{session?.user?.semester || 1}</p>
+                </div>
+            </div>
+        </div>
       </div>
 
       {/* Feature Cards Grid */}
@@ -99,7 +122,28 @@ export default function AdminDashboard() {
           </Link>
         </div>
 
+        {/* Card 6: Manage Academic Semesters */}
+        <div className="group bg-white rounded-3xl p-6 shadow-sm border border-slate-200 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-sky-50 rounded-bl-full -z-0 opacity-50 group-hover:scale-110 transition-transform duration-500"></div>
+          <div className="z-10 flex-1">
+            <div className="w-14 h-14 bg-sky-50 text-sky-600 rounded-2xl flex items-center justify-center mb-5 shadow-sm group-hover:bg-sky-600 group-hover:text-white transition-colors duration-300">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"></rect><rect width="7" height="5" x="14" y="3" rx="1"></rect><rect width="7" height="9" x="14" y="12" rx="1"></rect><rect width="7" height="5" x="3" y="16" rx="1"></rect></svg>
+            </div>
+            <h2 className="text-xl font-bold text-slate-900 mb-2 tracking-tight">Academic Semesters</h2>
+            <p className="text-slate-500 mb-6 leading-relaxed text-[15px]">
+              Navigate the 8 primary semester folders. Access notes naturally to mimic student structure.
+            </p>
+          </div>
+          <Link href="/dashboard/notes" className="z-10 relative">
+            <button className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-slate-50 text-sky-600 font-bold rounded-xl group-hover:bg-sky-50 transition-colors border border-slate-100 group-hover:border-sky-200 text-[15px]">
+              Browse Semesters
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 group-hover:translate-x-1 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </button>
+          </Link>
+        </div>
+
       </div>
     </div>
   );
 }
+

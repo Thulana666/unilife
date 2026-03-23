@@ -76,9 +76,21 @@ export async function POST(req) {
         fileName = file.name;
         fileType = file.type;
 
+        const ext = file.name.split('.').pop().toLowerCase();
+        const isDocFormat = ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'zip', 'rar'].includes(ext);
+
+        // We MUST strip the `.pdf` extension from the Cloudinary URL. Cloudinary's aggressive
+        // security layer throws 401 Unauthorized/400 Bad Request to absolutely ANY URL ending in `.pdf` on free accounts.
+        // We bypass this by uploading as an opaque extensionless `raw` blob, then injecting the proper Content-Type natively via our Express proxy.
+        const safePublicId = file.name.split('.').slice(0, -1).join('.') || 'document';
+
         const result = await new Promise((resolve, reject) => {
           cloudinary.uploader.upload_stream(
-            { resource_type: "auto", folder: "unilife_notes" },
+            { 
+                resource_type: isDocFormat ? "raw" : "auto", 
+                folder: "unilife_notes",
+                public_id: safePublicId 
+            },
             (err, res) => (err ? reject(err) : resolve(res))
           ).end(buffer);
         });

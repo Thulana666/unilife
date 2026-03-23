@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { toast } from 'react-hot-toast';
 
 export default function SubjectNotesPage() {
     const { data: session } = useSession();
@@ -12,19 +13,27 @@ export default function SubjectNotesPage() {
     const [searchTitle, setSearchTitle] = useState('');
     const [loading, setLoading] = useState(false);
 
+    // Native PDF Viewer State
+    const [previewFile, setPreviewFile] = useState(null);
+
     // Editing State (Owner / Admin only)
     const [editingNote, setEditingNote] = useState(null);
     const [editTitle, setEditTitle] = useState('');
     const [editDescription, setEditDescription] = useState('');
+
+    // Deletion State
+    const [noteToDelete, setNoteToDelete] = useState(null);
 
     const decodedSubject = decodeURIComponent(params.subject);
 
     async function fetchNotes() {
         if (!session) return;
         setLoading(true);
-        // We reuse the existing Notes API but add subject filtering manually or via endpoint update.
-        // I will update the API route to support the ?subject= parameter shortly.
-        const res = await fetch(`/api/notes?year=${session.user.year}&semester=${session.user.semester}&subject=${encodeURIComponent(decodedSubject)}${searchTitle ? `&title=${encodeURIComponent(searchTitle)}` : ''}`);
+
+        const querySem = parseInt(params.semester) || session?.user?.semester || 1;
+        const queryYear = Math.ceil(querySem / 2);
+
+        const res = await fetch(`/api/notes?year=${queryYear}&semester=${querySem}&subject=${encodeURIComponent(decodedSubject)}${searchTitle ? `&title=${encodeURIComponent(searchTitle)}` : ''}`);
         if (res.ok) {
             const data = await res.json();
             setNotes(data);
@@ -37,27 +46,57 @@ export default function SubjectNotesPage() {
         // eslint-disable-next-line
     }, [searchTitle, session, params.subject]);
 
-    async function handleDelete(noteId) {
-        if (!window.confirm('Are you sure you want to delete this note?')) return;
-        const res = await fetch(`/api/notes?id=${noteId}`, { method: 'DELETE' });
+    function confirmDelete(note) {
+        setNoteToDelete(note);
+    }
+
+    async function executeDelete() {
+        if (!noteToDelete) return;
+        const res = await fetch(`/api/notes?id=${noteToDelete._id}`, { method: 'DELETE' });
         if (res.ok) {
+            setNoteToDelete(null);
             fetchNotes();
         } else {
             const data = await res.json();
             alert(data.error || 'Failed to delete note');
+            setNoteToDelete(null);
         }
     }
 
-    function handleDownload(fileUrl, noteId) {
-        // Trigger download tracking in background
+    const handlePreview = async (url, fileName) => {
+        if (!url) return;
+        
+        const lowerUrl = url.toLowerCase();
+        const lowerName = (fileName || '').toLowerCase();
+        const isPdf = lowerName.endsWith('.pdf') || lowerUrl.includes('.pdf');
+        const isImage = lowerName.match(/\.(png|jpg|jpeg|webp)$/) || lowerUrl.match(/\.(png|jpg|jpeg|webp)$/);
+        
+        if (isPdf || isImage) {
+            // Because Cloudinary restricts fetching RAW and IMAGE urls natively over CORS when PDFs are involved,
+            // we proxy the stream securely through our own backend which dynamically replaces the headers with 'inline'.
+            const proxyUrl = `/api/notes/proxy?url=${encodeURIComponent(url)}&filename=${encodeURIComponent(fileName || '')}`;
+            setPreviewFile({ url: proxyUrl, type: isPdf ? 'pdf' : 'image', isBlob: false, originalUrl: url });
+        } else {
+            // Unrecognized or complex Docs, fallback to native routing
+            toast.error("Inline preview not fully supported for this format. Sending to browser...");
+            window.open(url, '_blank', 'noopener,noreferrer');
+        }
+    };
+
+    async function handleDownload(fileUrl, noteId, fileName) {
+        // Trigger download tracking in background silently
         fetch(`/api/notes/interact`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'download', noteId })
-        }).catch(err => console.error(err));
+            body: JSON.stringify({ noteId, action: 'download' })
+        }).catch(err => console.error("Download tracking failed:", err));
 
-        // Open file
-        window.open(fileUrl, '_blank');
+        const notificationId = toast.success('Initiating download...');
+        
+        // We route the download through our custom Next.js proxy to guarantee Cloudinary
+        // never throws 401s on PDF payloads, and we strictly enforce the exact original filename.
+        const proxyUrl = `/api/notes/proxy?url=${encodeURIComponent(fileUrl)}&download=true&filename=${encodeURIComponent(fileName || '')}`;
+        setTimeout(() => window.open(proxyUrl, '_blank', 'noopener,noreferrer'), 600);
     }
 
     function openEditModal(note) {
@@ -227,7 +266,7 @@ export default function SubjectNotesPage() {
                                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
                                                         </button>
                                                     )}
-                                                    <button onClick={() => handleDelete(note._id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-200" title="Delete note">
+                                                    <button onClick={() => confirmDelete(note)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-200" title="Delete note">
                                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
                                                     </button>
                                                 </div>
@@ -235,10 +274,16 @@ export default function SubjectNotesPage() {
                                         </div>
 
                                         {/* Primary Interact Button - Triggers Modals / Preview */}
-                                        <button onClick={() => handleDownload(note.fileUrl, note._id)} className="flex items-center justify-center gap-1.5 bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-sm border border-indigo-100 hover:border-indigo-600 flex-1 ml-auto max-w-[140px]">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                                            Download
-                                        </button>
+                                        <div className="flex gap-2 ml-auto mt-2 sm:mt-0">
+                                            <button onClick={() => handlePreview(note.fileUrl, note.fileName)} className="flex items-center justify-center gap-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 px-3 py-2 rounded-xl text-sm font-bold transition-all shadow-sm border border-slate-200">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                                Preview
+                                            </button>
+                                            <button onClick={() => handleDownload(note.fileUrl, note._id, note.fileName)} className="flex items-center justify-center gap-1.5 bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white px-3 py-2 rounded-xl text-sm font-bold transition-all shadow-sm border border-indigo-100 hover:border-indigo-600">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                                Download
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             );
@@ -288,6 +333,92 @@ export default function SubjectNotesPage() {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Custom Delete Confirmation Modal */}
+            {noteToDelete && (
+                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-50 flex justify-center items-center p-4 animate-in fade-in duration-200">
+                    <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl relative animate-in zoom-in-95 duration-200 border border-slate-100 flex flex-col items-center text-center">
+                        <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-5 shadow-inner">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                        </div>
+                        <h3 className="text-xl font-bold text-slate-800 tracking-tight mb-2">Delete Note?</h3>
+                        <p className="text-slate-500 text-sm font-medium mb-8 leading-relaxed">
+                            Are you absolutely sure you want to delete <span className="font-bold text-slate-700 truncate inline-block max-w-[150px] align-bottom">"{noteToDelete.fileName}"</span>? This action cannot be undone.
+                        </p>
+
+                        <div className="flex gap-3 w-full">
+                            <button
+                                onClick={() => setNoteToDelete(null)}
+                                className="flex-1 px-4 py-3 bg-slate-50 hover:bg-slate-100 text-slate-600 font-bold rounded-xl transition-colors border border-slate-200"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={executeDelete}
+                                className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl shadow-md shadow-red-500/20 transition-all active:scale-95"
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Native Integrated Document Viewer Modal */}
+            {previewFile && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4 sm:p-6 lg:p-8 animate-in fade-in duration-200">
+                    <div className="bg-white rounded-[2rem] shadow-2xl overflow-hidden w-full max-w-7xl h-full max-h-[92vh] flex flex-col relative animate-in zoom-in-95 duration-200 border border-slate-100/20">
+                        {/* Header */}
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50 shrink-0">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center shadow-sm">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                </div>
+                                <div>
+                                    <h2 className="text-xl font-extrabold text-slate-800 tracking-tight leading-tight">Document Viewer</h2>
+                                    <p className="text-xs font-bold text-slate-400 tracking-wider uppercase">Native Inline Overlay</p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                                <button onClick={() => window.open(previewFile.originalUrl, '_blank')} className="hidden sm:flex items-center gap-2 text-sm font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-4 py-2.5 rounded-xl transition-colors">
+                                    Open Externally
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                </button>
+                                <button onClick={() => {
+                                    if (previewFile.isBlob) window.URL.revokeObjectURL(previewFile.url);
+                                    setPreviewFile(null);
+                                }} className="text-slate-400 hover:text-red-500 bg-white hover:bg-red-50 border border-slate-200 hover:border-red-200 p-2.5 rounded-xl transition-all shadow-sm group" title="Close Viewer">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" className="group-hover:rotate-90 transition-transform duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Content Area */}
+                        <div className="flex-1 w-full relative bg-slate-800 flex items-center justify-center overflow-auto custom-scrollbar shadow-inner">
+                            {previewFile.type === 'pdf' ? (
+                                <object data={previewFile.url} type="application/pdf" className="w-full h-full max-w-full">
+                                    <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-5 px-6 text-center">
+                                        <div className="w-20 h-20 bg-slate-700/50 rounded-full flex items-center justify-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="w-10 h-10 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                        </div>
+                                        <div>
+                                            <p className="font-bold text-lg text-white mb-1">Browser Engine Incompatible</p>
+                                            <p className="font-medium max-w-md mx-auto leading-relaxed">It looks like your browser does not fully support inline Object PDF rendering. Please trigger a generic payload download below.</p>
+                                        </div>
+                                        <a href={previewFile.url} download="preview_document.pdf" className="px-8 py-3 bg-indigo-500 text-white font-bold rounded-2xl hover:bg-indigo-600 shadow-xl shadow-indigo-600/20 transition-all hover:-translate-y-1 block mt-2 tracking-wide">Download Local PDF Snapshot</a>
+                                    </div>
+                                </object>
+                            ) : (
+                                <div className="p-8 w-full h-full flex items-center justify-center relative bg-[url('https://www.transparenttextures.com/patterns/black-scales.png')]">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img src={previewFile.url} alt="Note Preview Representation Overlay" className="max-w-full max-h-full object-contain drop-shadow-2xl rounded-lg ring-1 ring-white/10" />
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}

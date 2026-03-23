@@ -329,10 +329,11 @@ export default function DashboardLayout({ children }) {
             { name: "Notes", href: "/dashboard/notes", icon: "Files" },
         ],
         lecturer: [
-            { name: "Manage Notes", href: "/dashboard/lecturer/notes", icon: "Library" },
+            { name: "Manage Notes", href: "/dashboard/notes", icon: "Library" },
         ],
         admin: [
-            { name: "Manage Notes", href: "/dashboard/admin/notes", icon: "Files" },
+            { name: "Manage Subjects", href: "/dashboard/notes", icon: "LayoutDashboard" },
+            { name: "All Notes Data", href: "/dashboard/admin/notes", icon: "Files" },
             { name: "System Chat", href: "/dashboard/admin/semesters", icon: "MessageSquareText" },
             { name: "Create User", href: "/dashboard/admin/create-user", icon: "UserPlus" },
             { name: "Manage Users", href: "/dashboard/admin/users", icon: "Users" },
