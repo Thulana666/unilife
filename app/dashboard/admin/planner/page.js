@@ -4,6 +4,8 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
+import toast from "react-hot-toast";
+import { Trash2 } from "lucide-react";
 
 const PRIORITY_STYLES = {
     High: "bg-rose-100 text-rose-700 border-rose-200",
@@ -69,18 +71,52 @@ export default function AdminPlanner() {
         }
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm("Are you sure you want to permanently delete this planner entry?")) return;
+    const proceedWithDelete = async (id) => {
         try {
             const res = await fetch(`/api/planner?id=${id}`, { method: "DELETE" });
             if (res.ok) {
                 setEvents(prev => prev.filter(e => e._id !== id));
+                toast.success("Entry deleted successfully");
             } else {
-                alert("Failed to delete entry.");
+                toast.error("Failed to delete entry.");
             }
         } catch (error) {
             console.error(error);
+            toast.error("Failed to delete entry.");
         }
+    };
+
+    const handleDelete = async (id) => {
+        toast.custom((t) => (
+            <div className={`fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm pointer-events-auto transition-opacity duration-200 ${t.visible ? 'opacity-100' : 'opacity-0'}`}>
+                <div className={`${t.visible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'} transition-all duration-200 ease-in-out max-w-sm w-full bg-white shadow-2xl flex flex-col items-center text-center gap-4 p-6 rounded-3xl ring-1 ring-zinc-200`}>
+                    <div className="w-14 h-14 rounded-full flex items-center justify-center shrink-0 bg-red-100 text-red-600">
+                        <Trash2 className="w-6 h-6" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <p className="text-lg font-bold text-slate-800 mb-1">Delete Planner Entry?</p>
+                        <p className="text-sm text-slate-500">Are you sure you want to permanently delete this entry? This action cannot be undone.</p>
+                    </div>
+                    <div className="flex items-center gap-3 w-full mt-2">
+                        <button
+                            onClick={() => toast.dismiss(t.id)}
+                            className="flex-1 py-2.5 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={() => {
+                                toast.dismiss(t.id);
+                                proceedWithDelete(id);
+                            }}
+                            className="flex-1 py-2.5 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors shadow-sm"
+                        >
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+        ), { duration: Infinity });
     };
 
     // Derived filter values

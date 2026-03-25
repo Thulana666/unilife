@@ -185,7 +185,7 @@ export async function PUT(req) {
         const session = await getServerSession(authOptions);
         if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
-        const { id, status, title, description, dueDate, course, submissionText, submissionUrl, submittedAt } = await req.json();
+        const { id, status, title, description, dueDate, dueTime, course, submissionText, submissionUrl, submittedAt } = await req.json();
 
         const assignment = await Assignment.findById(id);
         if (!assignment) return Response.json({ error: "Assignment not found" }, { status: 404 });
@@ -196,7 +196,7 @@ export async function PUT(req) {
 
         const isOnlyStatusUpdate = status !== undefined && 
             title === undefined && description === undefined && 
-            dueDate === undefined && course === undefined && 
+            dueDate === undefined && dueTime === undefined && course === undefined && 
             submissionText === undefined && submissionUrl === undefined && 
             submittedAt === undefined;
 
@@ -227,6 +227,7 @@ export async function PUT(req) {
         if (title !== undefined) updateFields.title = title;
         if (description !== undefined) updateFields.description = description;
         if (dueDate !== undefined) updateFields.dueDate = dueDate;
+        if (dueTime !== undefined) updateFields.dueTime = dueTime;
         if (course !== undefined) updateFields.course = course;
         if (submissionText !== undefined) updateFields.submissionText = submissionText;
         if (submissionUrl !== undefined) updateFields.submissionUrl = submissionUrl;

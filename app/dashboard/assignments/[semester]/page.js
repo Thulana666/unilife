@@ -9,6 +9,25 @@ import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
 
 
+function getAssignmentUserStatus(assignment, userId) {
+  let status = assignment.status || "pending";
+  if (assignment.studentCompletions && Array.isArray(assignment.studentCompletions) && userId) {
+    const userCompletion = assignment.studentCompletions.find(c => String(c.userId) === String(userId));
+    if (userCompletion) status = userCompletion.status;
+  }
+  if (status !== "submitted") {
+    const dueDate = parseISO(assignment.dueDate);
+    const nowDate = new Date();
+    if (isToday(dueDate)) {
+      return dueDate.getTime() > nowDate.getTime() ? "dueToday" : "overdue";
+    }
+    if (dueDate.getTime() < nowDate.getTime()) {
+      return "overdue";
+    }
+  }
+  return status;
+}
+
 export default function AssignmentsPage() {
   const { data: session } = useSession();
   const params = useParams();
@@ -26,13 +45,23 @@ export default function AssignmentsPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
+  const [dueTime, setDueTime] = useState("23:59");
   const [course, setCourse] = useState("");
 
   // Calendar state
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
+  // Countdown timer
+  const [now, setNow] = useState(new Date());
+
   useEffect(() => {
     setIsMounted(true);
+  }, []);
+
+  // Live countdown tick
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(timer);
   }, []);
 
   useEffect(() => {
@@ -69,13 +98,16 @@ export default function AssignmentsPage() {
       setEditingId(assignment.id);
       setTitle(assignment.title);
       setDescription(assignment.description);
-      setDueDate(format(parseISO(assignment.dueDate), "yyyy-MM-dd"));
+      const parsed = parseISO(assignment.dueDate);
+      setDueDate(format(parsed, "yyyy-MM-dd"));
+      setDueTime(format(parsed, "HH:mm"));
       setCourse(assignment.course);
     } else {
       setEditingId(null);
       setTitle("");
       setDescription("");
       setDueDate(format(new Date(), "yyyy-MM-dd"));
+      setDueTime("23:59");
       setCourse("");
     }
     setIsModalOpen(true);
@@ -105,9 +137,11 @@ export default function AssignmentsPage() {
 
     setIsSubmitting(true);
 
+    const dueDateTimeISO = new Date(`${dueDate}T${dueTime}`).toISOString();
+
     // Determine status based on due date
     let status = "pending";
-    if (isBefore(parseISO(dueDate), startOfDay(new Date()))) {
+    if (isBefore(new Date(dueDateTimeISO), startOfDay(new Date()))) {
       status = "overdue";
     }
 
@@ -121,7 +155,8 @@ export default function AssignmentsPage() {
             id: editingId,
             title,
             description,
-            dueDate: new Date(dueDate).toISOString(),
+            dueDate: dueDateTimeISO,
+            dueTime,
             course
           })
         });
@@ -154,12 +189,13 @@ export default function AssignmentsPage() {
         const newAssignmentData = {
           title,
           description,
-          dueDate: new Date(dueDate).toISOString(),
+          dueDate: dueDateTimeISO,
+          dueTime,
           course,
           status,
           userId: session.user.id,
           createdBy: session.user.email,
-          semester: params.semester,  // Use the full semester string like "y1s1"
+          semester: params.semester,
           year: yearNumber
         };
 
@@ -286,17 +322,7 @@ export default function AssignmentsPage() {
     const assignment = assignments.find(a => a.id === id);
     if (!assignment) return;
 
-    // Get user's personal status - ALWAYS use studentCompletions for personalization
-    const getUserStatus = (assign) => {
-      if (assign.studentCompletions && Array.isArray(assign.studentCompletions)) {
-        const userCompletion = assign.studentCompletions.find(c => String(c.userId) === String(session.user.id));
-        if (userCompletion) return userCompletion.status;
-      }
-      // Fallback to global status if no personal completion found
-      return assign.status || "pending";
-    };
-
-    const currentStatus = getUserStatus(assignment);
+    const currentStatus = getAssignmentUserStatus(assignment, session?.user?.id);
     const newStatus = currentStatus === "submitted"
       ? (isBefore(parseISO(assignment.dueDate), startOfDay(new Date())) ? "overdue" : "pending")
       : "submitted";
@@ -364,39 +390,22 @@ export default function AssignmentsPage() {
     return [...assignments].sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
   }, [assignments]);
 
-  const { total, pending, submitted, overdue } = useMemo(() => {
-    // Get personalized status for each assignment
-    const getPersonalStatus = (assignment) => {
-      if (assignment.studentCompletions && Array.isArray(assignment.studentCompletions) && session?.user?.id) {
-        const userCompletion = assignment.studentCompletions.find(c => String(c.userId) === String(session.user.id));
-        if (userCompletion) return userCompletion.status;
-      }
-      return assignment.status || "pending";
-    };
-
+  const { total, pending, dueToday, submitted, overdue } = useMemo(() => {
     return {
       total: assignments.length,
-      pending: assignments.filter(a => getPersonalStatus(a) === 'pending').length,
-      submitted: assignments.filter(a => getPersonalStatus(a) === 'submitted').length,
-      overdue: assignments.filter(a => getPersonalStatus(a) === 'overdue').length,
+      pending: assignments.filter(a => getAssignmentUserStatus(a, session?.user?.id) === 'pending').length,
+      dueToday: assignments.filter(a => getAssignmentUserStatus(a, session?.user?.id) === 'dueToday').length,
+      submitted: assignments.filter(a => getAssignmentUserStatus(a, session?.user?.id) === 'submitted').length,
+      overdue: assignments.filter(a => getAssignmentUserStatus(a, session?.user?.id) === 'overdue').length,
     };
   }, [assignments, session]);
 
   const completionRate = total > 0 ? Math.round((submitted / total) * 100) : 0;
 
   const filteredAssignments = useMemo(() => {
-    // Get personalized status for each assignment
-    const getPersonalStatus = (assignment) => {
-      if (assignment.studentCompletions && Array.isArray(assignment.studentCompletions) && session?.user?.id) {
-        const userCompletion = assignment.studentCompletions.find(c => String(c.userId) === String(session.user.id));
-        if (userCompletion) return userCompletion.status;
-      }
-      return assignment.status || "pending";
-    };
-
     let filtered = [...assignments];
     if (filter !== "all") {
-      filtered = filtered.filter(a => getPersonalStatus(a) === filter);
+      filtered = filtered.filter(a => getAssignmentUserStatus(a, session?.user?.id) === filter);
     }
     return filtered.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
   }, [assignments, filter, session]);
@@ -447,10 +456,54 @@ export default function AssignmentsPage() {
 
       {/* Main Content */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
+                {/* Countdown Banner for Due Today */}
+        {(() => {
+          const dueTodayAssignments = assignments.filter(a => isToday(parseISO(a.dueDate)) && getAssignmentUserStatus(a, session?.user?.id) !== 'submitted');
+          if (dueTodayAssignments.length === 0) return null;
+          return (
+            <div className="mb-6 space-y-2">
+              {dueTodayAssignments.map(a => {
+                const due = parseISO(a.dueDate);
+                const diff = due.getTime() - now.getTime();
+                const isOverdue = diff <= 0;
+                const absDiff = Math.abs(diff);
+                const hrs = Math.floor(absDiff / (1000 * 60 * 60));
+                const mins = Math.floor((absDiff % (1000 * 60 * 60)) / (1000 * 60));
+                const secs = Math.floor((absDiff % (1000 * 60)) / 1000);
+                return (
+                  <div key={a.id} className={`text-white rounded-xl px-5 py-3 shadow-md flex items-center justify-between gap-4 ${
+                    isOverdue ? "bg-gradient-to-r from-red-600 to-rose-500" : "bg-gradient-to-r from-orange-500 to-amber-500"
+                  }`}>
+                    <div className="flex items-center gap-3 min-w-0">
+                      {isOverdue
+                        ? <AlertCircle className="w-5 h-5 shrink-0" />
+                        : <Clock className="w-5 h-5 shrink-0 animate-pulse" />
+                      }
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold truncate">{a.title}</p>
+                        <p className="text-xs text-white/80">
+                          {isOverdue ? `Was due at ${format(due, "h:mm a")}` : `Due today at ${format(due, "h:mm a")}`}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-2xl font-extrabold tabular-nums tracking-tight">
+                        {isOverdue ? "-" : ""}{String(hrs).padStart(2, '0')}:{String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}
+                      </p>
+                      <p className="text-[10px] text-white/70 uppercase tracking-wider font-semibold">
+                        {isOverdue ? "overdue" : "remaining"}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
+
         {/* Summary Section */}
         <div className="mb-8">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-2 xl:grid-cols-5 gap-4 mb-6">
             <div className="bg-white rounded-xl border border-zinc-200 p-4 shadow-sm flex items-center gap-4">
               <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
                 <BarChart3 className="w-5 h-5" />
@@ -478,6 +531,16 @@ export default function AssignmentsPage() {
               <div>
                 <p className="text-sm font-medium text-zinc-500">Submitted</p>
                 <p className="text-2xl font-semibold text-zinc-900">{submitted}</p>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl border border-zinc-200 p-4 shadow-sm flex items-center gap-4">
+              <div className="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center text-orange-600">
+                <Clock className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-zinc-500">Due Today</p>
+                <p className="text-2xl font-semibold text-zinc-900">{dueToday}</p>
               </div>
             </div>
 
@@ -522,6 +585,12 @@ export default function AssignmentsPage() {
             Pending
           </button>
           <button
+            onClick={() => setFilter("dueToday")}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${filter === "dueToday" ? "bg-orange-100 text-orange-800 shadow-sm border-orange-200 border" : "bg-white text-zinc-600 border border-zinc-200 hover:bg-zinc-50"}`}
+          >
+            Due Today
+          </button>
+          <button
             onClick={() => setFilter("submitted")}
             className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${filter === "submitted" ? "bg-emerald-100 text-emerald-800 shadow-sm border-emerald-200 border" : "bg-white text-zinc-600 border border-zinc-200 hover:bg-zinc-50"}`}
           >
@@ -540,16 +609,7 @@ export default function AssignmentsPage() {
             <AnimatePresence>
               {filteredAssignments.map((assignment) => {
                 const isLecturer = assignment.isLecturerAssignment;
-                // Get user's personal status - ALWAYS personalized for all assignments
-                const getUserStatus = () => {
-                  if (assignment.studentCompletions && Array.isArray(assignment.studentCompletions)) {
-                    const userCompletion = assignment.studentCompletions.find(c => String(c.userId) === String(session.user.id));
-                    if (userCompletion) return userCompletion.status;
-                  }
-                  // Fallback to global status if no personal completion found
-                  return assignment.status || "pending";
-                };
-                const userStatus = getUserStatus();
+                const userStatus = getAssignmentUserStatus(assignment, session?.user?.id);
                 return (
                 <motion.div
                   layout
@@ -560,14 +620,29 @@ export default function AssignmentsPage() {
                   className={`bg-white rounded-xl border p-5 shadow-sm transition-shadow hover:shadow-md flex flex-col gap-2 ${
                     isLecturer ? "border-violet-200 bg-violet-50/20" :
                     userStatus === "submitted" ? "border-emerald-200 bg-emerald-50/30" :
-                    userStatus === "overdue" ? "border-red-200 bg-red-50/30" : "border-zinc-200"
+                    userStatus === "overdue" ? "border-red-200 bg-red-50/30" :
+                    userStatus === "dueToday" ? "border-orange-200 bg-orange-50/30" : "border-zinc-200"
                   }`}
                 >
                   <div className="flex justify-between items-start">
                     <div className="flex flex-col gap-1.5">
-                      <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-zinc-100 text-zinc-600 self-start">
-                        {assignment.course}
-                      </span>
+                      <div className="flex items-center flex-wrap gap-2">
+                        <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-zinc-100 text-zinc-600 self-start">
+                          {assignment.course}
+                        </span>
+                        {userStatus === "overdue" && (
+                          <span className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-red-100 text-red-700 border border-red-200 self-start">
+                            <AlertCircle className="w-3 h-3" />
+                            Overdue
+                          </span>
+                        )}
+                        {userStatus === "dueToday" && (
+                          <span className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-orange-100 text-orange-700 border border-orange-200 self-start">
+                            <Clock className="w-3 h-3" />
+                            Due Today
+                          </span>
+                        )}
+                      </div>
                       {isLecturer && (
                         <span className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-violet-100 text-violet-700 border border-violet-200 self-start">
                           <GraduationCap className="w-3 h-3" />
@@ -623,28 +698,54 @@ export default function AssignmentsPage() {
                         })()
                       }`}>
                         <Clock className="w-4 h-4" />
-                        {format(parseISO(assignment.dueDate), "MMM d, yyyy")}
+                        {format(parseISO(assignment.dueDate), "MMM d, yyyy 'at' h:mm a")}
                       </div>
-                      {userStatus !== "submitted" && userStatus !== "overdue" && (
-                        <div className={`text-xs ml-5 font-medium ${
-                          (() => {
-                            const hoursLeft = differenceInHours(parseISO(assignment.dueDate), new Date());
-                            if (hoursLeft < 0) return "text-red-600";
-                            if (hoursLeft < 10) return "text-red-600";
-                            if (hoursLeft <= 72) return "text-amber-600";
-                            if (hoursLeft <= 168) return "text-emerald-600";
-                            return "text-zinc-500 hidden";
-                          })()
-                        }`}>
-                          {(() => {
-                            const hoursLeft = differenceInHours(parseISO(assignment.dueDate), new Date());
-                            if (hoursLeft >= 0 && hoursLeft < 10) return "Due in < 10 hrs";
-                            if (hoursLeft >= 10 && hoursLeft <= 72) return "Due in < 3 days";
-                            if (hoursLeft > 72 && hoursLeft <= 168) return "Due in < 1 week";
-                            return "";
-                          })()}
-                        </div>
-                      )}
+                      {userStatus !== "submitted" && (() => {
+                        const dueMs = parseISO(assignment.dueDate).getTime() - new Date().getTime();
+                        const absDueMs = Math.abs(dueMs);
+                        const totalMins = Math.floor(absDueMs / (1000 * 60));
+                        const totalHrs = Math.floor(totalMins / 60);
+                        const days = Math.floor(totalHrs / 24);
+                        const remainingHrs = totalHrs % 24;
+                        const remainingMins = totalMins % 60;
+                        
+                        let label = "";
+                        let colorClass = "text-zinc-500";
+                        
+                        const formatTime = (d, h, m) => {
+                          const parts = [];
+                          if (d > 0) parts.push(`${d} day${d !== 1 ? "s" : ""}`);
+                          if (h > 0) parts.push(`${h} hr${h !== 1 ? "s" : ""}`);
+                          if (m > 0 || (d === 0 && h === 0)) parts.push(`${m} min${m !== 1 ? "s" : ""}`);
+                          return parts.join(" ");
+                        };
+
+                        const timeStr = formatTime(days, remainingHrs, remainingMins);
+
+                        if (dueMs <= 0) {
+                          // Overdue
+                          label = `Overdue by ${timeStr}`;
+                          colorClass = "text-red-600";
+                        } else {
+                          // Upcoming
+                          label = `Due in ${timeStr}`;
+                          if (days === 0 && totalHrs < 10) {
+                            colorClass = "text-red-600";
+                          } else if (days <= 3) {
+                            colorClass = "text-amber-600";
+                          } else if (days <= 7) {
+                            colorClass = "text-emerald-600";
+                          }
+                        }
+                        
+                        if (!label || days > 7) return null; // Hide if more than 7 days
+                        
+                        return (
+                          <div className={`text-xs ml-5 font-medium ${colorClass}`}>
+                            {label}
+                          </div>
+                        );
+                      })()}
                     </div>
 
                     {/* Both student and lecturer assignments: interactive button for marking done */}
@@ -724,15 +825,7 @@ export default function AssignmentsPage() {
                     </div>
                     <div className="space-y-1">
                       {dayAssignments.map(assignment => {
-                        // Get user's personal status - ALWAYS personalized
-                        const getUserStatus = () => {
-                          if (assignment.studentCompletions && Array.isArray(assignment.studentCompletions)) {
-                            const userCompletion = assignment.studentCompletions.find(c => String(c.userId) === String(session.user.id));
-                            if (userCompletion) return userCompletion.status;
-                          }
-                          return assignment.status || "pending";
-                        };
-                        const userStatus = getUserStatus();
+                        const userStatus = getAssignmentUserStatus(assignment, session?.user?.id);
                         return (
                           <div
                             key={assignment.id}
@@ -740,6 +833,7 @@ export default function AssignmentsPage() {
                             className={`text-xs px-2 py-1.5 rounded truncate ${canModifyAssignment(assignment) ? 'cursor-pointer' : 'cursor-default'} transition-colors font-medium border ${
                               userStatus === 'submitted' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' :
                               userStatus === 'overdue' ? 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100' :
+                              userStatus === 'dueToday' ? 'bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100' :
                               'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100'
                             }`}
                           >
@@ -816,14 +910,23 @@ export default function AssignmentsPage() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-zinc-700 mb-1">Due Date</label>
-                  <input
-                    required
-                    type="date"
-                    value={dueDate}
-                    onChange={(e) => setDueDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-zinc-300 rounded-lg text-zinc-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  />
+                  <label className="block text-sm font-medium text-zinc-700 mb-1">Due Date & Time</label>
+                  <div className="flex gap-2">
+                    <input
+                      required
+                      type="date"
+                      value={dueDate}
+                      onChange={(e) => setDueDate(e.target.value)}
+                      className="flex-1 px-3 py-2 border border-zinc-300 rounded-lg text-zinc-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    />
+                    <input
+                      required
+                      type="time"
+                      value={dueTime}
+                      onChange={(e) => setDueTime(e.target.value)}
+                      className="w-32 px-3 py-2 border border-zinc-300 rounded-lg text-zinc-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    />
+                  </div>
                 </div>
                 
                 <div>

@@ -13,6 +13,155 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
 
+const semesterLabel = (sem) => {
+  const map = { y1s1: "Y1 S1", y1s2: "Y1 S2", y2s1: "Y2 S1", y2s2: "Y2 S2", y3s1: "Y3 S1", y3s2: "Y3 S2", y4s1: "Y4 S1", y4s2: "Y4 S2" };
+  return map[sem] || sem;
+};
+
+const AssignmentCard = ({ assignment, handleOpenModal, handleDelete }) => {
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      key={assignment.id}
+      className={`bg-white rounded-xl border p-5 shadow-sm transition-shadow hover:shadow-md flex flex-col gap-3 ${
+        isToday(parseISO(assignment.dueDate)) ? "border-amber-200 bg-amber-50/20" :
+        differenceInHours(parseISO(assignment.dueDate), new Date()) < 0 ? "border-red-200 bg-red-50/20" : "border-zinc-200"
+      }`}
+    >
+      {/* Top: course badge + actions */}
+      <div className="flex justify-between items-start">
+        <div className="flex flex-col gap-1.5">
+          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-zinc-100 text-zinc-600 self-start">
+            {assignment.course}
+          </span>
+          {assignment.semester && (
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100 self-start">
+              {assignment.semester.toUpperCase().replace(/Y(\d)S(\d)/i, 'Y$1 S$2')}
+            </span>
+          )}
+        </div>
+        <div className="flex gap-1 -mt-1 -mr-1">
+          <button
+            onClick={() => handleOpenModal(assignment)}
+            className="p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-indigo-600 rounded-lg transition-colors"
+          >
+            <Edit2 className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => handleDelete(assignment.id)}
+            className="p-1.5 text-zinc-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      <h3 className="font-semibold text-base leading-snug text-zinc-900">
+        {assignment.title}
+      </h3>
+
+      {/* Created by */}
+      {assignment.createdBy && (
+        <div className="flex items-center gap-1.5 text-xs text-zinc-500">
+          <Users className="w-3.5 h-3.5 flex-shrink-0" />
+          <span className="truncate">{assignment.createdBy}</span>
+        </div>
+      )}
+
+      {/* Description */}
+      {assignment.description && (
+        <p className="text-zinc-500 text-sm line-clamp-2">{assignment.description}</p>
+      )}
+
+      {/* Footer: due date + status badge */}
+      <div className="flex items-center justify-between pt-3 border-t border-zinc-100 mt-auto">
+        <div className="flex flex-col gap-0.5">
+          <div className={`flex items-center gap-1.5 text-sm font-medium ${
+            (() => {
+              const dueMs = parseISO(assignment.dueDate).getTime() - new Date().getTime();
+              if (dueMs <= 0) return "text-red-600";
+              const h = Math.floor(dueMs / (1000 * 60 * 60));
+              if (h < 10) return "text-red-600";
+              if (h <= 72) return "text-amber-600";
+              return "text-zinc-600";
+            })()
+          }`}>
+            <Clock className="w-4 h-4" />
+            {format(parseISO(assignment.dueDate), "MMM d, yyyy 'at' h:mm a")}
+          </div>
+          {(() => {
+            const dueMs = parseISO(assignment.dueDate).getTime() - new Date().getTime();
+            const absDueMs = Math.abs(dueMs);
+            const totalMins = Math.floor(absDueMs / (1000 * 60));
+            const totalHrs = Math.floor(totalMins / 60);
+            const days = Math.floor(totalHrs / 24);
+            const remainingHrs = totalHrs % 24;
+            const remainingMins = totalMins % 60;
+            
+            let label = "";
+            let colorClass = "text-zinc-500";
+            
+            const formatTime = (d, h, m) => {
+              const parts = [];
+              if (d > 0) parts.push(`${d} day${d !== 1 ? "s" : ""}`);
+              if (h > 0) parts.push(`${h} hr${h !== 1 ? "s" : ""}`);
+              if (m > 0 || (d === 0 && h === 0)) parts.push(`${m} min${m !== 1 ? "s" : ""}`);
+              return parts.join(" ");
+            };
+
+            const timeStr = formatTime(days, remainingHrs, remainingMins);
+
+            if (dueMs <= 0) {
+              // Overdue
+              label = `Overdue by ${timeStr}`;
+              colorClass = "text-red-600";
+            } else {
+              // Upcoming
+              label = `Due in ${timeStr}`;
+              if (days === 0 && totalHrs < 10) {
+                colorClass = "text-red-600";
+              } else if (days <= 3) {
+                colorClass = "text-amber-600";
+              } else if (days <= 7) {
+                colorClass = "text-emerald-600";
+              }
+            }
+            
+            if (!label || days > 7) return null; // Hide if more than 7 days
+            
+            return (
+              <div className={`text-xs ml-5 font-medium ${colorClass}`}>
+                {label}
+              </div>
+            );
+          })()}
+        </div>
+
+        <span className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold ${
+          (() => {
+            const d = parseISO(assignment.dueDate);
+            if (d.getTime() <= new Date().getTime()) return "bg-red-100 text-red-700";
+            if (isToday(d)) return "bg-amber-100 text-amber-700";
+            return "bg-emerald-100 text-emerald-700";
+          })()
+        }`}>
+          {(() => {
+            const d = parseISO(assignment.dueDate);
+            if (d.getTime() <= new Date().getTime()) return <><AlertCircle className="w-3.5 h-3.5" /> Past Due</>;
+            if (isToday(d)) return <><Clock className="w-3.5 h-3.5" /> Due Today</>;
+            return <><Clock className="w-3.5 h-3.5" /> Upcoming</>;
+          })()}
+        </span>
+      </div>
+
+
+    </motion.div>
+  );
+};
+
 export default function LecturerAssignmentsPage() {
   const { data: session } = useSession();
   const router = useRouter();
@@ -36,13 +185,23 @@ export default function LecturerAssignmentsPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
+  const [dueTime, setDueTime] = useState("23:59");
   const [course, setCourse] = useState("");
 
   // Calendar state
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
+  // Countdown timer
+  const [now, setNow] = useState(new Date());
+
   useEffect(() => {
     setIsMounted(true);
+  }, []);
+
+  // Live countdown tick
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(timer);
   }, []);
 
   // Redirect non-lecturers
@@ -86,7 +245,9 @@ export default function LecturerAssignmentsPage() {
       setEditingId(assignment.id);
       setTitle(assignment.title);
       setDescription(assignment.description || "");
-      setDueDate(format(parseISO(assignment.dueDate), "yyyy-MM-dd"));
+      const parsed = parseISO(assignment.dueDate);
+      setDueDate(format(parsed, "yyyy-MM-dd"));
+      setDueTime(format(parsed, "HH:mm"));
       setCourse(assignment.course);
       // Pre-fill cohort from existing assignment
       if (assignment.semester && String(assignment.semester).match(/y\d+s\d+/)) {
@@ -99,6 +260,7 @@ export default function LecturerAssignmentsPage() {
       setTitle("");
       setDescription("");
       setDueDate(format(new Date(), "yyyy-MM-dd"));
+      setDueTime("23:59");
       setCourse("");
       // Default from the filter selection
       if (selectedSemester !== "all") {
@@ -134,8 +296,10 @@ export default function LecturerAssignmentsPage() {
 
     setIsSubmitting(true);
 
+    const dueDateTimeISO = new Date(`${dueDate}T${dueTime}`).toISOString();
+
     let status = "pending";
-    if (isBefore(parseISO(dueDate), startOfDay(new Date()))) {
+    if (isBefore(new Date(dueDateTimeISO), startOfDay(new Date()))) {
       status = "overdue";
     }
 
@@ -148,7 +312,8 @@ export default function LecturerAssignmentsPage() {
             id: editingId,
             title,
             description,
-            dueDate: new Date(dueDate).toISOString(),
+            dueDate: dueDateTimeISO,
+            dueTime,
             course
           })
         });
@@ -173,7 +338,8 @@ export default function LecturerAssignmentsPage() {
         const newAssignmentData = {
           title,
           description,
-          dueDate: new Date(dueDate).toISOString(),
+          dueDate: dueDateTimeISO,
+          dueTime,
           course,
           status,
           userId: session.user.id,
@@ -266,19 +432,44 @@ export default function LecturerAssignmentsPage() {
   const nextMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
   const prevMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
 
-  const { total, pending, submitted, overdue } = useMemo(() => ({
-    total: assignments.length,
-    pending: assignments.filter(a => a.status === "pending").length,
-    submitted: assignments.filter(a => a.status === "submitted").length,
-    overdue: assignments.filter(a => a.status === "overdue").length,
-  }), [assignments]);
-
-  const completionRate = total > 0 ? Math.round((submitted / total) * 100) : 0;
+  const { total, upcoming, dueToday, pastDue } = useMemo(() => {
+    const now = new Date();
+    return {
+      total: assignments.length,
+      upcoming: assignments.filter(a => {
+        const d = parseISO(a.dueDate);
+        return d.getTime() > now.getTime() && !isToday(d);
+      }).length,
+      dueToday: assignments.filter(a => {
+        const d = parseISO(a.dueDate);
+        return d.getTime() > now.getTime() && isToday(d);
+      }).length,
+      pastDue: assignments.filter(a => {
+        const d = parseISO(a.dueDate);
+        return d.getTime() <= now.getTime();
+      }).length,
+    };
+  }, [assignments]);
 
   // Apply status + student email filters
   const filteredAssignments = useMemo(() => {
     let filtered = [...assignments];
-    if (filter !== "all") filtered = filtered.filter(a => a.status === filter);
+    if (filter !== "all") {
+      const now = new Date();
+      if (filter === "upcoming") {
+        filtered = filtered.filter(a => {
+          const d = parseISO(a.dueDate);
+          return d.getTime() > now.getTime() && !isToday(d);
+        });
+      } else if (filter === "dueToday") {
+        filtered = filtered.filter(a => {
+          const d = parseISO(a.dueDate);
+          return d.getTime() > now.getTime() && isToday(d);
+        });
+      } else if (filter === "pastDue") {
+        filtered = filtered.filter(a => parseISO(a.dueDate).getTime() <= now.getTime());
+      }
+    }
     if (studentFilter.trim()) {
       const q = studentFilter.trim().toLowerCase();
       filtered = filtered.filter(a => (a.createdBy || "").toLowerCase().includes(q));
@@ -298,107 +489,8 @@ export default function LecturerAssignmentsPage() {
     return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
   }, [filteredAssignments, groupByStudent]);
 
-  const semesterLabel = (sem) => {
-    const map = { y1s1: "Y1 S1", y1s2: "Y1 S2", y2s1: "Y2 S1", y2s2: "Y2 S2", y3s1: "Y3 S1", y3s2: "Y3 S2", y4s1: "Y4 S1", y4s2: "Y4 S2" };
-    return map[sem] || sem;
-  };
 
-  if (!isMounted) return null;
   if (!session || (session.user.role !== "lecturer" && session.user.role !== "admin")) return null;
-
-  const AssignmentCard = ({ assignment }) => {
-    return (
-      <motion.div
-        layout
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        key={assignment.id}
-        className={`bg-white rounded-xl border p-5 shadow-sm transition-shadow hover:shadow-md flex flex-col gap-3 ${
-          assignment.status === "submitted" ? "border-emerald-200 bg-emerald-50/20" :
-          assignment.status === "overdue" ? "border-red-200 bg-red-50/20" : "border-zinc-200"
-        }`}
-      >
-        {/* Top: course badge + actions */}
-        <div className="flex justify-between items-start">
-          <div className="flex flex-col gap-1.5">
-            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-zinc-100 text-zinc-600 self-start">
-              {assignment.course}
-            </span>
-            {assignment.semester && (
-              <span className="text-xs px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 border border-rose-200 self-start font-medium">
-                {semesterLabel(String(assignment.semester))}
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => handleOpenModal(assignment)}
-              className="p-1.5 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-colors"
-              title="Edit assignment"
-            >
-              <Edit2 className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => handleDelete(assignment.id)}
-              className="p-1.5 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
-              title="Delete assignment"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-
-        {/* Title */}
-        <h3 className={`font-semibold text-base leading-snug ${assignment.status === "submitted" ? "text-zinc-400 line-through" : "text-zinc-900"}`}>
-          {assignment.title}
-        </h3>
-
-        {/* Created by */}
-        {assignment.createdBy && (
-          <div className="flex items-center gap-1.5 text-xs text-zinc-500">
-            <Users className="w-3.5 h-3.5 flex-shrink-0" />
-            <span className="truncate">{assignment.createdBy}</span>
-          </div>
-        )}
-
-        {/* Description */}
-        {assignment.description && (
-          <p className="text-zinc-500 text-sm line-clamp-2">{assignment.description}</p>
-        )}
-
-        {/* Footer: due date + status badge */}
-        <div className="flex items-center justify-between pt-3 border-t border-zinc-100 mt-auto">
-          <div className={`flex items-center gap-1.5 text-sm font-medium ${
-            assignment.status === "submitted" ? "text-emerald-600" :
-            assignment.status === "overdue" ? "text-red-600" :
-            (() => {
-              const h = differenceInHours(parseISO(assignment.dueDate), new Date());
-              if (h < 0) return "text-red-600";
-              if (h < 10) return "text-red-600";
-              if (h <= 72) return "text-amber-600";
-              return "text-zinc-600";
-            })()
-          }`}>
-            <Clock className="w-4 h-4" />
-            {format(parseISO(assignment.dueDate), "MMM d, yyyy")}
-          </div>
-
-          <span className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold ${
-            assignment.status === "submitted" ? "bg-emerald-100 text-emerald-700" :
-            assignment.status === "overdue" ? "bg-red-100 text-red-700" :
-            "bg-amber-100 text-amber-700"
-          }`}>
-            {assignment.status === "submitted" ? <><CheckCircle2 className="w-3.5 h-3.5" /> Submitted</> :
-             assignment.status === "overdue" ? <><AlertCircle className="w-3.5 h-3.5" /> Overdue</> :
-             <><Clock className="w-3.5 h-3.5" /> Pending</>}
-          </span>
-        </div>
-
-
-      </motion.div>
-    );
-  };
 
   return (
     <div className="min-h-screen bg-zinc-50/50 flex flex-col">
@@ -463,14 +555,14 @@ export default function LecturerAssignmentsPage() {
       {/* Main Content */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-        {/* Stats */}
+
         <div className="mb-8">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {[
               { label: "Total", value: total, icon: BarChart3, color: "rose" },
-              { label: "Pending", value: pending, icon: ListTodo, color: "amber" },
-              { label: "Submitted", value: submitted, icon: CheckCircle, color: "emerald" },
-              { label: "Overdue", value: overdue, icon: AlertCircle, color: "red" },
+              { label: "Upcoming", value: upcoming, icon: ListTodo, color: "emerald" },
+              { label: "Due Today", value: dueToday, icon: Clock, color: "amber" },
+              { label: "Past Due", value: pastDue, icon: AlertCircle, color: "red" },
             ].map(({ label, value, icon: Icon, color }) => (
               <div key={label} className="bg-white rounded-xl border border-zinc-200 p-4 shadow-sm flex items-center gap-4">
                 <div className={`w-10 h-10 rounded-lg bg-${color}-50 flex items-center justify-center text-${color}-600`}>
@@ -483,40 +575,26 @@ export default function LecturerAssignmentsPage() {
               </div>
             ))}
           </div>
-
-          {/* Progress bar */}
-          <div className="bg-white rounded-xl border border-zinc-200 p-5 shadow-sm">
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="text-sm font-medium text-zinc-700">Overall Submission Rate</h3>
-              <span className="text-sm font-semibold text-rose-600">{completionRate}%</span>
-            </div>
-            <div className="w-full bg-zinc-100 rounded-full h-2.5 overflow-hidden">
-              <div
-                className="bg-rose-600 h-2.5 rounded-full transition-all duration-500 ease-out"
-                style={{ width: `${completionRate}%` }}
-              />
-            </div>
-          </div>
         </div>
 
         {/* Toolbar: Filters + Search + Group toggle */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
           {/* Status filters */}
           <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide flex-shrink-0">
-            {["all", "pending", "submitted", "overdue"].map((f) => (
+            {["all", "upcoming", "dueToday", "pastDue"].map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
                   filter === f
                     ? f === "all" ? "bg-zinc-900 text-white shadow-sm"
-                    : f === "pending" ? "bg-amber-100 text-amber-800 border border-amber-200"
-                    : f === "submitted" ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                    : f === "upcoming" ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                    : f === "dueToday" ? "bg-amber-100 text-amber-800 border border-amber-200"
                     : "bg-red-100 text-red-800 border border-red-200"
                     : "bg-white text-zinc-600 border border-zinc-200 hover:bg-zinc-50"
                 }`}
               >
-                {f.charAt(0).toUpperCase() + f.slice(1)}
+                {f === "pastDue" ? "Past Due" : f === "dueToday" ? "Due Today" : f.charAt(0).toUpperCase() + f.slice(1)}
               </button>
             ))}
           </div>
@@ -585,7 +663,7 @@ export default function LecturerAssignmentsPage() {
                       </div>
                       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         <AnimatePresence>
-                          {asgns.map(a => <AssignmentCard key={a.id} assignment={a} />)}
+                          {asgns.map(a => <AssignmentCard key={a.id} assignment={a} handleOpenModal={handleOpenModal} handleDelete={handleDelete} />)}
                         </AnimatePresence>
                       </div>
                     </div>
@@ -596,7 +674,7 @@ export default function LecturerAssignmentsPage() {
               /* Flat list */
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <AnimatePresence>
-                  {filteredAssignments.map(a => <AssignmentCard key={a.id} assignment={a} />)}
+                  {filteredAssignments.map(a => <AssignmentCard key={a.id} assignment={a} handleOpenModal={handleOpenModal} handleDelete={handleDelete} />)}
                 </AnimatePresence>
                 {filteredAssignments.length === 0 && <EmptyState filter={filter} />}
               </div>
@@ -648,9 +726,8 @@ export default function LecturerAssignmentsPage() {
                           key={a.id}
                           onClick={() => handleOpenModal(a)}
                           className={`text-xs px-2 py-1 rounded truncate cursor-pointer font-medium border transition-colors ${
-                            a.status === "submitted" ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100" :
-                            a.status === "overdue" ? "bg-red-50 text-red-700 border-red-200 hover:bg-red-100" :
-                            "bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100"
+                            isToday(parseISO(a.dueDate)) ? "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100" :
+                            differenceInHours(parseISO(a.dueDate), new Date()) < 0 ? "bg-red-50 text-red-700 border-red-200 hover:bg-red-100" : "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
                           }`}
                           title={`${a.title} — ${a.createdBy || "Unknown"}`}
                         >
@@ -744,14 +821,23 @@ export default function LecturerAssignmentsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-zinc-700 mb-1">Due Date</label>
-                  <input
-                    required
-                    type="date"
-                    value={dueDate}
-                    onChange={(e) => setDueDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-zinc-300 rounded-lg text-zinc-900 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
-                  />
+                  <label className="block text-sm font-medium text-zinc-700 mb-1">Due Date & Time</label>
+                  <div className="flex gap-2">
+                    <input
+                      required
+                      type="date"
+                      value={dueDate}
+                      onChange={(e) => setDueDate(e.target.value)}
+                      className="flex-1 px-3 py-2 border border-zinc-300 rounded-lg text-zinc-900 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
+                    />
+                    <input
+                      required
+                      type="time"
+                      value={dueTime}
+                      onChange={(e) => setDueTime(e.target.value)}
+                      className="w-32 px-3 py-2 border border-zinc-300 rounded-lg text-zinc-900 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
+                    />
+                  </div>
                 </div>
 
                 <div>

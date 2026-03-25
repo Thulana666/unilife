@@ -16,6 +16,11 @@ const AssignmentSchema = new mongoose.Schema({
     required: true,
   },
 
+  dueTime: {
+    type: String,
+    default: "23:59",
+  },
+
   status: {
     type: String,
     enum: ["pending", "submitted", "overdue"],
