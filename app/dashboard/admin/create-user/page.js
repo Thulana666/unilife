@@ -21,6 +21,17 @@ export default function CreateUser() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const requirements = [
+    { regex: /.{8,}/, label: "At least 8 characters" },
+    { regex: /[A-Z]/, label: "Uppercase letter" },
+    { regex: /[a-z]/, label: "Lowercase letter" },
+    { regex: /[0-9]/, label: "Number" },
+    { regex: /[^A-Za-z0-9]/, label: "Special character" },
+  ];
+
+  const strengthScore = requirements.filter(req => req.regex.test(formData.password)).length;
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -52,6 +63,12 @@ export default function CreateUser() {
     setIsLoading(true);
     setError("");
     setSuccess("");
+
+    if (strengthScore < 5) {
+      setError("Please ensure the temporary password meets all requirements before continuing.");
+      setIsLoading(false);
+      return;
+    }
 
     try {
       // Prepare payload based on role
@@ -218,16 +235,75 @@ export default function CreateUser() {
                   <label htmlFor="password" className="block text-sm font-semibold text-slate-700 mb-1.5">
                     Temporary Password
                   </label>
-                  <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors text-slate-900"
-                    placeholder="••••••••"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      id="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      required
+                      className="w-full px-4 py-2.5 pr-12 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors text-slate-900"
+                      placeholder="••••••••"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="absolute inset-y-0 right-0 flex items-center px-3 text-slate-400 hover:text-indigo-600 transition-colors"
+                      tabIndex={-1}
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" /><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" /><line x1="1" y1="1" x2="23" y2="23" /></svg>
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Password Strength UI */}
+                  <div 
+                    className="overflow-hidden transition-all duration-500 ease-in-out" 
+                    style={{ maxHeight: formData.password ? '250px' : '0', opacity: formData.password ? 1 : 0, marginTop: formData.password ? '12px' : '0' }}
+                  >
+                    <div className="space-y-4 bg-white border border-slate-200 p-4 rounded-xl shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)]">
+                      <div className="flex gap-1.5 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                        {[1, 2, 3, 4, 5].map((index) => (
+                          <div
+                            key={index}
+                            className={`h-full flex-1 transition-all duration-500 ease-out ${
+                              strengthScore >= index
+                                ? strengthScore <= 2
+                                  ? "bg-red-500"
+                                  : strengthScore <= 4
+                                  ? "bg-amber-500"
+                                  : "bg-emerald-500"
+                                : "bg-transparent"
+                            }`}
+                          ></div>
+                        ))}
+                      </div>
+                      <div className="grid grid-cols-1 xl:grid-cols-2 gap-y-2.5 gap-x-2">
+                        {requirements.map((req, idx) => {
+                          const isMet = req.regex.test(formData.password);
+                          return (
+                            <div key={idx} className={`flex items-center gap-2.5 text-xs font-semibold transition-colors duration-300 ${isMet ? "text-slate-700" : "text-slate-400"}`}>
+                              {isMet ? (
+                                <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-600"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                </div>
+                              ) : (
+                                <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                                  <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
+                                </div>
+                              )}
+                              {req.label}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 

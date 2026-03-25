@@ -42,7 +42,7 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 1. Clone the repository
 
-git clone https://github.com/YOUR_USERNAME/unilife.git
+git clone https://github.com/Thulana666/unilife.git
 
 2. Install dependencies
 
