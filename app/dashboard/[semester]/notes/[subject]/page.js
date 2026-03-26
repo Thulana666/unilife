@@ -10,7 +10,9 @@ export default function SubjectNotesPage() {
     const params = useParams(); // { semester, subject }
     const router = useRouter();
     const [notes, setNotes] = useState([]);
+    const [allNotes, setAllNotes] = useState([]); // Store unfiltered notes
     const [searchTitle, setSearchTitle] = useState('');
+    const [sortOrder, setSortOrder] = useState('newest'); // 'newest', 'oldest', 'a-z', 'z-a'
     const [loading, setLoading] = useState(false);
 
     // Native PDF Viewer State
@@ -24,6 +26,13 @@ export default function SubjectNotesPage() {
     // Deletion State
     const [noteToDelete, setNoteToDelete] = useState(null);
 
+    // Rating & Review State
+    const [ratingNote, setRatingNote] = useState(null);
+    const [ratingStars, setRatingStars] = useState(0);
+    const [ratingHover, setRatingHover] = useState(0);
+    const [reviewText, setReviewText] = useState('');
+    const [isSubmittingRating, setIsSubmittingRating] = useState(false);
+
     const decodedSubject = decodeURIComponent(params.subject);
 
     async function fetchNotes() {
@@ -33,21 +42,114 @@ export default function SubjectNotesPage() {
         const querySem = parseInt(params.semester) || session?.user?.semester || 1;
         const queryYear = Math.ceil(querySem / 2);
 
-        const res = await fetch(`/api/notes?year=${queryYear}&semester=${querySem}&subject=${encodeURIComponent(decodedSubject)}${searchTitle ? `&title=${encodeURIComponent(searchTitle)}` : ''}`);
+        const res = await fetch(`/api/notes?year=${queryYear}&semester=${querySem}&subject=${encodeURIComponent(decodedSubject)}`);
         if (res.ok) {
             const data = await res.json();
-            setNotes(data);
+            setAllNotes(data);
+            applySearchAndSort(data, searchTitle, sortOrder);
         }
         setLoading(false);
     }
 
+    function applySearchAndSort(notesData, search, sort) {
+        let filtered = notesData;
+
+        // Client-side search filter by title (case-insensitive)
+        if (search.trim()) {
+            filtered = filtered.filter(note => 
+                note.title.toLowerCase().includes(search.toLowerCase())
+            );
+        }
+
+        // Apply sorting
+        let sorted = [...filtered];
+        switch (sort) {
+            case 'a-z':
+                sorted.sort((a, b) => a.title.localeCompare(b.title));
+                break;
+            case 'z-a':
+                sorted.sort((a, b) => b.title.localeCompare(a.title));
+                break;
+            case 'oldest':
+                sorted.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+                break;
+            case 'newest':
+            default:
+                sorted.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                break;
+        }
+
+        setNotes(sorted);
+    }
+
+    useEffect(() => {
+        applySearchAndSort(allNotes, searchTitle, sortOrder);
+        // eslint-disable-next-line
+    }, [searchTitle, sortOrder]);
+
     useEffect(() => {
         fetchNotes();
         // eslint-disable-next-line
-    }, [searchTitle, session, params.subject]);
+    }, [session, params.subject]);
 
     function confirmDelete(note) {
         setNoteToDelete(note);
+    }
+
+    async function handleRatingSubmit() {
+        if (!session || !ratingNote || ratingStars === 0) {
+            toast.error('Please select a star rating');
+            return;
+        }
+
+        setIsSubmittingRating(true);
+        try {
+            // Submit rating
+            const ratingRes = await fetch('/api/notes/interact', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    noteId: ratingNote._id,
+                    action: 'rate',
+                    stars: ratingStars
+                })
+            });
+
+            if (!ratingRes.ok) {
+                const error = await ratingRes.json();
+                toast.error(error.error || 'Failed to submit rating');
+                setIsSubmittingRating(false);
+                return;
+            }
+
+            // Submit review/comment if provided
+            if (reviewText.trim()) {
+                const commentRes = await fetch('/api/notes/interact', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        noteId: ratingNote._id,
+                        action: 'comment',
+                        text: reviewText.trim()
+                    })
+                });
+
+                if (!commentRes.ok) {
+                    toast.error('Rating submitted but review failed');
+                }
+            }
+
+            toast.success('Rating and review submitted!');
+            fetchNotes(); // Refresh to show updated rating
+            setRatingNote(null);
+            setRatingStars(0);
+            setReviewText('');
+        } catch (error) {
+            console.error('Error submitting rating:', error);
+            toast.error('Failed to submit rating');
+        } finally {
+            setIsSubmittingRating(false);
+        }
     }
 
     async function executeDelete() {
@@ -162,6 +264,18 @@ export default function SubjectNotesPage() {
                                 <svg className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                             </div>
 
+                            {/* Sort Filter Dropdown */}
+                            <select
+                                value={sortOrder}
+                                onChange={(e) => setSortOrder(e.target.value)}
+                                className="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 focus:outline-none transition-all font-medium text-slate-800 w-full sm:w-auto md:max-w-lg"
+                            >
+                                <option value="newest">Latest First</option>
+                                <option value="oldest">Oldest First</option>
+                                <option value="a-z">A to Z</option>
+                                <option value="z-a">Z to A</option>
+                            </select>
+
                             {/* Navigate to the global Upload page, passing the subject as a query param constraint */}
                             <Link href={`/dashboard/${params.semester}/notes/upload?subject=${encodeURIComponent(decodedSubject)}`}
                                 className="flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 hover:-translate-y-0.5 transition-all shadow-sm shadow-indigo-200 whitespace-nowrap">
@@ -259,6 +373,17 @@ export default function SubjectNotesPage() {
                                     {/* Action Footer */}
                                     <div className="pt-4 mt-auto border-t border-slate-100/80 flex justify-between items-center gap-2">
                                         <div className="flex items-center gap-2">
+                                            <button 
+                                                onClick={() => {
+                                                    setRatingNote(note);
+                                                    setRatingStars(0);
+                                                    setReviewText('');
+                                                }}
+                                                className="p-1.5 text-yellow-500 hover:bg-yellow-50 rounded-lg transition-colors border border-transparent hover:border-yellow-200 opacity-60 group-hover:opacity-100" 
+                                                title="Add rating and review"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                                            </button>
                                             {canModify && (
                                                 <div className="flex gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
                                                     {isOwner && (
@@ -361,6 +486,116 @@ export default function SubjectNotesPage() {
                                 className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl shadow-md shadow-red-500/20 transition-all active:scale-95"
                             >
                                 Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Rating & Review Modal */}
+            {ratingNote && (
+                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex justify-center items-center z-50 p-4 animate-in fade-in duration-200">
+                    <div className="bg-white rounded-3xl p-8 max-w-2xl w-full shadow-2xl relative animate-in zoom-in-95 duration-200 border border-slate-100">
+                        <button onClick={() => setRatingNote(null)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 p-2 rounded-full transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        </button>
+
+                        <h2 className="text-2xl font-bold mb-2 text-slate-800 tracking-tight flex items-center gap-2">
+                            <div className="w-10 h-10 bg-yellow-50 text-yellow-600 rounded-xl flex items-center justify-center shadow-inner">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                            </div>
+                            Rate & Review
+                        </h2>
+                        <p className="text-sm text-slate-500 font-medium mb-6">{ratingNote.title}</p>
+
+                        <div className="space-y-6">
+                            {/* Star Rating */}
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-3">Your Rating</label>
+                                <div className="flex gap-2 justify-center sm:justify-start">
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                        <button
+                                            key={star}
+                                            onClick={() => setRatingStars(star)}
+                                            onMouseEnter={() => setRatingHover(star)}
+                                            onMouseLeave={() => setRatingHover(0)}
+                                            className="transition-all transform hover:scale-125"
+                                        >
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                width="40"
+                                                height="40"
+                                                viewBox="0 0 24 24"
+                                                fill={star <= (ratingHover || ratingStars) ? "currentColor" : "none"}
+                                                stroke="currentColor"
+                                                strokeWidth="2"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                className={`${star <= (ratingHover || ratingStars) ? 'text-yellow-400' : 'text-slate-300'} transition-colors`}
+                                            >
+                                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                            </svg>
+                                        </button>
+                                    ))}
+                                </div>
+                                {ratingStars > 0 && (
+                                    <p className="text-sm text-slate-500 mt-2 text-center sm:text-left">
+                                        <span className="font-bold text-slate-700">{ratingStars}</span> out of 5 stars
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Review Text */}
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">Review (Optional)</label>
+                                <textarea
+                                    value={reviewText}
+                                    onChange={(e) => setReviewText(e.target.value)}
+                                    placeholder="Share your thoughts about this material... (max 200 characters)"
+                                    maxLength="200"
+                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-yellow-500/40 focus:border-yellow-500 focus:outline-none transition-all font-medium text-slate-800 resize-none h-24"
+                                />
+                                <p className="text-xs text-slate-400 font-medium mt-1">{reviewText.length}/200 characters</p>
+                            </div>
+
+                            {/* Existing Reviews/Comments */}
+                            {ratingNote.comments && ratingNote.comments.length > 0 && (
+                                <div className="border-t border-slate-100 pt-4">
+                                    <h3 className="text-sm font-bold text-slate-700 mb-3">Recent Reviews ({ratingNote.comments.length})</h3>
+                                    <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
+                                        {ratingNote.comments.map((comment, idx) => (
+                                            <div key={idx} className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                                <p className="text-xs font-bold text-slate-600 mb-1">{comment.userName || 'Anonymous'}</p>
+                                                <p className="text-sm text-slate-700">{comment.text}</p>
+                                                <p className="text-[10px] text-slate-400 mt-1">{new Date(comment.createdAt).toLocaleDateString()}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex gap-3 pt-6 mt-6 border-t border-slate-100">
+                            <button type="button" onClick={() => setRatingNote(null)} className="flex-1 px-5 py-3 text-slate-600 bg-white border border-slate-200 rounded-xl font-bold hover:bg-slate-50 transition-colors">
+                                Cancel
+                            </button>
+                            <button 
+                                onClick={handleRatingSubmit}
+                                disabled={isSubmittingRating || ratingStars === 0}
+                                className="flex-1 px-6 py-3 bg-yellow-400 hover:bg-yellow-500 text-slate-900 rounded-xl font-bold shadow-sm transition-all active:scale-[0.98] disabled:opacity-70 flex items-center justify-center gap-2"
+                            >
+                                {isSubmittingRating ? (
+                                    <>
+                                        <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                                        Submitting...
+                                    </>
+                                ) : (
+                                    <>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                                        Submit Rating
+                                    </>
+                                )}
                             </button>
                         </div>
                     </div>

@@ -14,6 +14,7 @@ export default function ProfilePage() {
     const [profileLoading, setProfileLoading] = useState(false);
     const [profileError, setProfileError] = useState("");
     const [profileSuccess, setProfileSuccess] = useState("");
+    const [fullnameError, setFullnameError] = useState("");
 
     // Password state
     const [pwForm, setPwForm] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
@@ -113,6 +114,7 @@ export default function ProfilePage() {
     const cancelEdit = () => {
         setIsEditing(false);
         setProfileError("");
+        setFullnameError("");
         setProfileForm({ name: profile.name || "", email: profile.email || "", year: profile.year || "", semester: profile.semester || "" });
     };
 
@@ -240,11 +242,31 @@ export default function ProfilePage() {
                                 <input
                                     type="text"
                                     value={profileForm.name}
-                                    onChange={(e) => setProfileForm((p) => ({ ...p, name: e.target.value }))}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        setProfileForm((p) => ({ ...p, name: value }));
+                                        
+                                        // Real-time validation: check if name contains numbers
+                                        if (/\d/.test(value)) {
+                                            setFullnameError("Full name cannot contain numbers.");
+                                        } else {
+                                            setFullnameError("");
+                                        }
+                                    }}
                                     placeholder="John Doe"
                                     required
-                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition-all"
+                                    className={`w-full px-4 py-2.5 bg-slate-50 border rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 transition-all ${
+                                        fullnameError
+                                            ? "border-red-300 focus:ring-red-500/40 focus:border-red-500"
+                                            : "border-slate-200 focus:ring-indigo-500/40 focus:border-indigo-500"
+                                    }`}
                                 />
+                                {fullnameError && (
+                                    <p className="text-red-600 text-sm font-medium mt-1.5 flex items-center gap-1.5">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
+                                        {fullnameError}
+                                    </p>
+                                )}
                             </div>
 
                             <div>
