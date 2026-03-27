@@ -171,8 +171,15 @@ export default function StudyPlanner({ params }) {
     e.preventDefault();
     const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     const dayOfWeek = days[new Date(formData.date).getDay()];
-    const payload = { ...formData, semester, day: dayOfWeek };
-    if (editingTask) payload.id = editingTask._id;
+    
+    // Build payload. Don't send string 'semester' on edit to avoid overwriting numeric DB field
+    const payload = { ...formData, day: dayOfWeek };
+    if (editingTask) {
+      payload.id = editingTask._id;
+    } else {
+      payload.semester = semester;
+    }
+
     const res = await fetch("/api/planner", {
       method: editingTask ? "PATCH" : "POST",
       headers: { "Content-Type": "application/json" },
