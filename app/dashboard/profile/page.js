@@ -28,6 +28,17 @@ export default function ProfilePage() {
     const [showPassword, setShowPassword] = useState(false);
     const [showPw, setShowPw] = useState({ currentPassword: false, newPassword: false, confirmPassword: false });
 
+    // Password Validation Rules
+    const requirements = [
+        { regex: /.{8,}/, label: "At least 8 characters" },
+        { regex: /[A-Z]/, label: "Uppercase letter" },
+        { regex: /[a-z]/, label: "Lowercase letter" },
+        { regex: /[0-9]/, label: "Number" },
+        { regex: /[^A-Za-z0-9]/, label: "Special character" },
+    ];
+
+    const strengthScore = requirements.filter(req => req.regex.test(pwForm.newPassword)).length;
+
     useEffect(() => {
         if (status === "unauthenticated") {
             router.push("/login");
@@ -85,8 +96,8 @@ export default function ProfilePage() {
 
         if (!pwForm.currentPassword || !pwForm.newPassword || !pwForm.confirmPassword)
             return setPwError("All fields are required.");
-        if (pwForm.newPassword.length < 6)
-            return setPwError("New password must be at least 6 characters.");
+        if (strengthScore < 5)
+            return setPwError("Please ensure your new password meets all security requirements.");
         if (pwForm.newPassword !== pwForm.confirmPassword)
             return setPwError("New passwords do not match.");
 
@@ -344,7 +355,7 @@ export default function ProfilePage() {
                     <form onSubmit={handlePasswordSubmit} className="px-6 pb-5 space-y-4 border-t border-slate-100 pt-4">
                         {[
                             { label: "Current Password", key: "currentPassword", placeholder: "••••••••" },
-                            { label: "New Password", key: "newPassword", placeholder: "Min. 6 characters" },
+                            { label: "New Password", key: "newPassword", placeholder: "Min. 8 chars with letters, numbers & symbols" },
                             { label: "Confirm New Password", key: "confirmPassword", placeholder: "Repeat new password" },
                         ].map(({ label, key, placeholder }) => (
                             <div key={key}>
@@ -372,6 +383,51 @@ export default function ProfilePage() {
                                         )}
                                     </button>
                                 </div>
+                                
+                                {key === "newPassword" && (
+                                    <div 
+                                      className="overflow-hidden transition-all duration-500 ease-in-out" 
+                                      style={{ maxHeight: pwForm.newPassword ? '200px' : '0', opacity: pwForm.newPassword ? 1 : 0, marginTop: pwForm.newPassword ? '12px' : '0' }}
+                                    >
+                                      <div className="space-y-4 bg-white border border-slate-200 p-4 rounded-xl shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)]">
+                                        <div className="flex gap-1.5 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                                          {[1, 2, 3, 4, 5].map((index) => (
+                                            <div
+                                              key={`str-${index}`}
+                                              className={`h-full flex-1 transition-all duration-500 ease-out ${
+                                                strengthScore >= index
+                                                  ? strengthScore <= 2
+                                                    ? "bg-red-500"
+                                                    : strengthScore <= 4
+                                                    ? "bg-amber-500"
+                                                    : "bg-emerald-500"
+                                                  : "bg-transparent"
+                                              }`}
+                                            ></div>
+                                          ))}
+                                        </div>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2.5 gap-x-2">
+                                          {requirements.map((req, idx) => {
+                                            const isMet = req.regex.test(pwForm.newPassword);
+                                            return (
+                                              <div key={`req-${idx}`} className={`flex items-center gap-2.5 text-xs font-semibold transition-colors duration-300 ${isMet ? "text-slate-700" : "text-slate-400"}`}>
+                                                {isMet ? (
+                                                  <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-600"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                                  </div>
+                                                ) : (
+                                                  <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
+                                                  </div>
+                                                )}
+                                                {req.label}
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
+                                      </div>
+                                    </div>
+                                )}
                             </div>
                         ))}
 
