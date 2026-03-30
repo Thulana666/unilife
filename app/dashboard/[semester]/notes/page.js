@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
+import { toast } from 'react-hot-toast';
 
 export default function SubjectsDashboard() {
   const { data: session, status } = useSession();
@@ -11,6 +12,7 @@ export default function SubjectsDashboard() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [newSubjectName, setNewSubjectName] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [subjectToDelete, setSubjectToDelete] = useState(null);
 
   const router = useRouter();
   const params = useParams(); // gives { semester }
@@ -71,11 +73,16 @@ export default function SubjectsDashboard() {
     }
   };
 
-  const handleDeleteSubject = async (e, subjectName) => {
+  const handleDeleteSubject = (e, subjectName) => {
     e.preventDefault();
     e.stopPropagation(); // Prevent Link navigation
+    setSubjectToDelete(subjectName);
+  };
 
-    if (!window.confirm(`Are you sure you want to completely delete the subject "${subjectName}"? This does NOT delete the notes inside it automatically.`)) return;
+  const executeDeleteSubject = async () => {
+    if (!subjectToDelete) return;
+    const subjectName = subjectToDelete;
+    setSubjectToDelete(null);
 
     try {
       const res = await fetch(`/api/notes/subjects/manage?name=${encodeURIComponent(subjectName)}&year=${queryYear}&semester=${querySem}`, {
@@ -83,13 +90,14 @@ export default function SubjectsDashboard() {
       });
 
       if (res.ok) {
+        toast.success(`Subject "${subjectName}" deleted successfully`);
         fetchSubjects();
       } else {
         const data = await res.json();
-        alert(data.error || "Failed to delete subject");
+        toast.error(data.error || "Failed to delete subject");
       }
     } catch (err) {
-      alert("Network error.");
+      toast.error("Network error. Please try again.");
     }
   };
 
@@ -257,6 +265,39 @@ export default function SubjectsDashboard() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Delete Subject Confirmation Modal */}
+      {subjectToDelete && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-50 flex justify-center items-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl relative animate-in zoom-in-95 duration-200 border border-slate-100 flex flex-col items-center text-center">
+            <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-5 shadow-inner">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+            </div>
+            <h3 className="text-xl font-bold text-slate-800 tracking-tight mb-2">Delete Subject?</h3>
+            <p className="text-slate-500 text-sm font-medium mb-2 leading-relaxed">
+              Are you sure you want to delete <span className="font-bold text-slate-700">"{subjectToDelete}"</span>?
+            </p>
+            <p className="text-xs text-amber-600 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 mb-6 font-semibold">
+              ⚠️ This does NOT delete the notes inside it automatically.
+            </p>
+
+            <div className="flex gap-3 w-full">
+              <button
+                onClick={() => setSubjectToDelete(null)}
+                className="flex-1 px-4 py-3 bg-slate-50 hover:bg-slate-100 text-slate-600 font-bold rounded-xl transition-colors border border-slate-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={executeDeleteSubject}
+                className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl shadow-md shadow-red-500/20 transition-all active:scale-95"
+              >
+                Delete
+              </button>
+            </div>
           </div>
         </div>
       )}

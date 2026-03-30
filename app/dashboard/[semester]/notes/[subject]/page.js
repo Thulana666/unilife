@@ -339,9 +339,25 @@ export default function SubjectNotesPage() {
                                             </div>
                                             {/* Top right interact actions (Ratings / views summary) */}
                                             <div className="flex flex-col items-end gap-1 shrink-0">
-                                                <div className="flex items-center gap-1 bg-amber-50 text-amber-600 font-bold text-xs px-2 py-0.5 rounded-lg border border-amber-100 shadow-inner">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-                                                    {note.averageRating || 0}
+                                                <div className="flex items-center gap-1.5 bg-amber-50 text-amber-600 font-bold text-xs px-2.5 py-1 rounded-lg border border-amber-100 shadow-inner">
+                                                    <div className="flex items-center gap-0.5">
+                                                        {[1, 2, 3, 4, 5].map((star) => {
+                                                            const avg = note.averageRating || 0;
+                                                            const filled = star <= Math.floor(avg);
+                                                            const half = !filled && star === Math.ceil(avg) && avg % 1 >= 0.3;
+                                                            return (
+                                                                <svg key={star} xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
+                                                                    fill={filled ? "currentColor" : "none"}
+                                                                    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                                                                    className={filled ? 'text-amber-400' : half ? 'text-amber-300' : 'text-amber-200'}
+                                                                    style={half ? { fill: 'currentColor', opacity: 0.5 } : {}}
+                                                                >
+                                                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                                                </svg>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                    <span className="text-amber-700 font-extrabold">{note.averageRating || 0}</span>
                                                     <span className="text-amber-400 font-medium">({note.ratingCount || 0})</span>
                                                 </div>
                                                 <div className="flex items-center gap-1.5 text-slate-400 text-xs font-medium">
@@ -509,6 +525,63 @@ export default function SubjectNotesPage() {
                         <p className="text-sm text-slate-500 font-medium mb-6">{ratingNote.title}</p>
 
                         <div className="space-y-6">
+                            {/* Rating Summary with Stars & Distribution */}
+                            {(() => {
+                                const ratings = ratingNote.ratings || [];
+                                const rCount = ratings.length;
+                                const avg = rCount > 0 ? parseFloat((ratings.reduce((s, r) => s + r.stars, 0) / rCount).toFixed(1)) : 0;
+                                const dist = [5, 4, 3, 2, 1].map(s => ({ star: s, count: ratings.filter(r => r.stars === s).length }));
+                                return (
+                                    <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-5 border border-amber-100">
+                                        <h3 className="text-sm font-bold text-slate-700 mb-4">Rating Overview</h3>
+                                        <div className="flex flex-col sm:flex-row gap-5">
+                                            {/* Left: Big average + stars */}
+                                            <div className="flex flex-col items-center justify-center sm:min-w-[120px] gap-1">
+                                                <span className="text-4xl font-black text-slate-800 leading-none">{avg}</span>
+                                                <div className="flex items-center gap-0.5 mt-1">
+                                                    {[1, 2, 3, 4, 5].map((star) => {
+                                                        const filled = star <= Math.floor(avg);
+                                                        const half = !filled && star === Math.ceil(avg) && avg % 1 >= 0.3;
+                                                        return (
+                                                            <svg key={star} xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                                                fill={filled ? "currentColor" : "none"}
+                                                                stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                                                                className={filled ? 'text-yellow-400' : half ? 'text-yellow-300' : 'text-slate-300'}
+                                                                style={half ? { fill: 'currentColor', opacity: 0.5 } : {}}
+                                                            >
+                                                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                                            </svg>
+                                                        );
+                                                    })}
+                                                </div>
+                                                <span className="text-xs text-slate-500 font-semibold mt-0.5">{rCount} {rCount === 1 ? 'rating' : 'ratings'}</span>
+                                            </div>
+                                            {/* Right: Distribution bars */}
+                                            <div className="flex-1 space-y-1.5">
+                                                {dist.map(({ star, count }) => {
+                                                    const pct = rCount > 0 ? Math.round((count / rCount) * 100) : 0;
+                                                    return (
+                                                        <div key={star} className="flex items-center gap-2">
+                                                            <span className="text-xs font-bold text-slate-600 w-4 text-right">{star}</span>
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" className="text-yellow-400 shrink-0"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                                                            <div className="flex-1 h-2.5 bg-slate-200/70 rounded-full overflow-hidden">
+                                                                <div
+                                                                    className="h-full rounded-full transition-all duration-500"
+                                                                    style={{
+                                                                        width: `${pct}%`,
+                                                                        background: star >= 4 ? 'linear-gradient(90deg, #fbbf24, #f59e0b)' : star === 3 ? 'linear-gradient(90deg, #fcd34d, #fbbf24)' : 'linear-gradient(90deg, #fb923c, #f97316)'
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                            <span className="text-[10px] font-bold text-slate-500 w-8 text-right">{count > 0 ? `${pct}%` : '—'}</span>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })()}
                             {/* Star Rating */}
                             <div>
                                 <label className="block text-sm font-bold text-slate-700 mb-3">Your Rating</label>

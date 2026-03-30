@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
+import { toast } from 'react-hot-toast';
 
 const FILE_TYPE_ICONS = {
     "application/pdf": { label: "PDF", color: "bg-rose-100 text-rose-600 border-rose-200" },
@@ -36,6 +37,7 @@ export default function AdminNotes() {
     const [isLoading, setIsLoading] = useState(true);
     const [filterSem, setFilterSem] = useState("all");
     const [search, setSearch] = useState("");
+    const [noteToDelete, setNoteToDelete] = useState(null);
 
     // Protect Route
     useEffect(() => {
@@ -66,16 +68,24 @@ export default function AdminNotes() {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm("Are you sure you want to permanently delete this note?")) return;
+        setNoteToDelete(id);
+    };
+
+    const executeDelete = async () => {
+        if (!noteToDelete) return;
+        const id = noteToDelete;
+        setNoteToDelete(null);
         try {
             const res = await fetch(`/api/notes?id=${id}`, { method: "DELETE" });
             if (res.ok) {
                 setNotes(prev => prev.filter(n => n._id !== id));
+                toast.success('Note deleted successfully');
             } else {
-                alert("Failed to delete note.");
+                toast.error("Failed to delete note.");
             }
         } catch (error) {
             console.error(error);
+            toast.error("Network error. Please try again.");
         }
     };
 
@@ -121,11 +131,19 @@ export default function AdminNotes() {
                         <p className="text-slate-500 font-medium mt-0.5 text-sm">Monitor and manage all uploaded notes across semesters.</p>
                     </div>
                 </div>
-                <Link href="/dashboard/admin">
-                    <button className="hidden sm:flex items-center gap-1.5 px-4 py-2 border border-slate-200 rounded-lg text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors bg-white shrink-0">
-                        Back to Panel
-                    </button>
-                </Link>
+                <div className="flex items-center gap-3">
+                    <Link href="/dashboard/notes">
+                        <button className="hidden sm:flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold hover:bg-indigo-700 transition-all shadow-sm shadow-indigo-200 shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="9" x="3" y="3" rx="1" /><rect width="7" height="5" x="14" y="3" rx="1" /><rect width="7" height="9" x="14" y="12" rx="1" /><rect width="7" height="5" x="3" y="16" rx="1" /></svg>
+                            Manage Subjects
+                        </button>
+                    </Link>
+                    <Link href="/dashboard/admin">
+                        <button className="hidden sm:flex items-center gap-1.5 px-4 py-2 border border-slate-200 rounded-lg text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors bg-white shrink-0">
+                            Back to Panel
+                        </button>
+                    </Link>
+                </div>
             </div>
 
             {/* Stats Row */}
@@ -263,6 +281,36 @@ export default function AdminNotes() {
                     )}
                 </div>
             </div>
+
+            {/* Custom Delete Confirmation Modal */}
+            {noteToDelete && (
+                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-50 flex justify-center items-center p-4 animate-in fade-in duration-200">
+                    <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl relative animate-in zoom-in-95 duration-200 border border-slate-100 flex flex-col items-center text-center">
+                        <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-5 shadow-inner">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                        </div>
+                        <h3 className="text-xl font-bold text-slate-800 tracking-tight mb-2">Delete Note?</h3>
+                        <p className="text-slate-500 text-sm font-medium mb-6 leading-relaxed">
+                            Are you sure you want to permanently delete this note? This action cannot be undone.
+                        </p>
+
+                        <div className="flex gap-3 w-full">
+                            <button
+                                onClick={() => setNoteToDelete(null)}
+                                className="flex-1 px-4 py-3 bg-slate-50 hover:bg-slate-100 text-slate-600 font-bold rounded-xl transition-colors border border-slate-200"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={executeDelete}
+                                className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl shadow-md shadow-red-500/20 transition-all active:scale-95"
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
         </div>
     );

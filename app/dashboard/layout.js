@@ -332,7 +332,6 @@ export default function DashboardLayout({ children }) {
             { name: "Manage Notes", href: "/dashboard/notes", icon: "Library" },
         ],
         admin: [
-            { name: "Manage Subjects", href: "/dashboard/notes", icon: "LayoutDashboard" },
             { name: "All Notes Data", href: "/dashboard/admin/notes", icon: "Files" },
             { name: "System Chat", href: "/dashboard/admin/semesters", icon: "MessageSquareText" },
             { name: "Create User", href: "/dashboard/admin/create-user", icon: "UserPlus" },
