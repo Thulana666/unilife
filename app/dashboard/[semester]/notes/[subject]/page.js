@@ -304,20 +304,21 @@ export default function SubjectNotesPage() {
                             const isLecturerUpload = note.uploaderRole === 'lecturer';
 
                             return (
-                                <div key={note._id} className={`bg-white rounded-3xl p-6 border shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group overflow-hidden ${isLecturerUpload ? 'border-amber-200' : 'border-slate-200'}`}>
+                                <div key={note._id} className={`bg-white rounded-3xl border shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group ${isLecturerUpload ? 'border-amber-200' : 'border-slate-200'}`}>
                                     {/* Lecturer Banner Highlight (if applicable) */}
                                     {isLecturerUpload ? (
-                                        <div className="bg-amber-100/80 text-amber-700 text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 flex justify-center -m-6 mb-4 items-center gap-1.5 border-b border-amber-200">
+                                        <div className="bg-amber-100/80 text-amber-700 text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 flex justify-center items-center gap-1.5 border-b border-amber-200 rounded-t-3xl">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
                                             Uploaded by Lecturer
                                         </div>
                                     ) : (
-                                        <div className="bg-emerald-50 text-emerald-600 text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 flex justify-center -m-6 mb-4 items-center gap-1.5 border-b border-emerald-100">
+                                        <div className="bg-emerald-50 text-emerald-600 text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 flex justify-center items-center gap-1.5 border-b border-emerald-100 rounded-t-3xl">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
                                             Uploaded by Student
                                         </div>
                                     )}
 
+                                    <div className="p-6 flex flex-col flex-1">
                                     <div>
                                         {/* Card Header */}
                                         <div className="flex justify-between items-start mb-3 gap-2">
@@ -379,8 +380,8 @@ export default function SubjectNotesPage() {
                                     </div>
 
                                     {/* Action Footer */}
-                                    <div className="pt-4 mt-auto border-t border-slate-100/80 flex justify-between items-center gap-2">
-                                        <div className="flex items-center gap-2">
+                                    <div className="pt-4 mt-auto border-t border-slate-100/80 flex flex-wrap items-center gap-2">
+                                        <div className="flex items-center gap-2 shrink-0">
                                             <button 
                                                 onClick={() => {
                                                     setRatingNote(note);
@@ -407,16 +408,17 @@ export default function SubjectNotesPage() {
                                         </div>
 
                                         {/* Primary Interact Button - Triggers Modals / Preview */}
-                                        <div className="flex gap-2 ml-auto mt-2 sm:mt-0">
-                                            <button onClick={() => handlePreview(note.fileUrl, note.fileName)} className="flex items-center justify-center gap-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 px-3 py-2 rounded-xl text-sm font-bold transition-all shadow-sm border border-slate-200">
+                                        <div className="flex gap-2 ml-auto flex-wrap justify-end">
+                                            <button onClick={() => handlePreview(note.fileUrl, note.fileName)} className="flex items-center justify-center gap-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 px-3 py-2 rounded-xl text-sm font-bold transition-all shadow-sm border border-slate-200 whitespace-nowrap">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                                                 Preview
                                             </button>
-                                            <button onClick={() => handleDownload(note.fileUrl, note._id, note.fileName)} className="flex items-center justify-center gap-1.5 bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white px-3 py-2 rounded-xl text-sm font-bold transition-all shadow-sm border border-indigo-100 hover:border-indigo-600">
+                                            <button onClick={() => handleDownload(note.fileUrl, note._id, note.fileName)} className="flex items-center justify-center gap-1.5 bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white px-3 py-2 rounded-xl text-sm font-bold transition-all shadow-sm border border-indigo-100 hover:border-indigo-600 whitespace-nowrap">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                                                 Download
                                             </button>
                                         </div>
+                                    </div>
                                     </div>
                                 </div>
                             );

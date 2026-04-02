@@ -17,6 +17,11 @@ export default function LecturerNotesSemesterGrid() {
         { id: 8, name: 'Year 4, Semester 2', short: 'Y4S2' },
     ];
 
+    // Compute the current semester ID (1-8) from user's year and semester
+    const userYear = session?.user?.year || 1;
+    const userSem = session?.user?.semester || 1;
+    const currentSemId = (userYear - 1) * 2 + userSem;
+
     if (status === 'loading') {
         return (
             <div className="flex justify-center items-center py-20 min-h-[40vh]">
@@ -43,23 +48,11 @@ export default function LecturerNotesSemesterGrid() {
                     </p>
                 </div>
 
-                {/* Academic Info Widget */}
-                <div className="relative z-10 flex items-center gap-3 sm:gap-4 bg-white/80 backdrop-blur p-3 sm:p-4 rounded-2xl shadow-sm border border-slate-200 overflow-x-auto whitespace-nowrap self-start xl:self-center">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0 rounded-full flex items-center justify-center bg-purple-50 text-purple-600">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                    </div>
-                    <div className="flex gap-4 sm:gap-6 px-2 sm:px-4 flex-nowrap">
-                        <div>
-                            <p className="text-xs font-medium text-slate-500 mb-0.5 uppercase tracking-wider">Role</p>
-                            <p className="font-bold text-slate-900 capitalize">{session?.user?.role || "lecturer"}</p>
-                        </div>
-                        <div className="w-px h-10 bg-slate-200"></div>
-                        <div>
-                            <p className="text-xs font-medium text-slate-500 mb-0.5 uppercase tracking-wider">Name</p>
-                            <p className="font-bold text-slate-900 max-w-[120px] truncate">{session?.user?.name || "Lecturer"}</p>
-                        </div>
-                    </div>
-                </div>
+                {/* Back Button */}
+                <Link href="/dashboard/lecturer" className="relative z-10 flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm self-start xl:self-center shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+                    Back to Dashboard
+                </Link>
             </div>
 
             {/* Semester Grid */}
@@ -68,16 +61,16 @@ export default function LecturerNotesSemesterGrid() {
                     <Link
                         href={`/dashboard/${sem.id}/notes`}
                         key={sem.id}
-                        className={`group bg-white rounded-3xl p-6 border shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden flex flex-col justify-between min-h-[160px] ${session?.user?.semester === sem.id ? 'border-purple-300 ring-2 ring-purple-50/50' : 'border-slate-200'}`}
+                        className={`group bg-white rounded-3xl p-6 border shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden flex flex-col justify-between min-h-[160px] ${currentSemId === sem.id ? 'border-purple-300 ring-2 ring-purple-50/50' : 'border-slate-200'}`}
                     >
                         <div className="absolute -right-8 -top-8 w-24 h-24 bg-gradient-to-br from-purple-50 to-indigo-50 rounded-full transition-transform group-hover:scale-150 duration-500 z-0 opacity-60"></div>
 
                         <div className="relative z-10 flex flex-col h-full">
                             <div className="flex justify-between items-start mb-4">
-                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm transition-colors ${session?.user?.semester === sem.id ? 'bg-purple-600 text-white' : 'bg-purple-50 text-purple-600 group-hover:bg-purple-600 group-hover:text-white'}`}>
+                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm transition-colors ${currentSemId === sem.id ? 'bg-purple-600 text-white' : 'bg-purple-50 text-purple-600 group-hover:bg-purple-600 group-hover:text-white'}`}>
                                     <span className="font-extrabold text-lg">{sem.id}</span>
                                 </div>
-                                {session?.user?.semester === sem.id && (
+                                {currentSemId === sem.id && (
                                     <span className="bg-purple-100 text-purple-700 text-xs font-bold py-1 px-3 rounded-full flex items-center gap-1.5 shadow-sm">
                                         <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse"></span>
                                         Current

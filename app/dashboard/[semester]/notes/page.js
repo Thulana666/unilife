@@ -129,34 +129,11 @@ export default function SubjectsDashboard() {
           </div>
         </div>
 
-        {/* Academic Info Widget */}
-        <div className="relative z-10 flex items-center gap-3 sm:gap-4 bg-white/80 backdrop-blur p-3 sm:p-4 rounded-2xl shadow-sm border border-slate-200 overflow-x-auto whitespace-nowrap self-start xl:self-center">
-            <div className={`w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0 rounded-full flex items-center justify-center ${session?.user?.role === "admin" ? "bg-amber-50 text-amber-600" : session?.user?.role === "lecturer" ? "bg-purple-50 text-purple-600" : "bg-blue-50 text-blue-600"}`}>
-                {session?.user?.role === "admin" ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-                ) : session?.user?.role === "lecturer" ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
-                )}
-            </div>
-            <div className="flex gap-4 sm:gap-6 px-2 sm:px-4 flex-nowrap">
-                <div>
-                    <p className="text-xs font-medium text-slate-500 mb-0.5 uppercase tracking-wider">Role</p>
-                    <p className="font-bold text-slate-900 capitalize">{session?.user?.role || "student"}</p>
-                </div>
-                <div className="w-px h-10 bg-slate-200"></div>
-                <div>
-                    <p className="text-xs font-medium text-slate-500 mb-0.5 uppercase tracking-wider">Year</p>
-                    <p className="font-bold text-slate-900">{session?.user?.year || queryYear}</p>
-                </div>
-                <div className="w-px h-10 bg-slate-200"></div>
-                <div>
-                    <p className="text-xs font-medium text-slate-500 mb-0.5 uppercase tracking-wider">Semester</p>
-                    <p className="font-bold text-slate-900">{session?.user?.semester || querySem}</p>
-                </div>
-            </div>
-        </div>
+        {/* Back Button */}
+        <Link href="/dashboard/notes" className="relative z-10 flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm self-start xl:self-center shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+            Back to Semesters
+        </Link>
       </div>
 
       {loading ? (
