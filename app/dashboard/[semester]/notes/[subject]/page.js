@@ -33,6 +33,8 @@ export default function SubjectNotesPage() {
     const [reviewText, setReviewText] = useState('');
     const [isSubmittingRating, setIsSubmittingRating] = useState(false);
 
+    const STAR_LABELS = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
+
     const decodedSubject = decodeURIComponent(params.subject);
 
     async function fetchNotes() {
@@ -122,7 +124,7 @@ export default function SubjectNotesPage() {
             }
 
             if (reviewText.trim()) {
-                const commentRes = await fetch('/api/notes/interact', {
+                await fetch('/api/notes/interact', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -131,16 +133,13 @@ export default function SubjectNotesPage() {
                         text: reviewText.trim()
                     })
                 });
-
-                if (!commentRes.ok) {
-                    toast.error('Rating submitted but review failed');
-                }
             }
 
-            toast.success('Rating and review submitted!');
+            toast.success('Rating submitted!');
             fetchNotes();
             setRatingNote(null);
             setRatingStars(0);
+            setRatingHover(0);
             setReviewText('');
         } catch (error) {
             console.error('Error submitting rating:', error);
@@ -148,6 +147,15 @@ export default function SubjectNotesPage() {
         } finally {
             setIsSubmittingRating(false);
         }
+    }
+
+    // Open the rating modal, pre-filling the user's existing rating if any
+    function openRatingModal(note) {
+        const existingRating = note.ratings?.find(r => r.userEmail === session?.user?.email);
+        setRatingNote(note);
+        setRatingStars(existingRating?.stars || 0);
+        setRatingHover(0);
+        setReviewText('');
     }
 
     async function executeDelete() {
@@ -383,15 +391,22 @@ export default function SubjectNotesPage() {
                                     <div className="pt-4 mt-auto border-t border-slate-100/80 flex flex-wrap items-center gap-2">
                                         <div className="flex items-center gap-2 shrink-0">
                                             <button 
-                                                onClick={() => {
-                                                    setRatingNote(note);
-                                                    setRatingStars(0);
-                                                    setReviewText('');
-                                                }}
-                                                className="p-1.5 text-yellow-500 hover:bg-yellow-50 rounded-lg transition-colors border border-transparent hover:border-yellow-200 opacity-60 group-hover:opacity-100" 
-                                                title="Add rating and review"
+                                                onClick={() => openRatingModal(note)}
+                                                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-colors border ${
+                                                    note.ratings?.find(r => r.userEmail === session?.user?.email)
+                                                        ? 'bg-amber-50 text-amber-600 border-amber-200 hover:bg-amber-100'
+                                                        : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-amber-50 hover:text-amber-600 hover:border-amber-200'
+                                                }`}
+                                                title={note.ratings?.find(r => r.userEmail === session?.user?.email) ? 'Update your rating' : 'Rate this note'}
                                             >
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+                                                    fill={note.ratings?.find(r => r.userEmail === session?.user?.email) ? 'currentColor' : 'none'}
+                                                    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                                </svg>
+                                                {note.ratings?.find(r => r.userEmail === session?.user?.email)
+                                                    ? `Your rating: ${note.ratings.find(r => r.userEmail === session?.user?.email).stars}★`
+                                                    : 'Rate'}
                                             </button>
                                             {canModify && (
                                                 <div className="flex gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
@@ -502,73 +517,134 @@ export default function SubjectNotesPage() {
             )}
 
             {ratingNote && (
-                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex justify-center items-center z-50 p-4 animate-in fade-in duration-200">
-                    <div className="bg-white rounded-3xl p-8 max-w-2xl w-full shadow-2xl relative animate-in zoom-in-95 duration-200 border border-slate-100">
+                <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex justify-center items-center z-50 p-4 animate-in fade-in duration-200">
+                    <div className="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl relative animate-in zoom-in-95 duration-200 border border-slate-100">
                         <button onClick={() => setRatingNote(null)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 p-2 rounded-full transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                         </button>
 
-                        <h2 className="text-2xl font-bold mb-2 text-slate-800 tracking-tight flex items-center gap-2">
-                            <div className="w-10 h-10 bg-yellow-50 text-yellow-600 rounded-xl flex items-center justify-center shadow-inner">
+                        {/* Header */}
+                        <div className="flex items-center gap-3 mb-1">
+                            <div className="w-10 h-10 bg-amber-50 text-amber-500 rounded-xl flex items-center justify-center shadow-inner shrink-0">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
                             </div>
-                            Rate & Review
-                        </h2>
-                        <p className="text-sm text-slate-500 font-medium mb-6">{ratingNote.title}</p>
-
-                        <div className="space-y-6">
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-3">Your Rating</label>
-                                <div className="flex gap-2 justify-center sm:justify-start">
-                                    {[1, 2, 3, 4, 5].map((star) => (
-                                        <button
-                                            key={star}
-                                            onClick={() => setRatingStars(star)}
-                                            onMouseEnter={() => setRatingHover(star)}
-                                            onMouseLeave={() => setRatingHover(0)}
-                                            className="transition-all transform hover:scale-125"
-                                        >
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                width="40"
-                                                height="40"
-                                                viewBox="0 0 24 24"
-                                                fill={star <= (ratingHover || ratingStars) ? "currentColor" : "none"}
-                                                stroke="currentColor"
-                                                strokeWidth="2"
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                className={`${star <= (ratingHover || ratingStars) ? 'text-yellow-400' : 'text-slate-300'} transition-colors`}
-                                            >
-                                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                                            </svg>
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">Review (Optional)</label>
-                                <textarea
-                                    value={reviewText}
-                                    onChange={(e) => setReviewText(e.target.value)}
-                                    placeholder="Share your thoughts..."
-                                    maxLength="200"
-                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-yellow-500/40 focus:outline-none transition-all font-medium text-slate-800 resize-none h-24"
-                                />
+                                <h2 className="text-xl font-bold text-slate-800 tracking-tight">
+                                    {ratingNote.ratings?.find(r => r.userEmail === session?.user?.email) ? 'Update Rating' : 'Rate & Review'}
+                                </h2>
+                                <p className="text-xs text-slate-400 font-medium truncate max-w-xs">{ratingNote.title}</p>
                             </div>
                         </div>
 
-                        <div className="flex gap-3 pt-6 mt-6 border-t border-slate-100">
+                        <div className="space-y-5 mt-6">
+                            {/* Interactive star picker */}
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-3">Your Rating</label>
+                                <div className="flex flex-col items-center gap-2">
+                                    <div className="flex gap-1">
+                                        {[1, 2, 3, 4, 5].map((star) => (
+                                            <button
+                                                key={star}
+                                                onClick={() => setRatingStars(star)}
+                                                onMouseEnter={() => setRatingHover(star)}
+                                                onMouseLeave={() => setRatingHover(0)}
+                                                className="transition-transform hover:scale-125 focus:outline-none"
+                                            >
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    width="44" height="44"
+                                                    viewBox="0 0 24 24"
+                                                    fill={star <= (ratingHover || ratingStars) ? 'currentColor' : 'none'}
+                                                    stroke="currentColor" strokeWidth="1.5"
+                                                    strokeLinecap="round" strokeLinejoin="round"
+                                                    className={`transition-colors ${
+                                                        star <= (ratingHover || ratingStars) ? 'text-amber-400' : 'text-slate-200'
+                                                    }`}
+                                                >
+                                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                                </svg>
+                                            </button>
+                                        ))}
+                                    </div>
+                                    {/* Star label */}
+                                    <p className={`text-sm font-bold transition-colors ${
+                                        (ratingHover || ratingStars) ? 'text-amber-500' : 'text-slate-300'
+                                    }`}>
+                                        {STAR_LABELS[ratingHover || ratingStars] || 'Select a rating'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Review textarea */}
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">Write a Review <span className="font-normal text-slate-400">(optional)</span></label>
+                                <textarea
+                                    value={reviewText}
+                                    onChange={(e) => setReviewText(e.target.value)}
+                                    placeholder="Share your thoughts about these notes..."
+                                    maxLength={300}
+                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400 focus:outline-none transition-all font-medium text-slate-800 resize-none h-24 placeholder:text-slate-400"
+                                />
+                                <p className="text-right text-[11px] text-slate-400 mt-1">{reviewText.length}/300</p>
+                            </div>
+
+                            {/* Existing community comments */}
+                            {ratingNote.comments?.length > 0 && (
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">Community Reviews ({ratingNote.comments.length})</label>
+                                    <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
+                                        {ratingNote.comments.map((c, i) => {
+                                            // Find this commenter's star rating
+                                            const commenterRating = ratingNote.ratings?.find(r => r.userEmail === c.userEmail);
+                                            const stars = commenterRating?.stars || 0;
+                                            return (
+                                                <div key={i} className="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2.5">
+                                                    <div className="flex items-center justify-between mb-1 gap-2">
+                                                        <div className="flex items-center gap-2 min-w-0">
+                                                            <span className="text-xs font-bold text-slate-700 truncate">{c.userName || 'Anonymous'}</span>
+                                                            {/* Commenter's star rating */}
+                                                            {stars > 0 && (
+                                                                <div className="flex items-center gap-0.5 shrink-0">
+                                                                    {[1,2,3,4,5].map(s => (
+                                                                        <svg key={s} xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24"
+                                                                            fill={s <= stars ? 'currentColor' : 'none'}
+                                                                            stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                                                                            className={s <= stars ? 'text-amber-400' : 'text-slate-300'}
+                                                                        >
+                                                                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                                                        </svg>
+                                                                    ))}
+                                                                    <span className="text-[10px] font-bold text-amber-500 ml-0.5">{stars}.0</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <span className="text-[10px] text-slate-400 shrink-0">
+                                                            {new Date(c.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-xs text-slate-500 leading-relaxed">{c.text}</p>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="flex gap-3 pt-6 mt-4 border-t border-slate-100">
                             <button type="button" onClick={() => setRatingNote(null)} className="flex-1 px-5 py-3 text-slate-600 bg-white border border-slate-200 rounded-xl font-bold hover:bg-slate-50 transition-colors">
                                 Cancel
                             </button>
-                            <button 
+                            <button
                                 onClick={handleRatingSubmit}
                                 disabled={isSubmittingRating || ratingStars === 0}
-                                className="flex-1 px-6 py-3 bg-yellow-400 hover:bg-yellow-500 text-slate-900 rounded-xl font-bold shadow-sm transition-all active:scale-[0.98] disabled:opacity-70 flex items-center justify-center gap-2"
+                                className="flex-1 px-6 py-3 bg-amber-400 hover:bg-amber-500 text-slate-900 rounded-xl font-bold shadow-sm transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                             >
-                                {isSubmittingRating ? 'Submitting...' : 'Submit Rating'}
+                                {isSubmittingRating ? (
+                                    <><div className="w-4 h-4 border-2 border-slate-900/30 border-t-slate-900 rounded-full animate-spin"></div> Submitting...</>
+                                ) : (
+                                    ratingNote.ratings?.find(r => r.userEmail === session?.user?.email) ? 'Update Rating' : 'Submit Rating'
+                                )}
                             </button>
                         </div>
                     </div>
