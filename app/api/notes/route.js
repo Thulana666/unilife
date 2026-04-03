@@ -79,24 +79,24 @@ export async function POST(req) {
         const ext = file.name.split('.').pop().toLowerCase();
         const isDocFormat = ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'zip', 'rar'].includes(ext);
 
-        // We MUST strip the `.pdf` extension from the Cloudinary URL. Cloudinary's aggressive
-        // security layer throws 401 Unauthorized/400 Bad Request to absolutely ANY URL ending in `.pdf` on free accounts.
-        // We bypass this by uploading as an opaque extensionless `raw` blob, then injecting the proper Content-Type natively via our Express proxy.
-        const safePublicId = file.name.split('.').slice(0, -1).join('.') || 'document';
+        // Build a collision-safe public_id: strip extension + add timestamp suffix
+        const baseName = file.name.split('.').slice(0, -1).join('.').replace(/[^a-zA-Z0-9_-]/g, '_') || 'document';
+        const safePublicId = `${baseName}_${Date.now()}`;
 
         const result = await new Promise((resolve, reject) => {
           cloudinary.uploader.upload_stream(
-            { 
-                resource_type: isDocFormat ? "raw" : "auto", 
-                folder: "unilife_notes",
-                public_id: safePublicId 
+            {
+              resource_type: isDocFormat ? "raw" : "auto",
+              folder: "unilife_notes",
+              public_id: safePublicId,
+              // Ensure public delivery — no CDN access blocks
+              access_mode: "public",
+              type: "upload",
             },
             (err, res) => (err ? reject(err) : resolve(res))
           ).end(buffer);
         });
         fileUrl = result.secure_url;
-      } else {
-        return Response.json({ error: "Valid File required" }, { status: 400 });
       }
     } else {
       return Response.json({ error: "Multipart form required" }, { status: 400 });

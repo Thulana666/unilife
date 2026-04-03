@@ -2,7 +2,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams, useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 
 export default function UploadNote() {
@@ -13,17 +13,19 @@ export default function UploadNote() {
   // If we came from a specific subject folder, default to it
   const defaultSubject = searchParams.get('subject') || '';
 
+  // Parse semester from the URL [semester] param (e.g. route /dashboard/3/notes/upload → sem 3)
+  // Fall back to the session user's own semester/year if the param is missing
+  const params = useParams();
+  const urlSem = params?.semester ? parseInt(params.semester) : null;
+  const querySem = urlSem || session?.user?.semester || 1;
+  const queryYear = urlSem ? Math.ceil(urlSem / 2) : (session?.user?.year || 1);
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [subject, setSubject] = useState(defaultSubject);
   const [file, setFile] = useState(null);
-
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
-
-  // Fallback to year 1 / sem 1 if session takes a sec
-  const queryYear = session?.user?.year || 1;
-  const querySem = session?.user?.semester || 1;
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -156,7 +158,7 @@ export default function UploadNote() {
                 <input
                   type="file"
                   className="hidden"
-                  accept=".pdf,.docx,.ppt,.pptx"
+                  accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx"
                   onChange={e => setFile(e.target.files[0])}
                 />
               </label>
