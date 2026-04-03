@@ -1,9 +1,11 @@
 'use client';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function NotesSemesterGrid() {
   const { data: session, status } = useSession();
+  const router = useRouter();
 
   // Define the 8 Semesters explicitly
   const semesters = [
@@ -38,6 +40,13 @@ export default function NotesSemesterGrid() {
         <div className="absolute -right-10 -top-10 w-40 h-40 bg-indigo-50 rounded-full mix-blend-multiply opacity-70"></div>
         <div className="relative z-10 w-full xl:w-auto">
           <div className="flex items-center gap-3 mb-2">
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors shrink-0"
+              title="Go back"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+            </button>
             <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-xl flex justify-center items-center shadow-sm">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>
             </div>
@@ -47,12 +56,6 @@ export default function NotesSemesterGrid() {
             Select a specific semester to view its modules, read course materials, or upload new notes.
           </p>
         </div>
-
-        {/* Back Button */}
-        <Link href="/dashboard" className="relative z-10 flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm self-start xl:self-center shrink-0">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
-            Back to Dashboard
-        </Link>
       </div>
 
       {/* Semester Grid */}

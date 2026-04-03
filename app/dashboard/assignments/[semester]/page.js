@@ -6,7 +6,7 @@ import { Calendar as CalendarIcon, CheckCircle2, Circle, Clock, Edit2, LayoutGri
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSession } from "next-auth/react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 
 function getAssignmentUserStatus(assignment, userId) {
@@ -31,6 +31,7 @@ function getAssignmentUserStatus(assignment, userId) {
 export default function AssignmentsPage() {
   const { data: session } = useSession();
   const params = useParams();
+  const router = useRouter();
   
   const [isMounted, setIsMounted] = useState(false);
   const [assignments, setAssignments] = useState([]);
@@ -419,7 +420,14 @@ export default function AssignmentsPage() {
       {/* Header */}
       <header className="bg-white border-b border-zinc-200 sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="p-2 text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg transition-colors"
+              title="Go back"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
             <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white">
               <BookOpen className="w-5 h-5" />
             </div>

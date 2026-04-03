@@ -1,6 +1,7 @@
 "use client";
 import { useState, use, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 // ── SVG Icon Components ───────────────────────────────────────────────────────
 function IconEdit() {
@@ -99,6 +100,7 @@ export default function StudyPlanner({ params }) {
   const resolvedParams = use(params);
   const semester = resolvedParams.semester;
   const { data: session } = useSession();
+  const router = useRouter();
   const currentUserEmail = session?.user?.email;
 
   const semesterLabel = (() => {
@@ -323,6 +325,20 @@ export default function StudyPlanner({ params }) {
         {/* Top row: title + button */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            {/* Back button */}
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="planner-btn"
+              style={{
+                display: "flex", alignItems: "center", justifyContent: "center",
+                width: "36px", height: "36px", borderRadius: "10px",
+                background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.25)",
+                color: "white", cursor: "pointer", flexShrink: 0,
+              }}
+              title="Go back"
+            >
+              <IconChevronLeft />
+            </button>
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "2px" }}>
                 <span style={{ background: "rgba(255,255,255,0.18)", borderRadius: "6px", padding: "3px 10px", fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,0.92)", letterSpacing: "0.06em" }}>
