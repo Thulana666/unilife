@@ -2,7 +2,7 @@
 
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, Fragment } from "react";
 import Link from "next/link";
 
 export default function CommunityChat() {
@@ -18,10 +18,13 @@ export default function CommunityChat() {
   const [editingId, setEditingId] = useState(null);
   const [editText, setEditText] = useState("");
   const [confirmModal, setConfirmModal] = useState({ open: false, messageId: null });
+  const [pinnedIds, setPinnedIds] = useState([]);      // localStorage-persisted pin list
+  const [pinnedBannerIdx, setPinnedBannerIdx] = useState(0); // which pinned to show in banner
 
   const messagesEndRef = useRef(null);
   const scrollContainerRef = useRef(null);
   const fileInputRef = useRef(null);
+  const messageRefs = useRef({});               // map of _id → DOM element for scroll-to
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
 
   // Extract year and semester from route params like "y3s2"
@@ -132,6 +135,64 @@ export default function CommunityChat() {
 
   const clearAttachment = () => {
     setAttachedFile(null);
+  };
+
+  // ── Pinning (client-side, localStorage per user per room) ──────────────────
+  const pinStorageKey = `unilife_pins_y${year}s${semester}_${session?.user?.email || 'guest'}`;
+
+  // Load pins from localStorage once session is available
+  useEffect(() => {
+    if (!session) return;
+    try {
+      const stored = localStorage.getItem(pinStorageKey);
+      if (stored) setPinnedIds(JSON.parse(stored));
+    } catch { /* ignore */ }
+  }, [session, pinStorageKey]);
+
+  const togglePin = (messageId) => {
+    setPinnedIds(prev => {
+      const next = prev.includes(messageId)
+        ? prev.filter(id => id !== messageId)
+        : [messageId, ...prev]; // newest pin first
+      try { localStorage.setItem(pinStorageKey, JSON.stringify(next)); } catch { /* ignore */ }
+      // Reset banner to show the newly pinned item
+      setPinnedBannerIdx(0);
+      return next;
+    });
+  };
+
+  const scrollToMessage = (id) => {
+    const el = messageRefs.current[id];
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Briefly highlight the message
+      el.classList.add('ring-2', 'ring-indigo-400', 'ring-offset-2', 'rounded-2xl');
+      setTimeout(() => el.classList.remove('ring-2', 'ring-indigo-400', 'ring-offset-2', 'rounded-2xl'), 1500);
+    }
+  };
+
+  // Resolve pinned message objects (filter out pins for deleted messages)
+  const pinnedMessages = pinnedIds
+    .map(id => messages.find(m => m._id === id))
+    .filter(Boolean);
+  const currentPinned = pinnedMessages[pinnedBannerIdx % Math.max(pinnedMessages.length, 1)];
+
+  // Handle non-image file actions via the server-side /api/download proxy.
+  // .docx / Office files  → forced download (browser can't render them natively)
+  // PDF / zip / other     → open inline (browser PDF viewer, etc.)
+  const DOWNLOAD_EXTS = ['doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx'];
+
+  const isDownloadOnly = (fileName) => {
+    const ext = fileName?.split('.').pop()?.toLowerCase();
+    return DOWNLOAD_EXTS.includes(ext);
+  };
+
+  const handleOpenFile = (fileUrl, fileName) => {
+    const ext = fileName?.split('.').pop()?.toLowerCase();
+    const forceDownload = DOWNLOAD_EXTS.includes(ext);
+    // attachment=1 tells the proxy to set Content-Disposition: attachment (download)
+    const proxyUrl = `/api/download?url=${encodeURIComponent(fileUrl)}&name=${encodeURIComponent(fileName || 'file')}${forceDownload ? '&attachment=1' : ''}`;
+    window.open(proxyUrl, '_blank', 'noopener,noreferrer');
   };
 
   const handleSendMessage = async (e, isNoticeFlag = false) => {
@@ -369,6 +430,53 @@ export default function CommunityChat() {
         {/* Chat Background Pattern (Subtle) */}
         <div className="absolute inset-0 opacity-[0.015] pointer-events-none" style={{ backgroundImage: "url('data:image/svg+xml,%3Csvg width=\\'60\\' height=\\'60\\' viewBox=\\'0 0 60 60\\' xmlns=\\'http://www.w3.org/2000/svg\\'%3E%3Cg fill=\\'none\\' fill-rule=\\'evenodd\\'%3E%3Cg fill=\\'%23000000\\' fill-opacity=\\'1\\'%3E%3Cpath d=\\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')" }}></div>
 
+        {/* ── Pinned Messages Banner ── */}
+        {pinnedMessages.length > 0 && currentPinned && (
+          <div className="shrink-0 z-10 bg-white border-b border-indigo-100 shadow-sm">
+            <div className="flex items-center gap-3 px-4 sm:px-6 py-2 max-w-5xl mx-auto">
+              {/* Pin icon */}
+              <div className="shrink-0 text-indigo-500">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M16 3a1 1 0 0 0-1 1v1H9V4a1 1 0 0 0-2 0v1a3 3 0 0 0-3 3v1l-1.293 1.293A1 1 0 0 0 3 11v2a1 1 0 0 0 1 1h7v5a1 1 0 0 0 2 0v-5h7a1 1 0 0 0 1-1v-2a1 1 0 0 0-.293-.707L19 9V8a3 3 0 0 0-3-3V4a1 1 0 0 0-1-1z"/></svg>
+              </div>
+              {/* Count badge + preview — click to scroll */}
+              <button
+                onClick={() => scrollToMessage(currentPinned._id)}
+                className="flex-1 min-w-0 text-left"
+              >
+                {pinnedMessages.length > 1 && (
+                  <span className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest mr-2">
+                    {pinnedBannerIdx % pinnedMessages.length + 1}/{pinnedMessages.length}
+                  </span>
+                )}
+                <span className="text-xs font-semibold text-slate-700 truncate">
+                  {currentPinned.isNotice ? '📢 ' : ''}
+                  {currentPinned.text
+                    ? currentPinned.text.slice(0, 80) + (currentPinned.text.length > 80 ? '…' : '')
+                    : currentPinned.fileName || 'Attachment'}
+                </span>
+              </button>
+              {/* Cycle button (if multiple pins) */}
+              {pinnedMessages.length > 1 && (
+                <button
+                  onClick={() => setPinnedBannerIdx(i => (i + 1) % pinnedMessages.length)}
+                  title="Next pinned message"
+                  className="shrink-0 p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-indigo-500 transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </button>
+              )}
+              {/* Unpin current button */}
+              <button
+                onClick={() => togglePin(currentPinned._id)}
+                title="Unpin"
+                className="shrink-0 p-1 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-500 transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Messages Container */}
         <div
           ref={scrollContainerRef}
@@ -444,8 +552,9 @@ export default function CommunityChat() {
 
                 // Render Notice Message styling
                 if (msg.isNotice) {
+                  const canManageNotice = isMe || session?.user?.role === "admin";
                   return (
-                    <>
+                    <Fragment key={msg._id || idx}>
                       {showDateSeparator && (
                         <div className="flex items-center justify-center my-4">
                           <span className="px-3 py-1 text-[11px] font-semibold text-slate-500 bg-slate-200/70 rounded-full shadow-sm">
@@ -453,31 +562,93 @@ export default function CommunityChat() {
                           </span>
                         </div>
                       )}
-                      <div key={msg._id || idx} className="flex justify-center w-full my-6 relative group px-2">
+                      <div
+                        ref={el => { if (el) messageRefs.current[msg._id] = el; else delete messageRefs.current[msg._id]; }}
+                        className="flex justify-center w-full my-6 relative group px-2"
+                      >
                         <div className="bg-[#FFF8E6] border border-[#FFE58F] shadow-sm rounded-2xl p-4 sm:p-5 w-full max-w-[90%] sm:max-w-[75%] relative overflow-hidden flex flex-col items-center text-center">
                           <div className="absolute top-0 left-0 w-full h-1 bg-amber-400"></div>
                           <div className="flex items-center gap-2 mb-3">
                             <div className="text-amber-500 bg-amber-100 rounded-md p-1.5 flex items-center justify-center shrink-0">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                             </div>
                             <span className="text-sm sm:text-base font-extrabold text-amber-600 tracking-widest uppercase">Special Notice</span>
                           </div>
-                          <p className="text-slate-800 font-bold text-[15px] sm:text-[17px] leading-relaxed break-words whitespace-pre-wrap">
-                            {msg.text}
-                          </p>
+
+                          {/* Inline edit mode */}
+                          {editingId === msg._id ? (
+                            <div className="flex flex-col gap-2 w-full">
+                              <textarea
+                                value={editText}
+                                onChange={(e) => setEditText(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSaveEdit(msg._id); }
+                                  if (e.key === 'Escape') { setEditingId(null); }
+                                }}
+                                className="w-full bg-amber-50 border border-amber-300 text-slate-800 rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-amber-400 font-semibold"
+                                rows={Math.min(editText.split('\n').length + 1, 6)}
+                                autoFocus
+                              />
+                              <div className="flex gap-2 justify-center">
+                                <button onClick={() => setEditingId(null)} className="text-xs px-4 py-1.5 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-700 font-semibold transition-colors">Cancel</button>
+                                <button onClick={() => handleSaveEdit(msg._id)} className="text-xs px-4 py-1.5 rounded-lg bg-amber-500 text-white font-bold hover:bg-amber-600 transition-colors">Save</button>
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="text-slate-800 font-bold text-[15px] sm:text-[17px] leading-relaxed break-words whitespace-pre-wrap">
+                              {msg.text}
+                              {msg.edited && <span className="ml-1.5 text-[11px] text-amber-500/70 font-medium">(edited)</span>}
+                            </p>
+                          )}
+
                           <div className="mt-4 flex items-center text-xs font-bold text-amber-600/70 bg-amber-100/50 px-3 py-1 rounded-full gap-2 shrink-0">
                             <span>Sent by {msg.sender}</span>
                             <span className="w-1 h-1 rounded-full bg-amber-300"></span>
                             <span>{formatTime(msg.createdAt || msg.timestamp)}</span>
                           </div>
+
+                          {/* Pin button for notices — visible to all users on hover */}
+                          {msg._id && editingId !== msg._id && (
+                            <button
+                              onClick={() => togglePin(msg._id)}
+                              title={pinnedIds.includes(msg._id) ? 'Unpin' : 'Pin notice'}
+                              className={`absolute top-3 left-3 p-1.5 rounded-lg transition-colors ${
+                                pinnedIds.includes(msg._id)
+                                  ? 'opacity-100 bg-indigo-100 text-indigo-600'
+                                  : 'opacity-0 group-hover:opacity-100 bg-amber-50 hover:bg-indigo-100 text-amber-400 hover:text-indigo-600'
+                              }`}
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill={pinnedIds.includes(msg._id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/></svg>
+                            </button>
+                          )}
+
+                          {/* Edit / Delete controls — visible on hover to owner or admin */}
+                          {canManageNotice && msg._id && editingId !== msg._id && (
+                            <div className="absolute top-3 right-3 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button
+                                onClick={() => handleEditMessage(msg)}
+                                title="Edit notice"
+                                className="p-1.5 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-600 transition-colors"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                              </button>
+                              <button
+                                onClick={() => handleDeleteMessage(msg._id)}
+                                title="Delete notice"
+                                className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-500 transition-colors"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </div>
-                    </>
+                    </Fragment>
                   );
                 }
 
                 return (
-                  <>
+                  <Fragment key={msg._id || idx}>
                     {showDateSeparator && (
                       <div className="flex items-center justify-center my-4">
                         <span className="px-3 py-1 text-[11px] font-semibold text-slate-500 bg-slate-200/70 rounded-full shadow-sm">
@@ -485,7 +656,10 @@ export default function CommunityChat() {
                         </span>
                       </div>
                     )}
-                    <div key={msg._id || idx} className={`flex w-full ${isMe ? 'justify-end' : 'justify-start'} ${blockMargin} relative group`}>
+                    <div
+                      ref={el => { if (el) messageRefs.current[msg._id] = el; else delete messageRefs.current[msg._id]; }}
+                      className={`flex w-full ${isMe ? 'justify-end' : 'justify-start'} ${blockMargin} relative group`}
+                    >
 
                       {/* Sender Avatar Column */}
                       {!isMe && (
@@ -535,15 +709,23 @@ export default function CommunityChat() {
                                     <p className={`text-[14px] leading-tight font-bold truncate ${isMe ? 'text-white' : 'text-slate-700'}`}>
                                       {msg.fileName || "Document"}
                                     </p>
-                                    <a
-                                      href={msg.fileUrl}
-                                      target="_blank"
-                                      download
-                                      className={`text-[12px] font-bold hover:underline inline-flex items-center gap-1 mt-1 transition-colors ${isMe ? 'text-indigo-200 hover:text-white' : 'text-indigo-600 hover:text-indigo-800'}`}
+                                    <button
+                                      type="button"
+                                      onClick={() => handleOpenFile(msg.fileUrl, msg.fileName, msg.fileType)}
+                                      className={`text-[12px] font-bold hover:underline inline-flex items-center gap-1 mt-1 transition-colors cursor-pointer ${isMe ? 'text-indigo-200 hover:text-white' : 'text-indigo-600 hover:text-indigo-800'}`}
                                     >
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                                      Download File
-                                    </a>
+                                      {isDownloadOnly(msg.fileName) ? (
+                                        <>
+                                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                          Download
+                                        </>
+                                      ) : (
+                                        <>
+                                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                          Open File
+                                        </>
+                                      )}
+                                    </button>
                                   </div>
                                 </div>
                               )}
@@ -596,6 +778,21 @@ export default function CommunityChat() {
                                 </button>
                               )}
 
+                              {/* Pin button — visible to all users on hover */}
+                              {msg._id && !msg.isOptimistic && (
+                                <button
+                                  onClick={() => togglePin(msg._id)}
+                                  title={pinnedIds.includes(msg._id) ? 'Unpin' : 'Pin message'}
+                                  className={`transition-opacity ml-0.5 focus:outline-none ${
+                                    pinnedIds.includes(msg._id)
+                                      ? (isMe ? 'opacity-100 text-indigo-200' : 'opacity-100 text-indigo-500')
+                                      : 'opacity-0 group-hover:opacity-100 ' + (isMe ? 'text-indigo-300 hover:text-white' : 'text-slate-400 hover:text-indigo-500')
+                                  }`}
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill={pinnedIds.includes(msg._id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/></svg>
+                                </button>
+                              )}
+
                               {/* Own-message or admin: Delete button */}
                               {(isMe || session?.user?.role === "admin") && msg._id && !msg.isOptimistic && (
                                 <button
@@ -625,7 +822,7 @@ export default function CommunityChat() {
                         </div>
                       </div>
                     </div>
-                  </>
+                  </Fragment>
                 );
               })}
             </div >

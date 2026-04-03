@@ -54,7 +54,9 @@ export async function POST(req) {
             const uploadResult = await new Promise((resolve, reject) => {
                 cloudinary.uploader.upload_stream(
                     {
-                        resource_type: "auto", // Automatically detects image, raw (pdf/zip/doc)
+                        resource_type: "auto", // Detects image, raw (pdf/zip/doc), video
+                        type: "upload",        // Ensure stored as a public upload (not private)
+                        access_mode: "public", // Explicitly grant public CDN access — no auth needed
                         folder: "unilife_chat"
                     },
                     (error, result) => {
