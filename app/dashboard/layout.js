@@ -5,17 +5,18 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import ThemeToggle from "../components/ThemeToggle";
 
 // ── Notification type → icon + color map ────────────────────────────────────
 function NotifIcon({ type }) {
     const cfg = {
-        assignment: { bg: "bg-blue-100", text: "text-blue-600", path: "M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z M16 13l2 2 4-4" },
-        planner: { bg: "bg-emerald-100", text: "text-emerald-600", path: "M3 4h18v18H3z M16 2v4 M8 2v4 M3 10h18" },
-        notes: { bg: "bg-amber-100", text: "text-amber-600", path: "M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z M14 2v6h6" },
-        chat: { bg: "bg-violet-100", text: "text-violet-600", path: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z M13 8H7 M17 12H7" },
-        notice: { bg: "bg-orange-100", text: "text-orange-600", path: "M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7 M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" },
-        user: { bg: "bg-sky-100", text: "text-sky-600", path: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M19 8v6 M22 11h-6" },
-        system: { bg: "bg-slate-100", text: "text-slate-600", path: "M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z M12 8v4 M12 16h.01" },
+        assignment: { bg: "bg-blue-100 dark:bg-blue-900/40", text: "text-blue-600 dark:text-blue-400", path: "M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z M16 13l2 2 4-4" },
+        planner: { bg: "bg-emerald-100 dark:bg-emerald-900/40", text: "text-emerald-600 dark:text-emerald-400", path: "M3 4h18v18H3z M16 2v4 M8 2v4 M3 10h18" },
+        notes: { bg: "bg-amber-100 dark:bg-amber-900/40", text: "text-amber-600 dark:text-amber-400", path: "M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z M14 2v6h6" },
+        chat: { bg: "bg-violet-100 dark:bg-violet-900/40", text: "text-violet-600 dark:text-violet-400", path: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z M13 8H7 M17 12H7" },
+        notice: { bg: "bg-orange-100 dark:bg-orange-900/40", text: "text-orange-600 dark:text-orange-400", path: "M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7 M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" },
+        user: { bg: "bg-sky-100 dark:bg-sky-900/40", text: "text-sky-600 dark:text-sky-400", path: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M19 8v6 M22 11h-6" },
+        system: { bg: "bg-slate-100 dark:bg-slate-800", text: "text-slate-600 dark:text-slate-400", path: "M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z M12 8v4 M12 16h.01" },
     };
     const c = cfg[type] || cfg.system;
     const paths = c.path.split(" M ").map((p, i) => i === 0 ? p : "M " + p);
@@ -119,7 +120,7 @@ function NotificationBell({ session }) {
             {/* Bell Button */}
             <button
                 onClick={handleOpen}
-                className={`relative p-2 rounded-xl text-slate-500 hover:bg-slate-100 hover:text-indigo-600 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/40`}
+                className={`relative p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/40`}
                 aria-label="Notifications"
             >
                 {/* Subtle ring pulse when unread */}
@@ -162,20 +163,20 @@ function NotificationBell({ session }) {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -10, scale: 0.95 }}
                         transition={{ duration: 0.2, ease: "easeOut" }}
-                        className="absolute right-0 top-[calc(100%+8px)] w-96 max-h-[480px] flex flex-col bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden z-[9999]"
+                        className="absolute right-0 top-[calc(100%+8px)] w-96 max-h-[480px] flex flex-col bg-white dark:bg-slate-900/50 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700/80 overflow-hidden z-[9999]"
                     >
 
                         {/* Panel Header */}
-                        <div className="flex items-center justify-between px-5 py-4 bg-white border-b border-gray-200 shrink-0">
+                        <div className="flex items-center justify-between px-5 py-4 bg-white dark:bg-slate-900/50 border-b border-gray-200 dark:border-gray-700/80 shrink-0">
                             <div className="flex items-center gap-2">
-                                <h3 className="font-bold text-slate-900 text-base">Notifications</h3>
+                                <h3 className="font-bold text-slate-900 dark:text-white text-base">Notifications</h3>
                                 <AnimatePresence>
                                     {unread > 0 && (
                                         <motion.span
                                             initial={{ scale: 0 }}
                                             animate={{ scale: 1 }}
                                             exit={{ scale: 0 }}
-                                            className="px-2 py-0.5 text-[11px] font-bold bg-red-100 text-red-600 rounded-full"
+                                            className="px-2 py-0.5 text-[11px] font-bold bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 rounded-full"
                                         >
                                             {unread} new
                                         </motion.span>
@@ -185,7 +186,7 @@ function NotificationBell({ session }) {
                             {unread > 0 && (
                                 <button
                                     onClick={markAllRead}
-                                    className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors"
+                                    className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-200 transition-colors"
                                 >
                                     Mark all read
                                 </button>
@@ -193,7 +194,7 @@ function NotificationBell({ session }) {
                         </div>
 
                         {/* Notification List */}
-                        <div className="flex-1 overflow-y-auto divide-y divide-gray-100 bg-white custom-scrollbar">
+                        <div className="flex-1 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-800 bg-white dark:bg-slate-900/50 custom-scrollbar">
                             {loading && (
                                 <div className="flex items-center justify-center py-10">
                                     <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
@@ -201,15 +202,15 @@ function NotificationBell({ session }) {
                             )}
 
                             {!loading && notifications.length === 0 && (
-                                <div className="flex flex-col items-center justify-center py-14 text-slate-400">
-                                    <div className="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center mb-3">
+                                <div className="flex flex-col items-center justify-center py-14 text-slate-400 dark:text-slate-500">
+                                    <div className="w-14 h-14 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-3">
                                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
                                             <path d="M13.73 21a2 2 0 0 1-3.46 0" />
                                         </svg>
                                     </div>
-                                    <p className="font-semibold text-slate-600">All caught up!</p>
-                                    <p className="text-sm mt-1 text-slate-400">No new notifications.</p>
+                                    <p className="font-semibold text-slate-600 dark:text-slate-400">All caught up!</p>
+                                    <p className="text-sm mt-1 text-slate-400 dark:text-slate-500">No new notifications.</p>
                                 </div>
                             )}
 
@@ -223,23 +224,23 @@ function NotificationBell({ session }) {
                                     <Link
                                         href={notif.link || "/dashboard"}
                                         onClick={() => { markRead(notif); setOpen(false); }}
-                                        className={`flex items-start gap-3 px-5 py-4 transition-colors relative group ${!notif.isRead ? "bg-blue-50 hover:bg-blue-100" : "bg-white hover:bg-gray-50"}`}
+                                        className={`flex items-start gap-3 px-5 py-4 transition-colors relative group ${!notif.isRead ? "bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40" : "bg-white dark:bg-slate-900/50 hover:bg-gray-50 dark:hover:bg-gray-900"}`}
                                     >
                                         <NotifIcon type={notif.type} />
 
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-start justify-between gap-2">
-                                                <p className={`text-sm leading-snug ${notif.isRead ? "font-medium text-slate-700" : "font-bold text-slate-900"}`}>
+                                                <p className={`text-sm leading-snug ${notif.isRead ? "font-medium text-slate-700 dark:text-slate-300" : "font-bold text-slate-900 dark:text-white"}`}>
                                                     {notif.title}
                                                 </p>
                                                 {!notif.isRead && (
                                                     <span className="shrink-0 w-2 h-2 mt-1.5 rounded-full bg-indigo-500" />
                                                 )}
                                             </div>
-                                            <p className="text-xs text-slate-500 mt-0.5 line-clamp-2 leading-relaxed">
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2 leading-relaxed">
                                                 {notif.message}
                                             </p>
-                                            <p className="text-[11px] text-slate-400 font-medium mt-1.5">
+                                            <p className="text-[11px] text-slate-400 dark:text-slate-500 font-medium mt-1.5">
                                                 {relativeTime(notif.createdAt)}
                                             </p>
                                         </div>
@@ -247,7 +248,7 @@ function NotificationBell({ session }) {
                                         {/* Delete button */}
                                         <button
                                             onClick={(e) => removeNotif(e, notif._id)}
-                                            className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0 p-1 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 mt-0.5"
+                                            className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0 p-1 rounded-lg text-slate-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 mt-0.5"
                                             title="Dismiss"
                                         >
                                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -261,8 +262,8 @@ function NotificationBell({ session }) {
 
                         {/* Panel Footer */}
                         {notifications.length > 0 && (
-                            <div className="px-5 py-3 border-t border-gray-200 bg-gray-50 shrink-0">
-                                <p className="text-center text-xs text-slate-400 font-medium">
+                            <div className="px-5 py-3 border-t border-gray-200 dark:border-gray-700/80 bg-gray-50 dark:bg-gray-900 shrink-0">
+                                <p className="text-center text-xs text-slate-400 dark:text-slate-500 font-medium">
                                     Showing last {notifications.length} notification{notifications.length !== 1 ? "s" : ""}
                                 </p>
                             </div>
@@ -304,10 +305,10 @@ export default function DashboardLayout({ children }) {
 
     if (status === "loading" || !session) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-50 font-sans">
+            <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 font-sans">
                 <div className="flex flex-col items-center gap-4">
                     <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
-                    <p className="text-slate-500 font-medium animate-pulse">Loading workspace...</p>
+                    <p className="text-slate-500 dark:text-slate-400 font-medium animate-pulse">Loading workspace...</p>
                 </div>
             </div>
         );
@@ -371,19 +372,19 @@ export default function DashboardLayout({ children }) {
     };
 
     return (
-        <div className="flex h-screen bg-slate-50 font-sans overflow-hidden">
+        <div className="flex h-screen bg-slate-50 dark:bg-slate-900 font-sans overflow-hidden">
 
             {/* Mobile Sidebar Overlay */}
             {isMobileOpen && (
                 <div
-                    className="lg:hidden fixed inset-0 bg-slate-900/60 z-20 backdrop-blur-sm transition-opacity duration-300"
+                    className="lg:hidden fixed inset-0 bg-slate-900 dark:bg-slate-950 z-20 backdrop-blur-sm transition-opacity duration-300"
                     onClick={() => setIsMobileOpen(false)}
                 />
             )}
 
             {/* Sidebar Navigation */}
             <aside
-                className={`bg-slate-900 text-white flex-shrink-0 flex flex-col z-30 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]
+                className={`bg-slate-900 dark:bg-slate-950 text-white flex-shrink-0 flex flex-col z-30 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]
         ${isCollapsed ? "w-[76px]" : "w-64"}
         ${isMobileOpen ? "translate-x-0 fixed inset-y-0 left-0" : "-translate-x-full lg:translate-x-0 relative"}`}
             >
@@ -399,7 +400,7 @@ export default function DashboardLayout({ children }) {
 
                 {/* Sidebar Links */}
                 <div className="flex-1 overflow-y-auto py-6 flex flex-col gap-1 custom-scrollbar overflow-x-hidden">
-                    <p className={`text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-3 transition-all duration-300 whitespace-nowrap ${isCollapsed ? "px-0 text-center scale-90" : "px-6"}`}>
+                    <p className={`text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3 transition-all duration-300 whitespace-nowrap ${isCollapsed ? "px-0 text-center scale-90" : "px-6"}`}>
                         {isCollapsed ? "---" : "Menu"}
                     </p>
 
@@ -450,17 +451,17 @@ export default function DashboardLayout({ children }) {
             </aside>
 
             {/* Main Content Area */}
-            <div className="flex-1 flex flex-col min-w-0 bg-slate-50 relative h-screen overflow-hidden">
+            <div className="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-slate-900 relative h-screen overflow-hidden">
 
                 {/* Topbar Header */}
-                <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 lg:px-6 shrink-0 shadow-sm z-40 sticky top-0">
+                <header className="h-16 bg-white dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700/80 flex items-center justify-between px-4 lg:px-6 shrink-0 shadow-sm z-40 sticky top-0">
 
                     {/* Left section */}
                     <div className="flex items-center gap-4">
                         {/* Desktop Collapse Toggle */}
                         <button
                             onClick={() => setIsCollapsed(!isCollapsed)}
-                            className="hidden lg:flex items-center justify-center p-2 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-indigo-600 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                            className="hidden lg:flex items-center justify-center p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                             aria-label="Toggle Sidebar"
                         >
                             {isCollapsed ? (
@@ -473,39 +474,42 @@ export default function DashboardLayout({ children }) {
                         {/* Mobile Expand Toggle */}
                         <button
                             onClick={() => setIsMobileOpen(true)}
-                            className="lg:hidden flex items-center justify-center p-2 -ml-2 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-indigo-600 transition-colors"
+                            className="lg:hidden flex items-center justify-center p-2 -ml-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12" /><line x1="4" x2="20" y1="6" y2="6" /><line x1="4" x2="20" y1="18" y2="18" /></svg>
                         </button>
 
                         {/* Desktop Welcome Text */}
                         <div className="hidden lg:block lg:ml-2">
-                            <h2 className="text-xl font-bold text-slate-800 tracking-tight">Welcome back, {session.user?.name || "User"}</h2>
-                            <p className="text-sm text-slate-500 font-medium">Here&apos;s what is happening with your academic life today.</p>
+                            <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 tracking-tight">Welcome back, {session.user?.name || "User"}</h2>
+                            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Here&apos;s what is happening with your academic life today.</p>
                         </div>
 
                         {/* Mobile Brand Name */}
-                        <div className="lg:hidden font-bold text-lg text-slate-800 tracking-tight">UniLife</div>
+                        <div className="lg:hidden font-bold text-lg text-slate-800 dark:text-slate-200 tracking-tight">UniLife</div>
                     </div>
 
-                    {/* Right section: Notification Bell + Role Badge + Avatar */}
+                    {/* Right section: Theme Toggle + Notification Bell + Role Badge + Avatar */}
                     <div className="flex items-center gap-2 md:gap-3 shrink-0">
+
+                        {/* 🎨 Theme Toggle */}
+                        <ThemeToggle />
 
                         {/* 🔔 Notification Bell */}
                         <NotificationBell session={session} />
 
                         {/* Role Badge */}
                         <div className={`px-2.5 md:px-3 py-1 md:py-1.5 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wide flex items-center gap-1.5 shadow-sm border whitespace-nowrap
-              ${role === "admin" ? "bg-amber-50 text-amber-700 border-amber-200" :
-                                role === "lecturer" ? "bg-purple-50 text-purple-700 border-purple-200" :
-                                    "bg-sky-50 text-sky-700 border-sky-200"}`}>
+              ${role === "admin" ? "bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/50" :
+                                role === "lecturer" ? "bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800/50" :
+                                    "bg-sky-50 dark:bg-sky-900/20 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-800/50"}`}>
                             <div className={`w-1.5 h-1.5 rounded-full ${role === "admin" ? "bg-amber-500" : role === "lecturer" ? "bg-purple-500" : "bg-sky-500"}`}></div>
                             <span className="hidden sm:inline">{role}</span>
                             <span className="sm:hidden">{role.charAt(0)}</span>
                         </div>
 
                         {/* User Profile Avatar — links to profile page */}
-                        <Link href="/dashboard/profile" className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-700 font-bold shadow-sm cursor-pointer hover:bg-indigo-200 transition-colors shrink-0" title="My Profile">
+                        <Link href="/dashboard/profile" className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-indigo-100 dark:bg-indigo-900/40 border border-indigo-200 dark:border-indigo-800/50 flex items-center justify-center text-indigo-700 dark:text-indigo-300 font-bold shadow-sm cursor-pointer hover:bg-indigo-200 transition-colors shrink-0" title="My Profile">
                             {(session.user?.name || "?").charAt(0).toUpperCase()}
                         </Link>
                     </div>

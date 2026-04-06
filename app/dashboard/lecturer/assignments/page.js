@@ -26,19 +26,19 @@ const AssignmentCard = ({ assignment, handleOpenModal, handleDelete }) => {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
       key={assignment.id}
-      className={`bg-white rounded-xl border p-5 shadow-sm transition-shadow hover:shadow-md flex flex-col gap-3 ${
-        isToday(parseISO(assignment.dueDate)) ? "border-amber-200 bg-amber-50/20" :
-        differenceInHours(parseISO(assignment.dueDate), new Date()) < 0 ? "border-red-200 bg-red-50/20" : "border-zinc-200"
+      className={`bg-white dark:bg-slate-900/50 rounded-xl border p-5 shadow-sm transition-shadow hover:shadow-md flex flex-col gap-3 ${
+        isToday(parseISO(assignment.dueDate)) ? "border-amber-200 dark:border-amber-800/50 bg-amber-50/20 dark:bg-amber-900/20" :
+        differenceInHours(parseISO(assignment.dueDate), new Date()) < 0 ? "border-red-200 dark:border-red-800/50 bg-red-50/20 dark:bg-red-900/20" : "border-zinc-200 dark:border-zinc-700/80"
       }`}
     >
       {/* Top: course badge + actions */}
       <div className="flex justify-between items-start">
         <div className="flex flex-col gap-1.5">
-          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-zinc-100 text-zinc-600 self-start">
+          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 self-start">
             {assignment.course}
           </span>
           {assignment.semester && (
-            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100 self-start">
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/50 self-start">
               {assignment.semester.toUpperCase().replace(/Y(\d)S(\d)/i, 'Y$1 S$2')}
             </span>
           )}
@@ -46,26 +46,26 @@ const AssignmentCard = ({ assignment, handleOpenModal, handleDelete }) => {
         <div className="flex gap-1 -mt-1 -mr-1">
           <button
             onClick={() => handleOpenModal(assignment)}
-            className="p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-indigo-600 rounded-lg transition-colors"
+            className="p-1.5 text-zinc-400 dark:text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-lg transition-colors"
           >
             <Edit2 className="w-4 h-4" />
           </button>
           <button
             onClick={() => handleDelete(assignment.id)}
-            className="p-1.5 text-zinc-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
+            className="p-1.5 text-zinc-400 dark:text-zinc-500 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 rounded-lg transition-colors"
           >
             <Trash2 className="w-4 h-4" />
           </button>
         </div>
       </div>
 
-      <h3 className="font-semibold text-base leading-snug text-zinc-900">
+      <h3 className="font-semibold text-base leading-snug text-zinc-900 dark:text-white">
         {assignment.title}
       </h3>
 
       {/* Created by */}
       {assignment.createdBy && (
-        <div className="flex items-center gap-1.5 text-xs text-zinc-500">
+        <div className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
           <Users className="w-3.5 h-3.5 flex-shrink-0" />
           <span className="truncate">{assignment.createdBy}</span>
         </div>
@@ -73,20 +73,20 @@ const AssignmentCard = ({ assignment, handleOpenModal, handleDelete }) => {
 
       {/* Description */}
       {assignment.description && (
-        <p className="text-zinc-500 text-sm line-clamp-2">{assignment.description}</p>
+        <p className="text-zinc-500 dark:text-zinc-400 text-sm line-clamp-2">{assignment.description}</p>
       )}
 
       {/* Footer: due date + status badge */}
-      <div className="flex items-center justify-between pt-3 border-t border-zinc-100 mt-auto">
+      <div className="flex items-center justify-between pt-3 border-t border-zinc-100 dark:border-zinc-800 mt-auto">
         <div className="flex flex-col gap-0.5">
           <div className={`flex items-center gap-1.5 text-sm font-medium ${
             (() => {
               const dueMs = parseISO(assignment.dueDate).getTime() - new Date().getTime();
-              if (dueMs <= 0) return "text-red-600";
+              if (dueMs <= 0) return "text-red-600 dark:text-red-400";
               const h = Math.floor(dueMs / (1000 * 60 * 60));
-              if (h < 10) return "text-red-600";
-              if (h <= 72) return "text-amber-600";
-              return "text-zinc-600";
+              if (h < 10) return "text-red-600 dark:text-red-400";
+              if (h <= 72) return "text-amber-600 dark:text-amber-400";
+              return "text-zinc-600 dark:text-zinc-400";
             })()
           }`}>
             <Clock className="w-4 h-4" />
@@ -102,7 +102,7 @@ const AssignmentCard = ({ assignment, handleOpenModal, handleDelete }) => {
             const remainingMins = totalMins % 60;
             
             let label = "";
-            let colorClass = "text-zinc-500";
+            let colorClass = "text-zinc-500 dark:text-zinc-400";
             
             const formatTime = (d, h, m) => {
               const parts = [];
@@ -117,16 +117,16 @@ const AssignmentCard = ({ assignment, handleOpenModal, handleDelete }) => {
             if (dueMs <= 0) {
               // Overdue
               label = `Overdue by ${timeStr}`;
-              colorClass = "text-red-600";
+              colorClass = "text-red-600 dark:text-red-400";
             } else {
               // Upcoming
               label = `Due in ${timeStr}`;
               if (days === 0 && totalHrs < 10) {
-                colorClass = "text-red-600";
+                colorClass = "text-red-600 dark:text-red-400";
               } else if (days <= 3) {
-                colorClass = "text-amber-600";
+                colorClass = "text-amber-600 dark:text-amber-400";
               } else if (days <= 7) {
-                colorClass = "text-emerald-600";
+                colorClass = "text-emerald-600 dark:text-emerald-400";
               }
             }
             
@@ -143,9 +143,9 @@ const AssignmentCard = ({ assignment, handleOpenModal, handleDelete }) => {
         <span className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold ${
           (() => {
             const d = parseISO(assignment.dueDate);
-            if (d.getTime() <= new Date().getTime()) return "bg-red-100 text-red-700";
-            if (isToday(d)) return "bg-amber-100 text-amber-700";
-            return "bg-emerald-100 text-emerald-700";
+            if (d.getTime() <= new Date().getTime()) return "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300";
+            if (isToday(d)) return "bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300";
+            return "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300";
           })()
         }`}>
           {(() => {
@@ -393,18 +393,18 @@ export default function LecturerAssignmentsPage() {
 
   const handleDelete = async (id) => {
     toast.custom((t) => (
-      <div className={`${t.visible ? 'animate-enter' : 'animate-leave'} max-w-md w-full bg-white shadow-xl flex items-center gap-3 ring-1 ring-zinc-200 p-4 rounded-2xl pointer-events-auto`}>
-        <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-red-100 text-red-600">
+      <div className={`${t.visible ? 'animate-enter' : 'animate-leave'} max-w-md w-full bg-white dark:bg-slate-900/50 shadow-xl flex items-center gap-3 ring-1 ring-zinc-200 dark:ring-zinc-700/80 p-4 rounded-2xl pointer-events-auto`}>
+        <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400">
            <Trash2 className="w-5 h-5" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-zinc-900">Delete Assignment?</p>
-          <p className="text-sm text-zinc-500 truncate">Are you sure you want to delete this assignment?</p>
+          <p className="text-sm font-semibold text-zinc-900 dark:text-white">Delete Assignment?</p>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 truncate">Are you sure you want to delete this assignment?</p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={() => toast.dismiss(t.id)}
-            className="px-3 py-1.5 text-sm font-medium text-zinc-600 hover:bg-zinc-100 rounded-lg transition-colors"
+            className="px-3 py-1.5 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
           >
             Cancel
           </button>
@@ -493,16 +493,16 @@ export default function LecturerAssignmentsPage() {
   if (!session || (session.user.role !== "lecturer" && session.user.role !== "admin")) return null;
 
   return (
-    <div className="min-h-screen bg-zinc-50/50 flex flex-col">
+    <div className="min-h-screen bg-zinc-50/50 dark:bg-zinc-900 flex flex-col">
       {/* Header */}
-      <header className="bg-white border-b border-zinc-200 sticky top-0 z-10">
+      <header className="bg-white dark:bg-slate-900/50 border-b border-zinc-200 dark:border-zinc-700/80 sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-rose-600 rounded-lg flex items-center justify-center text-white flex-shrink-0">
               <BookOpen className="w-5 h-5" />
             </div>
-            <h1 className="text-xl font-semibold text-zinc-900">Assignment Management</h1>
-            {isLoading && <Loader2 className="w-4 h-4 text-rose-600 animate-spin ml-1" />}
+            <h1 className="text-xl font-semibold text-zinc-900 dark:text-white">Assignment Management</h1>
+            {isLoading && <Loader2 className="w-4 h-4 text-rose-600 dark:text-rose-400 animate-spin ml-1" />}
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
@@ -510,7 +510,7 @@ export default function LecturerAssignmentsPage() {
             <select
               value={selectedSemester}
               onChange={(e) => setSelectedSemester(e.target.value)}
-              className="px-3 py-2 border border-zinc-300 rounded-lg text-sm font-medium text-zinc-700 focus:outline-none focus:ring-2 focus:ring-rose-500 bg-white"
+              className="px-3 py-2 border border-zinc-300 dark:border-zinc-600/80 rounded-lg text-sm font-medium text-zinc-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-rose-500 bg-white dark:bg-slate-900/50"
             >
               <option value="all">All Semesters</option>
               <option value="y1s1">Year 1 Sem 1</option>
@@ -524,17 +524,17 @@ export default function LecturerAssignmentsPage() {
             </select>
 
             {/* View toggle */}
-            <div className="bg-zinc-100 p-1 rounded-lg flex items-center">
+            <div className="bg-zinc-100 dark:bg-zinc-800 p-1 rounded-lg flex items-center">
               <button
                 onClick={() => setView("list")}
-                className={`px-2 sm:px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1 sm:gap-2 ${view === "list" ? "bg-white text-zinc-900 shadow-sm" : "text-zinc-500 hover:text-zinc-900"}`}
+                className={`px-2 sm:px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1 sm:gap-2 ${view === "list" ? "bg-white dark:bg-slate-900/50 text-zinc-900 dark:text-white shadow-sm" : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"}`}
               >
                 <List className="w-4 h-4" />
                 <span className="hidden sm:inline">List</span>
               </button>
               <button
                 onClick={() => setView("calendar")}
-                className={`px-2 sm:px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1 sm:gap-2 ${view === "calendar" ? "bg-white text-zinc-900 shadow-sm" : "text-zinc-500 hover:text-zinc-900"}`}
+                className={`px-2 sm:px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1 sm:gap-2 ${view === "calendar" ? "bg-white dark:bg-slate-900/50 text-zinc-900 dark:text-white shadow-sm" : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"}`}
               >
                 <CalendarIcon className="w-4 h-4" />
                 <span className="hidden sm:inline">Calendar</span>
@@ -564,13 +564,13 @@ export default function LecturerAssignmentsPage() {
               { label: "Due Today", value: dueToday, icon: Clock, color: "amber" },
               { label: "Past Due", value: pastDue, icon: AlertCircle, color: "red" },
             ].map(({ label, value, icon: Icon, color }) => (
-              <div key={label} className="bg-white rounded-xl border border-zinc-200 p-4 shadow-sm flex items-center gap-4">
+              <div key={label} className="bg-white dark:bg-slate-900/50 rounded-xl border border-zinc-200 dark:border-zinc-700/80 p-4 shadow-sm flex items-center gap-4">
                 <div className={`w-10 h-10 rounded-lg bg-${color}-50 flex items-center justify-center text-${color}-600`}>
                   <Icon className="w-5 h-5" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-zinc-500">{label}</p>
-                  <p className="text-2xl font-semibold text-zinc-900">{value}</p>
+                  <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">{label}</p>
+                  <p className="text-2xl font-semibold text-zinc-900 dark:text-white">{value}</p>
                 </div>
               </div>
             ))}
@@ -587,11 +587,11 @@ export default function LecturerAssignmentsPage() {
                 onClick={() => setFilter(f)}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
                   filter === f
-                    ? f === "all" ? "bg-zinc-900 text-white shadow-sm"
-                    : f === "upcoming" ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                    : f === "dueToday" ? "bg-amber-100 text-amber-800 border border-amber-200"
-                    : "bg-red-100 text-red-800 border border-red-200"
-                    : "bg-white text-zinc-600 border border-zinc-200 hover:bg-zinc-50"
+                    ? f === "all" ? "bg-zinc-900 dark:bg-zinc-950 text-white shadow-sm"
+                    : f === "upcoming" ? "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-200 border border-emerald-200 dark:border-emerald-800/50"
+                    : f === "dueToday" ? "bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200 border border-amber-200 dark:border-amber-800/50"
+                    : "bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-200 border border-red-200 dark:border-red-800/50"
+                    : "bg-white dark:bg-slate-900/50 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700/80 hover:bg-zinc-50 dark:hover:bg-zinc-900"
                 }`}
               >
                 {f === "pastDue" ? "Past Due" : f === "dueToday" ? "Due Today" : f.charAt(0).toUpperCase() + f.slice(1)}
@@ -600,17 +600,17 @@ export default function LecturerAssignmentsPage() {
           </div>
 
           {/* Student email search */}
-          <div className="flex items-center gap-2 flex-1 bg-white border border-zinc-200 rounded-lg px-3 py-2 min-w-0">
-            <Search className="w-4 h-4 text-zinc-400 flex-shrink-0" />
+          <div className="flex items-center gap-2 flex-1 bg-white dark:bg-slate-900/50 border border-zinc-200 dark:border-zinc-700/80 rounded-lg px-3 py-2 min-w-0">
+            <Search className="w-4 h-4 text-zinc-400 dark:text-zinc-500 flex-shrink-0" />
             <input
               type="text"
               value={studentFilter}
               onChange={(e) => setStudentFilter(e.target.value)}
               placeholder="Filter by student email..."
-              className="flex-1 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none min-w-0 bg-transparent"
+              className="flex-1 text-sm text-zinc-900 dark:text-white placeholder:text-zinc-400 focus:outline-none min-w-0 bg-transparent"
             />
             {studentFilter && (
-              <button onClick={() => setStudentFilter("")} className="text-zinc-400 hover:text-zinc-600">
+              <button onClick={() => setStudentFilter("")} className="text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-400">
                 <X className="w-4 h-4" />
               </button>
             )}
@@ -622,7 +622,7 @@ export default function LecturerAssignmentsPage() {
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border transition-colors whitespace-nowrap flex-shrink-0 ${
               groupByStudent
                 ? "bg-rose-600 text-white border-rose-600 hover:bg-rose-700"
-                : "bg-white text-zinc-600 border-zinc-200 hover:bg-zinc-50"
+                : "bg-white dark:bg-slate-900/50 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700/80 hover:bg-zinc-50 dark:hover:bg-zinc-900"
             }`}
           >
             <Users className="w-4 h-4" />
@@ -632,8 +632,8 @@ export default function LecturerAssignmentsPage() {
 
         {/* Result count */}
         {!isLoading && (
-          <p className="text-sm text-zinc-500 mb-4">
-            Showing <span className="font-semibold text-zinc-700">{filteredAssignments.length}</span> assignment{filteredAssignments.length !== 1 ? "s" : ""}
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">
+            Showing <span className="font-semibold text-zinc-700 dark:text-zinc-300">{filteredAssignments.length}</span> assignment{filteredAssignments.length !== 1 ? "s" : ""}
             {studentFilter ? ` for "${studentFilter}"` : ""}
           </p>
         )}
@@ -643,7 +643,7 @@ export default function LecturerAssignmentsPage() {
           <>
             {isLoading ? (
               <div className="flex items-center justify-center py-20">
-                <Loader2 className="w-8 h-8 text-rose-600 animate-spin" />
+                <Loader2 className="w-8 h-8 text-rose-600 dark:text-rose-400 animate-spin" />
               </div>
             ) : groupByStudent && groupedAssignments ? (
               /* Grouped by student */
@@ -654,12 +654,12 @@ export default function LecturerAssignmentsPage() {
                   groupedAssignments.map(([email, asgns]) => (
                     <div key={email}>
                       <div className="flex items-center gap-2 mb-3">
-                        <div className="w-7 h-7 rounded-full bg-rose-100 flex items-center justify-center">
-                          <Users className="w-4 h-4 text-rose-600" />
+                        <div className="w-7 h-7 rounded-full bg-rose-100 dark:bg-rose-900/40 flex items-center justify-center">
+                          <Users className="w-4 h-4 text-rose-600 dark:text-rose-400" />
                         </div>
-                        <h2 className="font-semibold text-zinc-800 text-sm">{email}</h2>
-                        <span className="ml-1 text-xs text-zinc-400 font-medium">{asgns.length} assignment{asgns.length !== 1 ? "s" : ""}</span>
-                        <div className="flex-1 h-px bg-zinc-200 ml-2" />
+                        <h2 className="font-semibold text-zinc-800 dark:text-zinc-200 text-sm">{email}</h2>
+                        <span className="ml-1 text-xs text-zinc-400 dark:text-zinc-500 font-medium">{asgns.length} assignment{asgns.length !== 1 ? "s" : ""}</span>
+                        <div className="flex-1 h-px bg-zinc-200 dark:bg-zinc-800/50 ml-2" />
                       </div>
                       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         <AnimatePresence>
@@ -682,42 +682,42 @@ export default function LecturerAssignmentsPage() {
           </>
         ) : (
           /* Calendar view */
-          <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
-            <div className="p-4 flex flex-col sm:flex-row items-center justify-between border-b border-zinc-200 gap-3 sm:gap-0">
+          <div className="bg-white dark:bg-slate-900/50 rounded-xl border border-zinc-200 dark:border-zinc-700/80 shadow-sm overflow-hidden">
+            <div className="p-4 flex flex-col sm:flex-row items-center justify-between border-b border-zinc-200 dark:border-zinc-700/80 gap-3 sm:gap-0">
               <div className="flex items-center justify-between w-full sm:w-auto gap-4">
-                <h2 className="text-lg font-semibold text-zinc-900 min-w-32">
+                <h2 className="text-lg font-semibold text-zinc-900 dark:text-white min-w-32">
                   {format(currentMonth, "MMMM yyyy")}
                 </h2>
                 <div className="flex items-center gap-1">
-                  <button onClick={prevMonth} className="p-1.5 hover:bg-zinc-100 rounded-lg text-zinc-600 transition-colors">
+                  <button onClick={prevMonth} className="p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg text-zinc-600 dark:text-zinc-400 transition-colors">
                     <ChevronLeft className="w-5 h-5" />
                   </button>
-                  <button onClick={() => setCurrentMonth(new Date())} className="px-3 py-1.5 text-sm font-medium hover:bg-zinc-100 rounded-lg text-zinc-600 transition-colors">
+                  <button onClick={() => setCurrentMonth(new Date())} className="px-3 py-1.5 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg text-zinc-600 dark:text-zinc-400 transition-colors">
                     Today
                   </button>
-                  <button onClick={nextMonth} className="p-1.5 hover:bg-zinc-100 rounded-lg text-zinc-600 transition-colors">
+                  <button onClick={nextMonth} className="p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg text-zinc-600 dark:text-zinc-400 transition-colors">
                     <ChevronRight className="w-5 h-5" />
                   </button>
                 </div>
               </div>
             </div>
-            <div className="grid grid-cols-7 border-b border-zinc-200 bg-zinc-50/50">
+            <div className="grid grid-cols-7 border-b border-zinc-200 dark:border-zinc-700/80 bg-zinc-50/50 dark:bg-zinc-900">
               {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(day => (
-                <div key={day} className="py-2 text-center text-xs font-semibold text-zinc-500 uppercase tracking-wider">{day}</div>
+                <div key={day} className="py-2 text-center text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">{day}</div>
               ))}
             </div>
             <div className="grid grid-cols-7 auto-rows-fr">
               {Array.from({ length: daysInMonth[0].getDay() }).map((_, i) => (
-                <div key={`empty-${i}`} className="min-h-[100px] border-b border-r border-zinc-100 bg-zinc-50/30" />
+                <div key={`empty-${i}`} className="min-h-[100px] border-b border-r border-zinc-100 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900" />
               ))}
               {daysInMonth.map((day) => {
                 const dayAssignments = filteredAssignments.filter(a => isSameDay(parseISO(a.dueDate), day));
                 return (
                   <div
                     key={day.toISOString()}
-                    className={`min-h-[100px] p-2 border-b border-r border-zinc-100 transition-colors hover:bg-zinc-50 ${isToday(day) ? "bg-rose-50/30" : ""}`}
+                    className={`min-h-[100px] p-2 border-b border-r border-zinc-100 dark:border-zinc-800 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900 ${isToday(day) ? "bg-rose-50/30 dark:bg-rose-900/20" : ""}`}
                   >
-                    <div className={`text-sm font-medium mb-1 w-7 h-7 flex items-center justify-center rounded-full ${isToday(day) ? "bg-rose-600 text-white" : "text-zinc-700"}`}>
+                    <div className={`text-sm font-medium mb-1 w-7 h-7 flex items-center justify-center rounded-full ${isToday(day) ? "bg-rose-600 text-white" : "text-zinc-700 dark:text-zinc-300"}`}>
                       {format(day, "d")}
                     </div>
                     <div className="space-y-1">
@@ -726,8 +726,8 @@ export default function LecturerAssignmentsPage() {
                           key={a.id}
                           onClick={() => handleOpenModal(a)}
                           className={`text-xs px-2 py-1 rounded truncate cursor-pointer font-medium border transition-colors ${
-                            isToday(parseISO(a.dueDate)) ? "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100" :
-                            differenceInHours(parseISO(a.dueDate), new Date()) < 0 ? "bg-red-50 text-red-700 border-red-200 hover:bg-red-100" : "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
+                            isToday(parseISO(a.dueDate)) ? "bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/50 hover:bg-amber-100 dark:hover:bg-amber-900/40" :
+                            differenceInHours(parseISO(a.dueDate), new Date()) < 0 ? "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800/50 hover:bg-red-100 dark:hover:bg-red-900/40" : "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/40"
                           }`}
                           title={`${a.title} — ${a.createdBy || "Unknown"}`}
                         >
@@ -739,7 +739,7 @@ export default function LecturerAssignmentsPage() {
                 );
               })}
               {Array.from({ length: 6 - daysInMonth[daysInMonth.length - 1].getDay() }).map((_, i) => (
-                <div key={`empty-end-${i}`} className="min-h-[100px] border-b border-r border-zinc-100 bg-zinc-50/30" />
+                <div key={`empty-end-${i}`} className="min-h-[100px] border-b border-r border-zinc-100 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900" />
               ))}
             </div>
           </div>
@@ -754,22 +754,22 @@ export default function LecturerAssignmentsPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-zinc-900/40 backdrop-blur-sm"
+              className="absolute inset-0 bg-zinc-900/40 dark:bg-zinc-950 backdrop-blur-sm"
               onClick={handleCloseModal}
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden"
+              className="relative bg-white dark:bg-slate-900/50 rounded-2xl shadow-xl w-full max-w-md overflow-hidden"
             >
-              <div className="flex items-center justify-between p-5 border-b border-zinc-100">
-                <h2 className="text-lg font-semibold text-zinc-900">
+              <div className="flex items-center justify-between p-5 border-b border-zinc-100 dark:border-zinc-800">
+                <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">
                   {editingId ? "Edit Assignment" : "New Assignment"}
                 </h2>
                 <button
                   onClick={handleCloseModal}
-                  className="p-1.5 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 rounded-lg transition-colors"
+                  className="p-1.5 text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -777,37 +777,37 @@ export default function LecturerAssignmentsPage() {
 
               <form onSubmit={handleSave} className="p-5 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-zinc-700 mb-1">Title</label>
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Title</label>
                   <input
                     required
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="w-full px-3 py-2 border border-zinc-300 rounded-lg text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
+                    className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600/80 rounded-lg text-zinc-900 dark:text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
                     placeholder="e.g. Calculus Midterm Prep"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-zinc-700 mb-1">Course</label>
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Course</label>
                   <input
                     required
                     type="text"
                     value={course}
                     onChange={(e) => setCourse(e.target.value)}
-                    className="w-full px-3 py-2 border border-zinc-300 rounded-lg text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
+                    className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600/80 rounded-lg text-zinc-900 dark:text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
                     placeholder="e.g. MATH 201"
                   />
                 </div>
 
                 {/* Combined Year + Semester selector */}
                 <div>
-                  <label className="block text-sm font-medium text-zinc-700 mb-1">Target Cohort (Year &amp; Semester)</label>
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Target Cohort (Year &amp; Semester)</label>
                   <select
                     required
                     value={formCohort}
                     onChange={(e) => setFormCohort(e.target.value)}
-                    className="w-full px-3 py-2 border border-zinc-300 rounded-lg text-zinc-900 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500 bg-white"
+                    className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600/80 rounded-lg text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500 bg-white dark:bg-slate-900/50"
                   >
                     <option value="y1s1">Year 1 — Semester 1</option>
                     <option value="y1s2">Year 1 — Semester 2</option>
@@ -821,32 +821,32 @@ export default function LecturerAssignmentsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-zinc-700 mb-1">Due Date & Time</label>
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Due Date & Time</label>
                   <div className="flex gap-2">
                     <input
                       required
                       type="date"
                       value={dueDate}
                       onChange={(e) => setDueDate(e.target.value)}
-                      className="flex-1 px-3 py-2 border border-zinc-300 rounded-lg text-zinc-900 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
+                      className="flex-1 px-3 py-2 border border-zinc-300 dark:border-zinc-600/80 rounded-lg text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
                     />
                     <input
                       required
                       type="time"
                       value={dueTime}
                       onChange={(e) => setDueTime(e.target.value)}
-                      className="w-32 px-3 py-2 border border-zinc-300 rounded-lg text-zinc-900 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
+                      className="w-32 px-3 py-2 border border-zinc-300 dark:border-zinc-600/80 rounded-lg text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-zinc-700 mb-1">Description</label>
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Description</label>
                   <textarea
                     rows={3}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    className="w-full px-3 py-2 border border-zinc-300 rounded-lg text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500 resize-none"
+                    className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600/80 rounded-lg text-zinc-900 dark:text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500 resize-none"
                     placeholder="Add any additional details or requirements..."
                   />
                 </div>
@@ -855,7 +855,7 @@ export default function LecturerAssignmentsPage() {
                   <button
                     type="button"
                     onClick={handleCloseModal}
-                    className="px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 rounded-lg transition-colors"
+                    className="px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
                   >
                     Cancel
                   </button>
@@ -880,11 +880,11 @@ export default function LecturerAssignmentsPage() {
 function EmptyState({ filter }) {
   return (
     <div className="col-span-full py-16 text-center">
-      <div className="w-16 h-16 bg-zinc-100 rounded-full flex items-center justify-center mx-auto mb-4">
-        <BookOpen className="w-8 h-8 text-zinc-400" />
+      <div className="w-16 h-16 bg-zinc-100 dark:bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-4">
+        <BookOpen className="w-8 h-8 text-zinc-400 dark:text-zinc-500" />
       </div>
-      <h3 className="text-lg font-medium text-zinc-900 mb-1">No assignments found</h3>
-      <p className="text-zinc-500">
+      <h3 className="text-lg font-medium text-zinc-900 dark:text-white mb-1">No assignments found</h3>
+      <p className="text-zinc-500 dark:text-zinc-400">
         {filter === "all" ? "No assignments available for this selection." : `No ${filter} assignments found.`}
       </p>
     </div>

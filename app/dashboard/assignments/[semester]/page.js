@@ -251,18 +251,18 @@ export default function AssignmentsPage() {
   const handleDelete = async (id) => {
     toast.custom((t) => (
       <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm pointer-events-auto">
-        <div className={`${t.visible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'} transition-all duration-200 ease-in-out max-w-sm w-full bg-white shadow-2xl flex flex-col items-center text-center gap-4 p-6 rounded-3xl ring-1 ring-zinc-200`}>
-          <div className="w-14 h-14 rounded-full flex items-center justify-center shrink-0 bg-red-100 text-red-600">
+        <div className={`${t.visible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'} transition-all duration-200 ease-in-out max-w-sm w-full bg-white dark:bg-slate-900/50 shadow-2xl flex flex-col items-center text-center gap-4 p-6 rounded-3xl ring-1 ring-zinc-200 dark:ring-zinc-700/80`}>
+          <div className="w-14 h-14 rounded-full flex items-center justify-center shrink-0 bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400">
              <Trash2 className="w-6 h-6" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-lg font-bold text-zinc-900 mb-1">Delete Assignment?</p>
-            <p className="text-sm text-zinc-500">Are you sure you want to delete this assignment? This action cannot be undone.</p>
+            <p className="text-lg font-bold text-zinc-900 dark:text-white mb-1">Delete Assignment?</p>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">Are you sure you want to delete this assignment? This action cannot be undone.</p>
           </div>
           <div className="flex items-center gap-3 w-full mt-2">
             <button
               onClick={() => toast.dismiss(t.id)}
-              className="flex-1 py-2.5 text-sm font-semibold text-zinc-600 bg-zinc-100 hover:bg-zinc-200 rounded-xl transition-colors"
+              className="flex-1 py-2.5 text-sm font-semibold text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-800/50 rounded-xl transition-colors"
             >
               Cancel
             </button>
@@ -330,15 +330,15 @@ export default function AssignmentsPage() {
 
     toast.custom((t) => (
       <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm pointer-events-auto">
-        <div className={`${t.visible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'} transition-all duration-200 ease-in-out max-w-sm w-full bg-white shadow-2xl flex flex-col items-center text-center gap-4 p-6 rounded-3xl ring-1 ring-zinc-200`}>
-          <div className={`w-14 h-14 rounded-full flex items-center justify-center shrink-0 ${newStatus === 'submitted' ? 'bg-indigo-100 text-indigo-600' : 'bg-amber-100 text-amber-600'}`}>
+        <div className={`${t.visible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'} transition-all duration-200 ease-in-out max-w-sm w-full bg-white dark:bg-slate-900/50 shadow-2xl flex flex-col items-center text-center gap-4 p-6 rounded-3xl ring-1 ring-zinc-200 dark:ring-zinc-700/80`}>
+          <div className={`w-14 h-14 rounded-full flex items-center justify-center shrink-0 ${newStatus === 'submitted' ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400' : 'bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400'}`}>
              <CheckCircle2 className="w-6 h-6" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-lg font-bold text-zinc-900 mb-1">
+            <p className="text-lg font-bold text-zinc-900 dark:text-white mb-1">
               {newStatus === "submitted" ? "Mark as Done?" : "Undo Submission?"}
             </p>
-            <p className="text-sm text-zinc-500">
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">
               {newStatus === "submitted" ? "Are you sure you want to mark this complete? It will help you track your progress." : "This will revert the assignment to incomplete. You will need to complete it again to stay on track."}
             </p>
           </div>
@@ -347,7 +347,7 @@ export default function AssignmentsPage() {
               onClick={() => {
                 toast.dismiss(t.id);
               }}
-              className="flex-1 py-2.5 text-sm font-semibold text-zinc-600 bg-zinc-100 hover:bg-zinc-200 rounded-xl transition-colors"
+              className="flex-1 py-2.5 text-sm font-semibold text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-800/50 rounded-xl transition-colors"
             >
               Cancel
             </button>
@@ -416,14 +416,14 @@ export default function AssignmentsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50/50 flex flex-col">
+    <div className="min-h-screen bg-zinc-50/50 dark:bg-zinc-900 flex flex-col">
       {/* Header */}
-      <header className="bg-white border-b border-zinc-200 sticky top-0 z-10">
+      <header className="bg-white dark:bg-slate-900/50 border-b border-zinc-200 dark:border-zinc-700/80 sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
               onClick={() => router.push('/dashboard')}
-              className="p-2 text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg transition-colors"
+              className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
               title="Go back"
             >
               <ChevronLeft className="w-5 h-5" />
@@ -431,21 +431,21 @@ export default function AssignmentsPage() {
             <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white">
               <BookOpen className="w-5 h-5" />
             </div>
-            <h1 className="text-xl font-semibold text-zinc-900">Assignments</h1>
-            {isLoading && <Loader2 className="w-4 h-4 text-indigo-600 animate-spin ml-2" />}
+            <h1 className="text-xl font-semibold text-zinc-900 dark:text-white">Assignments</h1>
+            {isLoading && <Loader2 className="w-4 h-4 text-indigo-600 dark:text-indigo-400 animate-spin ml-2" />}
           </div>
           <div className="flex items-center gap-2 sm:gap-4">
-            <div className="bg-zinc-100 p-1 rounded-lg flex items-center">
+            <div className="bg-zinc-100 dark:bg-zinc-800 p-1 rounded-lg flex items-center">
               <button
                 onClick={() => setView("list")}
-                className={`px-2 sm:px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1 sm:gap-2 ${view === "list" ? "bg-white text-zinc-900 shadow-sm" : "text-zinc-500 hover:text-zinc-900"}`}
+                className={`px-2 sm:px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1 sm:gap-2 ${view === "list" ? "bg-white dark:bg-slate-900/50 text-zinc-900 dark:text-white shadow-sm" : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"}`}
               >
                 <List className="w-4 h-4" />
                 <span className="hidden sm:inline">List</span>
               </button>
               <button
                 onClick={() => setView("calendar")}
-                className={`px-2 sm:px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1 sm:gap-2 ${view === "calendar" ? "bg-white text-zinc-900 shadow-sm" : "text-zinc-500 hover:text-zinc-900"}`}
+                className={`px-2 sm:px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1 sm:gap-2 ${view === "calendar" ? "bg-white dark:bg-slate-900/50 text-zinc-900 dark:text-white shadow-sm" : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"}`}
               >
                 <CalendarIcon className="w-4 h-4" />
                 <span className="hidden sm:inline">Calendar</span>
@@ -512,64 +512,64 @@ export default function AssignmentsPage() {
         {/* Summary Section */}
         <div className="mb-8">
           <div className="grid grid-cols-2 xl:grid-cols-5 gap-4 mb-6">
-            <div className="bg-white rounded-xl border border-zinc-200 p-4 shadow-sm flex items-center gap-4">
-              <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
+            <div className="bg-white dark:bg-slate-900/50 rounded-xl border border-zinc-200 dark:border-zinc-700/80 p-4 shadow-sm flex items-center gap-4">
+              <div className="w-10 h-10 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
                 <BarChart3 className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-sm font-medium text-zinc-500">Total</p>
-                <p className="text-2xl font-semibold text-zinc-900">{total}</p>
+                <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">Total</p>
+                <p className="text-2xl font-semibold text-zinc-900 dark:text-white">{total}</p>
               </div>
             </div>
             
-            <div className="bg-white rounded-xl border border-zinc-200 p-4 shadow-sm flex items-center gap-4">
-              <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600">
+            <div className="bg-white dark:bg-slate-900/50 rounded-xl border border-zinc-200 dark:border-zinc-700/80 p-4 shadow-sm flex items-center gap-4">
+              <div className="w-10 h-10 rounded-lg bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center text-amber-600 dark:text-amber-400">
                 <ListTodo className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-sm font-medium text-zinc-500">Pending</p>
-                <p className="text-2xl font-semibold text-zinc-900">{pending}</p>
+                <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">Pending</p>
+                <p className="text-2xl font-semibold text-zinc-900 dark:text-white">{pending}</p>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl border border-zinc-200 p-4 shadow-sm flex items-center gap-4">
-              <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
+            <div className="bg-white dark:bg-slate-900/50 rounded-xl border border-zinc-200 dark:border-zinc-700/80 p-4 shadow-sm flex items-center gap-4">
+              <div className="w-10 h-10 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
                 <CheckCircle className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-sm font-medium text-zinc-500">Submitted</p>
-                <p className="text-2xl font-semibold text-zinc-900">{submitted}</p>
+                <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">Submitted</p>
+                <p className="text-2xl font-semibold text-zinc-900 dark:text-white">{submitted}</p>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl border border-zinc-200 p-4 shadow-sm flex items-center gap-4">
-              <div className="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center text-orange-600">
+            <div className="bg-white dark:bg-slate-900/50 rounded-xl border border-zinc-200 dark:border-zinc-700/80 p-4 shadow-sm flex items-center gap-4">
+              <div className="w-10 h-10 rounded-lg bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center text-orange-600 dark:text-orange-400">
                 <Clock className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-sm font-medium text-zinc-500">Due Today</p>
-                <p className="text-2xl font-semibold text-zinc-900">{dueToday}</p>
+                <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">Due Today</p>
+                <p className="text-2xl font-semibold text-zinc-900 dark:text-white">{dueToday}</p>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl border border-zinc-200 p-4 shadow-sm flex items-center gap-4">
-              <div className="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center text-red-600">
+            <div className="bg-white dark:bg-slate-900/50 rounded-xl border border-zinc-200 dark:border-zinc-700/80 p-4 shadow-sm flex items-center gap-4">
+              <div className="w-10 h-10 rounded-lg bg-red-50 dark:bg-red-900/20 flex items-center justify-center text-red-600 dark:text-red-400">
                 <AlertCircle className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-sm font-medium text-zinc-500">Overdue</p>
-                <p className="text-2xl font-semibold text-zinc-900">{overdue}</p>
+                <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">Overdue</p>
+                <p className="text-2xl font-semibold text-zinc-900 dark:text-white">{overdue}</p>
               </div>
             </div>
           </div>
 
           {/* Progress Bar */}
-          <div className="bg-white rounded-xl border border-zinc-200 p-5 shadow-sm">
+          <div className="bg-white dark:bg-slate-900/50 rounded-xl border border-zinc-200 dark:border-zinc-700/80 p-5 shadow-sm">
             <div className="flex justify-between items-center mb-2">
-              <h3 className="text-sm font-medium text-zinc-700">Completion Progress</h3>
-              <span className="text-sm font-semibold text-indigo-600">{completionRate}%</span>
+              <h3 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Completion Progress</h3>
+              <span className="text-sm font-semibold text-indigo-600 dark:text-indigo-400">{completionRate}%</span>
             </div>
-            <div className="w-full bg-zinc-100 rounded-full h-2.5 overflow-hidden">
+            <div className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-full h-2.5 overflow-hidden">
               <div 
                 className="bg-indigo-600 h-2.5 rounded-full transition-all duration-500 ease-out" 
                 style={{ width: `${completionRate}%` }}
@@ -582,31 +582,31 @@ export default function AssignmentsPage() {
         <div className="flex items-center gap-2 overflow-x-auto pb-4 scrollbar-hide">
           <button
             onClick={() => setFilter("all")}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${filter === "all" ? "bg-zinc-900 text-white shadow-sm" : "bg-white text-zinc-600 border border-zinc-200 hover:bg-zinc-50"}`}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${filter === "all" ? "bg-zinc-900 dark:bg-zinc-950 text-white shadow-sm" : "bg-white dark:bg-slate-900/50 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700/80 hover:bg-zinc-50 dark:hover:bg-zinc-900"}`}
           >
             All
           </button>
           <button
             onClick={() => setFilter("pending")}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${filter === "pending" ? "bg-amber-100 text-amber-800 shadow-sm border-amber-200 border" : "bg-white text-zinc-600 border border-zinc-200 hover:bg-zinc-50"}`}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${filter === "pending" ? "bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200 shadow-sm border-amber-200 dark:border-amber-800/50 border" : "bg-white dark:bg-slate-900/50 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700/80 hover:bg-zinc-50 dark:hover:bg-zinc-900"}`}
           >
             Pending
           </button>
           <button
             onClick={() => setFilter("dueToday")}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${filter === "dueToday" ? "bg-orange-100 text-orange-800 shadow-sm border-orange-200 border" : "bg-white text-zinc-600 border border-zinc-200 hover:bg-zinc-50"}`}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${filter === "dueToday" ? "bg-orange-100 dark:bg-orange-900/40 text-orange-800 dark:text-orange-200 shadow-sm border-orange-200 dark:border-orange-800/50 border" : "bg-white dark:bg-slate-900/50 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700/80 hover:bg-zinc-50 dark:hover:bg-zinc-900"}`}
           >
             Due Today
           </button>
           <button
             onClick={() => setFilter("submitted")}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${filter === "submitted" ? "bg-emerald-100 text-emerald-800 shadow-sm border-emerald-200 border" : "bg-white text-zinc-600 border border-zinc-200 hover:bg-zinc-50"}`}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${filter === "submitted" ? "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-200 shadow-sm border-emerald-200 dark:border-emerald-800/50 border" : "bg-white dark:bg-slate-900/50 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700/80 hover:bg-zinc-50 dark:hover:bg-zinc-900"}`}
           >
             Submitted
           </button>
           <button
             onClick={() => setFilter("overdue")}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${filter === "overdue" ? "bg-red-100 text-red-800 shadow-sm border-red-200 border" : "bg-white text-zinc-600 border border-zinc-200 hover:bg-zinc-50"}`}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${filter === "overdue" ? "bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-200 shadow-sm border-red-200 dark:border-red-800/50 border" : "bg-white dark:bg-slate-900/50 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700/80 hover:bg-zinc-50 dark:hover:bg-zinc-900"}`}
           >
             Overdue
           </button>
@@ -625,34 +625,34 @@ export default function AssignmentsPage() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   key={assignment.id}
-                  className={`bg-white rounded-xl border p-5 shadow-sm transition-shadow hover:shadow-md flex flex-col gap-2 ${
-                    isLecturer ? "border-violet-200 bg-violet-50/20" :
-                    userStatus === "submitted" ? "border-emerald-200 bg-emerald-50/30" :
-                    userStatus === "overdue" ? "border-red-200 bg-red-50/30" :
-                    userStatus === "dueToday" ? "border-orange-200 bg-orange-50/30" : "border-zinc-200"
+                  className={`bg-white dark:bg-slate-900/50 rounded-xl border p-5 shadow-sm transition-shadow hover:shadow-md flex flex-col gap-2 ${
+                    isLecturer ? "border-violet-200 dark:border-violet-800/50 bg-violet-50/20 dark:bg-violet-900/20" :
+                    userStatus === "submitted" ? "border-emerald-200 dark:border-emerald-800/50 bg-emerald-50/30 dark:bg-emerald-900/20" :
+                    userStatus === "overdue" ? "border-red-200 dark:border-red-800/50 bg-red-50/30 dark:bg-red-900/20" :
+                    userStatus === "dueToday" ? "border-orange-200 dark:border-orange-800/50 bg-orange-50/30 dark:bg-orange-900/20" : "border-zinc-200 dark:border-zinc-700/80"
                   }`}
                 >
                   <div className="flex justify-between items-start">
                     <div className="flex flex-col gap-1.5">
                       <div className="flex items-center flex-wrap gap-2">
-                        <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-zinc-100 text-zinc-600 self-start">
+                        <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 self-start">
                           {assignment.course}
                         </span>
                         {userStatus === "overdue" && (
-                          <span className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-red-100 text-red-700 border border-red-200 self-start">
+                          <span className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800/50 self-start">
                             <AlertCircle className="w-3 h-3" />
                             Overdue
                           </span>
                         )}
                         {userStatus === "dueToday" && (
-                          <span className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-orange-100 text-orange-700 border border-orange-200 self-start">
+                          <span className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800/50 self-start">
                             <Clock className="w-3 h-3" />
                             Due Today
                           </span>
                         )}
                       </div>
                       {isLecturer && (
-                        <span className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-violet-100 text-violet-700 border border-violet-200 self-start">
+                        <span className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 border border-violet-200 dark:border-violet-800/50 self-start">
                           <GraduationCap className="w-3 h-3" />
                           From Lecturer
                         </span>
@@ -663,13 +663,13 @@ export default function AssignmentsPage() {
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => handleOpenModal(assignment)}
-                          className="p-1.5 text-zinc-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors"
+                          className="p-1.5 text-zinc-400 dark:text-zinc-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-md transition-colors"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(assignment.id)}
-                          className="p-1.5 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                          className="p-1.5 text-zinc-400 dark:text-zinc-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -678,31 +678,31 @@ export default function AssignmentsPage() {
                   </div>
 
                   <h3 className={`font-semibold text-lg leading-snug ${
-                    userStatus === 'submitted' ? 'text-zinc-500 line-through' : 'text-zinc-900'
+                    userStatus === 'submitted' ? 'text-zinc-500 dark:text-zinc-400 line-through' : 'text-zinc-900 dark:text-white'
                   }`}>
                     {assignment.title}
                   </h3>
                   {isLecturer && assignment.createdBy && (
-                    <div className="text-xs text-violet-600 font-medium">
+                    <div className="text-xs text-violet-600 dark:text-violet-400 font-medium">
                       {assignment.createdBy}
                     </div>
                   )}
-                  <p className="text-zinc-500 text-sm line-clamp-2">
+                  <p className="text-zinc-500 dark:text-zinc-400 text-sm line-clamp-2">
                     {assignment.description}
                   </p>
 
-                  <div className="flex items-center justify-between mt-auto pt-4 border-t border-zinc-100">
+                  <div className="flex items-center justify-between mt-auto pt-4 border-t border-zinc-100 dark:border-zinc-800">
                     <div className="flex flex-col gap-0.5">
                       <div className={`flex items-center gap-1.5 text-sm font-medium ${
-                        userStatus === "submitted" ? "text-emerald-600" :
-                        userStatus === "overdue" ? "text-red-600" :
+                        userStatus === "submitted" ? "text-emerald-600 dark:text-emerald-400" :
+                        userStatus === "overdue" ? "text-red-600 dark:text-red-400" :
                         (() => {
                           const hoursLeft = differenceInHours(parseISO(assignment.dueDate), new Date());
-                          if (hoursLeft < 0) return "text-red-600";
-                          if (hoursLeft < 10) return "text-red-600";
-                          if (hoursLeft <= 72) return "text-amber-600";
-                          if (hoursLeft <= 168) return "text-emerald-600";
-                          return "text-zinc-600";
+                          if (hoursLeft < 0) return "text-red-600 dark:text-red-400";
+                          if (hoursLeft < 10) return "text-red-600 dark:text-red-400";
+                          if (hoursLeft <= 72) return "text-amber-600 dark:text-amber-400";
+                          if (hoursLeft <= 168) return "text-emerald-600 dark:text-emerald-400";
+                          return "text-zinc-600 dark:text-zinc-400";
                         })()
                       }`}>
                         <Clock className="w-4 h-4" />
@@ -718,7 +718,7 @@ export default function AssignmentsPage() {
                         const remainingMins = totalMins % 60;
                         
                         let label = "";
-                        let colorClass = "text-zinc-500";
+                        let colorClass = "text-zinc-500 dark:text-zinc-400";
                         
                         const formatTime = (d, h, m) => {
                           const parts = [];
@@ -733,16 +733,16 @@ export default function AssignmentsPage() {
                         if (dueMs <= 0) {
                           // Overdue
                           label = `Overdue by ${timeStr}`;
-                          colorClass = "text-red-600";
+                          colorClass = "text-red-600 dark:text-red-400";
                         } else {
                           // Upcoming
                           label = `Due in ${timeStr}`;
                           if (days === 0 && totalHrs < 10) {
-                            colorClass = "text-red-600";
+                            colorClass = "text-red-600 dark:text-red-400";
                           } else if (days <= 3) {
-                            colorClass = "text-amber-600";
+                            colorClass = "text-amber-600 dark:text-amber-400";
                           } else if (days <= 7) {
-                            colorClass = "text-emerald-600";
+                            colorClass = "text-emerald-600 dark:text-emerald-400";
                           }
                         }
                         
@@ -761,8 +761,8 @@ export default function AssignmentsPage() {
                       onClick={() => handleToggleStatus(assignment.id)}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                         userStatus === "submitted"
-                          ? isLecturer ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200" : "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
-                          : isLecturer ? "bg-violet-100 text-violet-700 hover:bg-violet-200" : "bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm"
+                          ? isLecturer ? "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-200" : "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-200"
+                          : isLecturer ? "bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 hover:bg-violet-200" : "bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm"
                       }`}
                     >
                       {userStatus === "submitted" ? (
@@ -778,39 +778,39 @@ export default function AssignmentsPage() {
             </AnimatePresence>
             {filteredAssignments.length === 0 && (
               <div className="col-span-full py-12 text-center">
-                <div className="w-16 h-16 bg-zinc-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <BookOpen className="w-8 h-8 text-zinc-400" />
+                <div className="w-16 h-16 bg-zinc-100 dark:bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <BookOpen className="w-8 h-8 text-zinc-400 dark:text-zinc-500" />
                 </div>
-                <h3 className="text-lg font-medium text-zinc-900 mb-1">No assignments found</h3>
-                <p className="text-zinc-500">
+                <h3 className="text-lg font-medium text-zinc-900 dark:text-white mb-1">No assignments found</h3>
+                <p className="text-zinc-500 dark:text-zinc-400">
                   {filter === "all" ? "Get started by adding your first assignment." : `No ${filter} assignments available.`}
                 </p>
               </div>
             )}
           </div>
         ) : (
-          <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
-            <div className="p-4 flex flex-col sm:flex-row items-center justify-between border-b border-zinc-200 gap-3 sm:gap-0">
+          <div className="bg-white dark:bg-slate-900/50 rounded-xl border border-zinc-200 dark:border-zinc-700/80 shadow-sm overflow-hidden">
+            <div className="p-4 flex flex-col sm:flex-row items-center justify-between border-b border-zinc-200 dark:border-zinc-700/80 gap-3 sm:gap-0">
               <div className="flex items-center justify-between w-full sm:w-auto gap-4">
-                <h2 className="text-lg font-semibold text-zinc-900 min-w-32">
+                <h2 className="text-lg font-semibold text-zinc-900 dark:text-white min-w-32">
                   {format(currentMonth, "MMMM yyyy")}
                 </h2>
                 <div className="flex items-center gap-1">
-                  <button onClick={prevMonth} className="p-1.5 hover:bg-zinc-100 rounded-lg text-zinc-600 transition-colors">
+                  <button onClick={prevMonth} className="p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg text-zinc-600 dark:text-zinc-400 transition-colors">
                     <ChevronLeft className="w-5 h-5" />
                   </button>
-                  <button onClick={() => setCurrentMonth(new Date())} className="px-3 py-1.5 text-sm font-medium hover:bg-zinc-100 rounded-lg text-zinc-600 transition-colors">
+                  <button onClick={() => setCurrentMonth(new Date())} className="px-3 py-1.5 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg text-zinc-600 dark:text-zinc-400 transition-colors">
                     Today
                   </button>
-                  <button onClick={nextMonth} className="p-1.5 hover:bg-zinc-100 rounded-lg text-zinc-600 transition-colors">
+                  <button onClick={nextMonth} className="p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg text-zinc-600 dark:text-zinc-400 transition-colors">
                     <ChevronRight className="w-5 h-5" />
                   </button>
                 </div>
               </div>
             </div>
-            <div className="grid grid-cols-7 border-b border-zinc-200 bg-zinc-50/50">
+            <div className="grid grid-cols-7 border-b border-zinc-200 dark:border-zinc-700/80 bg-zinc-50/50 dark:bg-zinc-900">
               {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                <div key={day} className="py-2 text-center text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+                <div key={day} className="py-2 text-center text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
                   {day}
                 </div>
               ))}
@@ -818,7 +818,7 @@ export default function AssignmentsPage() {
             <div className="grid grid-cols-7 auto-rows-fr">
               {/* Padding for first day of month */}
               {Array.from({ length: daysInMonth[0].getDay() }).map((_, i) => (
-                <div key={`empty-${i}`} className="min-h-[120px] border-b border-r border-zinc-100 bg-zinc-50/30" />
+                <div key={`empty-${i}`} className="min-h-[120px] border-b border-r border-zinc-100 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900" />
               ))}
               
               {daysInMonth.map((day, i) => {
@@ -826,9 +826,9 @@ export default function AssignmentsPage() {
                 return (
                   <div
                     key={day.toISOString()}
-                    className={`min-h-[120px] p-2 border-b border-r border-zinc-100 transition-colors hover:bg-zinc-50 ${isToday(day) ? 'bg-indigo-50/30' : ''}`}
+                    className={`min-h-[120px] p-2 border-b border-r border-zinc-100 dark:border-zinc-800 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900 ${isToday(day) ? 'bg-indigo-50/30 dark:bg-indigo-900/20' : ''}`}
                   >
-                    <div className={`text-sm font-medium mb-1 w-7 h-7 flex items-center justify-center rounded-full ${isToday(day) ? 'bg-indigo-600 text-white' : 'text-zinc-700'}`}>
+                    <div className={`text-sm font-medium mb-1 w-7 h-7 flex items-center justify-center rounded-full ${isToday(day) ? 'bg-indigo-600 text-white' : 'text-zinc-700 dark:text-zinc-300'}`}>
                       {format(day, "d")}
                     </div>
                     <div className="space-y-1">
@@ -839,10 +839,10 @@ export default function AssignmentsPage() {
                             key={assignment.id}
                             onClick={() => canModifyAssignment(assignment) && handleOpenModal(assignment)}
                             className={`text-xs px-2 py-1.5 rounded truncate ${canModifyAssignment(assignment) ? 'cursor-pointer' : 'cursor-default'} transition-colors font-medium border ${
-                              userStatus === 'submitted' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' :
-                              userStatus === 'overdue' ? 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100' :
-                              userStatus === 'dueToday' ? 'bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100' :
-                              'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100'
+                              userStatus === 'submitted' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/40' :
+                              userStatus === 'overdue' ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800/50 hover:bg-red-100 dark:hover:bg-red-900/40' :
+                              userStatus === 'dueToday' ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-800/50 hover:bg-orange-100 dark:hover:bg-orange-900/40' :
+                              'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800/50 hover:bg-indigo-100 dark:hover:bg-indigo-900/40'
                             }`}
                           >
                             {assignment.title}
@@ -856,7 +856,7 @@ export default function AssignmentsPage() {
               
               {/* Padding for end of month */}
               {Array.from({ length: 6 - daysInMonth[daysInMonth.length - 1].getDay() }).map((_, i) => (
-                <div key={`empty-end-${i}`} className="min-h-[120px] border-b border-r border-zinc-100 bg-zinc-50/30" />
+                <div key={`empty-end-${i}`} className="min-h-[120px] border-b border-r border-zinc-100 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900" />
               ))}
             </div>
           </div>
@@ -871,22 +871,22 @@ export default function AssignmentsPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-zinc-900/40 backdrop-blur-sm"
+              className="absolute inset-0 bg-zinc-900/40 dark:bg-zinc-950 backdrop-blur-sm"
               onClick={handleCloseModal}
             />
             <motion.div 
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden"
+              className="relative bg-white dark:bg-slate-900/50 rounded-2xl shadow-xl w-full max-w-md overflow-hidden"
             >
-              <div className="flex items-center justify-between p-5 border-b border-zinc-100">
-                <h2 className="text-lg font-semibold text-zinc-900">
+              <div className="flex items-center justify-between p-5 border-b border-zinc-100 dark:border-zinc-800">
+                <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">
                   {editingId ? "Edit Assignment" : "New Assignment"}
                 </h2>
                 <button 
                   onClick={handleCloseModal}
-                  className="p-1.5 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 rounded-lg transition-colors"
+                  className="p-1.5 text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -894,56 +894,56 @@ export default function AssignmentsPage() {
               
               <form onSubmit={handleSave} className="p-5 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-zinc-700 mb-1">Title</label>
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Title</label>
                   <input
                     required
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="w-full px-3 py-2 border border-zinc-300 rounded-lg text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600/80 rounded-lg text-zinc-900 dark:text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     placeholder="e.g. Calculus Midterm Prep"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-zinc-700 mb-1">Course</label>
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Course</label>
                   <input
                     required
                     type="text"
                     value={course}
                     onChange={(e) => setCourse(e.target.value)}
-                    className="w-full px-3 py-2 border border-zinc-300 rounded-lg text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600/80 rounded-lg text-zinc-900 dark:text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     placeholder="e.g. MATH 201"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-zinc-700 mb-1">Due Date & Time</label>
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Due Date & Time</label>
                   <div className="flex gap-2">
                     <input
                       required
                       type="date"
                       value={dueDate}
                       onChange={(e) => setDueDate(e.target.value)}
-                      className="flex-1 px-3 py-2 border border-zinc-300 rounded-lg text-zinc-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      className="flex-1 px-3 py-2 border border-zinc-300 dark:border-zinc-600/80 rounded-lg text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     />
                     <input
                       required
                       type="time"
                       value={dueTime}
                       onChange={(e) => setDueTime(e.target.value)}
-                      className="w-32 px-3 py-2 border border-zinc-300 rounded-lg text-zinc-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      className="w-32 px-3 py-2 border border-zinc-300 dark:border-zinc-600/80 rounded-lg text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     />
                   </div>
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-zinc-700 mb-1">Description</label>
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Description</label>
                   <textarea
                     rows={3}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    className="w-full px-3 py-2 border border-zinc-300 rounded-lg text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
+                    className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600/80 rounded-lg text-zinc-900 dark:text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
                     placeholder="Add any additional details or requirements..."
                   />
                 </div>
@@ -952,7 +952,7 @@ export default function AssignmentsPage() {
                   <button
                     type="button"
                     onClick={handleCloseModal}
-                    className="px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 rounded-lg transition-colors"
+                    className="px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
                   >
                     Cancel
                   </button>

@@ -355,14 +355,14 @@ export default function CommunityChat() {
   // Views Setup based on Auth + Data Loading
   if (status === "loading" || (isLoading && messages.length === 0)) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 font-sans">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 font-sans">
         <div className="flex flex-col items-center gap-5">
           <div className="relative flex items-center justify-center">
             <div className="absolute inset-0 animate-ping rounded-full bg-indigo-200 opacity-50"></div>
             <div className="relative animate-spin rounded-full h-14 w-14 border-t-4 border-b-4 border-indigo-600"></div>
-            <svg xmlns="http://www.w3.org/2000/svg" className="absolute w-6 h-6 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" className="absolute w-6 h-6 text-indigo-600 dark:text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
           </div>
-          <p className="text-slate-600 font-bold tracking-wide animate-pulse">Syncing Conversation...</p>
+          <p className="text-slate-600 dark:text-slate-400 font-bold tracking-wide animate-pulse">Syncing Conversation...</p>
         </div>
       </div>
     );
@@ -371,30 +371,30 @@ export default function CommunityChat() {
   if (!session) return null;
 
   return (
-    <div className="h-screen bg-slate-50 flex flex-col font-sans overflow-hidden">
+    <div className="h-screen bg-slate-50 dark:bg-slate-900 flex flex-col font-sans overflow-hidden">
 
       {/* Top Navbar Header */}
-      <header className="h-16 md:h-[72px] bg-white border-b border-slate-200 px-4 xl:px-8 flex items-center justify-between shrink-0 shadow-[0_1px_3px_0_rgba(0,0,0,0.02)] z-20 relative">
+      <header className="h-16 md:h-[72px] bg-white dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700/80 px-4 xl:px-8 flex items-center justify-between shrink-0 shadow-[0_1px_3px_0_rgba(0,0,0,0.02)] z-20 relative">
         <div className="flex items-center gap-2 sm:gap-4">
-          <Link href="/dashboard" className="p-2 -ml-2 rounded-xl hover:bg-slate-100 text-slate-500 hover:text-indigo-600 transition-colors hidden sm:flex">
+          <Link href="/dashboard" className="p-2 -ml-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors hidden sm:flex">
             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
           </Link>
 
           <div className="flex items-center gap-3.5">
             <div className="relative">
-              <div className="w-11 h-11 rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center shadow-sm">
+              <div className="w-11 h-11 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-900/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shadow-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
               </div>
-              <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full z-10"></span>
+              <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-white dark:border-slate-800 rounded-full z-10"></span>
             </div>
 
             <div className="flex flex-col justify-center">
-              <h1 className="text-lg md:text-[19px] font-extrabold text-slate-800 leading-tight tracking-tight">Community Chat</h1>
+              <h1 className="text-lg md:text-[19px] font-extrabold text-slate-800 dark:text-slate-200 leading-tight tracking-tight">Community Chat</h1>
               <div className="flex items-center gap-2 mt-0.5">
-                <span className="flex items-center gap-1.5 text-[11px] md:text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md uppercase tracking-wide">
+                <span className="flex items-center gap-1.5 text-[11px] md:text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-0.5 rounded-md uppercase tracking-wide">
                   Year {year} • Sem {semester}
                 </span>
-                <span className="hidden sm:inline-block text-xs text-slate-400 font-medium tracking-tight">
+                <span className="hidden sm:inline-block text-xs text-slate-400 dark:text-slate-500 font-medium tracking-tight">
                   <span className="mx-1">•</span> {messages.length} Messages
                 </span>
               </div>
@@ -405,18 +405,18 @@ export default function CommunityChat() {
         <div className="flex items-center gap-4">
           <div className="hidden md:flex items-center text-right mr-2">
             <div className="flex flex-col">
-              <span className="text-sm font-bold text-slate-800 leading-tight">{session.user?.name || "Student"}</span>
-              <span className="text-[11px] font-medium text-slate-500">{session.user?.email}</span>
+              <span className="text-sm font-bold text-slate-800 dark:text-slate-200 leading-tight">{session.user?.name || "Student"}</span>
+              <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">{session.user?.email}</span>
             </div>
           </div>
 
-          <div className="w-10 h-10 rounded-full bg-slate-200 border-2 border-white shadow-sm flex items-center justify-center text-slate-600 font-bold overflow-hidden">
+          <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-800/50 border-2 border-white dark:border-slate-800 shadow-sm flex items-center justify-center text-slate-600 dark:text-slate-400 font-bold overflow-hidden">
             {session.user?.name ? session.user.name.charAt(0).toUpperCase() : "U"}
           </div>
 
           <button
             onClick={() => signOut({ callbackUrl: "/login" })}
-            className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all ml-1"
+            className="p-2.5 text-slate-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all ml-1"
             title="Sign Out"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
@@ -425,17 +425,17 @@ export default function CommunityChat() {
       </header>
 
       {/* Main Chat Area */}
-      <main className="flex-1 overflow-hidden flex flex-col w-full bg-[#f8fafc] relative">
+      <main className="flex-1 overflow-hidden flex flex-col w-full bg-slate-50 dark:bg-slate-950 relative">
 
         {/* Chat Background Pattern (Subtle) */}
-        <div className="absolute inset-0 opacity-[0.015] pointer-events-none" style={{ backgroundImage: "url('data:image/svg+xml,%3Csvg width=\\'60\\' height=\\'60\\' viewBox=\\'0 0 60 60\\' xmlns=\\'http://www.w3.org/2000/svg\\'%3E%3Cg fill=\\'none\\' fill-rule=\\'evenodd\\'%3E%3Cg fill=\\'%23000000\\' fill-opacity=\\'1\\'%3E%3Cpath d=\\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')" }}></div>
+        <div className="absolute inset-0 opacity-[0.015] dark:opacity-[0.03] dark:invert pointer-events-none" style={{ backgroundImage: "url('data:image/svg+xml,%3Csvg width=\\'60\\' height=\\'60\\' viewBox=\\'0 0 60 60\\' xmlns=\\'http://www.w3.org/2000/svg\\'%3E%3Cg fill=\\'none\\' fill-rule=\\'evenodd\\'%3E%3Cg fill=\\'%23000000\\' fill-opacity=\\'1\\'%3E%3Cpath d=\\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')" }}></div>
 
         {/* ── Pinned Messages Banner ── */}
         {pinnedMessages.length > 0 && currentPinned && (
-          <div className="shrink-0 z-10 bg-white border-b border-indigo-100 shadow-sm">
+          <div className="shrink-0 z-10 bg-white dark:bg-slate-900/50 border-b border-indigo-100 dark:border-indigo-900/50 shadow-sm">
             <div className="flex items-center gap-3 px-4 sm:px-6 py-2 max-w-5xl mx-auto">
               {/* Pin icon */}
-              <div className="shrink-0 text-indigo-500">
+              <div className="shrink-0 text-indigo-500 dark:text-indigo-400">
                 <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M16 3a1 1 0 0 0-1 1v1H9V4a1 1 0 0 0-2 0v1a3 3 0 0 0-3 3v1l-1.293 1.293A1 1 0 0 0 3 11v2a1 1 0 0 0 1 1h7v5a1 1 0 0 0 2 0v-5h7a1 1 0 0 0 1-1v-2a1 1 0 0 0-.293-.707L19 9V8a3 3 0 0 0-3-3V4a1 1 0 0 0-1-1z"/></svg>
               </div>
               {/* Count badge + preview — click to scroll */}
@@ -444,11 +444,11 @@ export default function CommunityChat() {
                 className="flex-1 min-w-0 text-left"
               >
                 {pinnedMessages.length > 1 && (
-                  <span className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest mr-2">
+                  <span className="text-[10px] font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-widest mr-2">
                     {pinnedBannerIdx % pinnedMessages.length + 1}/{pinnedMessages.length}
                   </span>
                 )}
-                <span className="text-xs font-semibold text-slate-700 truncate">
+                <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate">
                   {currentPinned.isNotice ? '📢 ' : ''}
                   {currentPinned.text
                     ? currentPinned.text.slice(0, 80) + (currentPinned.text.length > 80 ? '…' : '')
@@ -460,7 +460,7 @@ export default function CommunityChat() {
                 <button
                   onClick={() => setPinnedBannerIdx(i => (i + 1) % pinnedMessages.length)}
                   title="Next pinned message"
-                  className="shrink-0 p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-indigo-500 transition-colors"
+                  className="shrink-0 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 dark:text-slate-500 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
                 </button>
@@ -469,7 +469,7 @@ export default function CommunityChat() {
               <button
                 onClick={() => togglePin(currentPinned._id)}
                 title="Unpin"
-                className="shrink-0 p-1 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-500 transition-colors"
+                className="shrink-0 p-1 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-900/20 text-slate-400 dark:text-slate-500 hover:text-rose-500 dark:hover:text-rose-400 transition-colors"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
               </button>
@@ -486,25 +486,25 @@ export default function CommunityChat() {
 
           {/* Welcome Banner */}
           <div className="flex flex-col items-center justify-center pb-10 pt-4 max-w-lg mx-auto text-center">
-            <div className="w-16 h-16 bg-indigo-100 rounded-3xl flex items-center justify-center mb-4 transform -rotate-3 shadow-sm border border-indigo-200">
-              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600"><path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2v5Z" /><path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1" /></svg>
+            <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/40 rounded-3xl flex items-center justify-center mb-4 transform -rotate-3 shadow-sm border border-indigo-200 dark:border-indigo-800/50">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600 dark:text-indigo-400"><path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2v5Z" /><path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1" /></svg>
             </div>
-            <h2 className="text-lg font-bold text-slate-800 mb-1">
+            <h2 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-1">
               End-to-End Encrypted Chat
             </h2>
-            <p className="text-sm font-medium text-slate-500 leading-relaxed">
-              This space is for <strong className="text-indigo-600">Year {year} • Sem {semester}</strong> students. Share notes, discuss assignments, and help each other out!
+            <p className="text-sm font-medium text-slate-500 dark:text-slate-400 leading-relaxed">
+              This space is for <strong className="text-indigo-600 dark:text-indigo-400">Year {year} • Sem {semester}</strong> students. Share notes, discuss assignments, and help each other out!
             </p>
           </div>
 
           {/* Empty State vs Message Map */}
           {messages.length === 0 && !isLoading ? (
-            <div className="flex flex-col items-center justify-center mt-8 text-slate-400">
-              <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-sm border border-slate-100 mb-5">
+            <div className="flex flex-col items-center justify-center mt-8 text-slate-400 dark:text-slate-500">
+              <div className="w-24 h-24 bg-white dark:bg-slate-900/50 rounded-full flex items-center justify-center shadow-sm border border-slate-100 dark:border-slate-800 mb-5">
                 <span className="text-4xl text-slate-300">👋</span>
               </div>
-              <p className="text-xl font-bold text-slate-700">It&apos;s quiet in here</p>
-              <p className="text-base text-slate-500 font-medium mt-1">Be the first to start the conversation.</p>
+              <p className="text-xl font-bold text-slate-700 dark:text-slate-300">It&apos;s quiet in here</p>
+              <p className="text-base text-slate-500 dark:text-slate-400 font-medium mt-1">Be the first to start the conversation.</p>
             </div>
           ) : (
             <div className="space-y-1.5 max-w-5xl mx-auto pb-4">
@@ -535,7 +535,7 @@ export default function CommunityChat() {
                 // Bubble corner radius logic
                 let bubbleClass = isMe
                   ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
-                  : "bg-white text-slate-800 shadow-sm border border-slate-200/60";
+                  : "bg-white dark:bg-slate-900/50 text-slate-800 dark:text-slate-200 shadow-sm border border-slate-200 dark:border-slate-700/80";
 
                 let radiusClass = "";
                 if (isMe) {
@@ -557,7 +557,7 @@ export default function CommunityChat() {
                     <Fragment key={msg._id || idx}>
                       {showDateSeparator && (
                         <div className="flex items-center justify-center my-4">
-                          <span className="px-3 py-1 text-[11px] font-semibold text-slate-500 bg-slate-200/70 rounded-full shadow-sm">
+                          <span className="px-3 py-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-200 dark:bg-slate-800/50 rounded-full shadow-sm">
                             {formatDateLabel(msg.createdAt || msg.timestamp)}
                           </span>
                         </div>
@@ -566,13 +566,13 @@ export default function CommunityChat() {
                         ref={el => { if (el) messageRefs.current[msg._id] = el; else delete messageRefs.current[msg._id]; }}
                         className="flex justify-center w-full my-6 relative group px-2"
                       >
-                        <div className="bg-[#FFF8E6] border border-[#FFE58F] shadow-sm rounded-2xl p-4 sm:p-5 w-full max-w-[90%] sm:max-w-[75%] relative overflow-hidden flex flex-col items-center text-center">
+                        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 shadow-sm rounded-2xl p-4 sm:p-5 w-full max-w-[90%] sm:max-w-[75%] relative overflow-hidden flex flex-col items-center text-center">
                           <div className="absolute top-0 left-0 w-full h-1 bg-amber-400"></div>
                           <div className="flex items-center gap-2 mb-3">
-                            <div className="text-amber-500 bg-amber-100 rounded-md p-1.5 flex items-center justify-center shrink-0">
+                            <div className="text-amber-500 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/40 rounded-md p-1.5 flex items-center justify-center shrink-0">
                               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                             </div>
-                            <span className="text-sm sm:text-base font-extrabold text-amber-600 tracking-widest uppercase">Special Notice</span>
+                            <span className="text-sm sm:text-base font-extrabold text-amber-600 dark:text-amber-400 tracking-widest uppercase">Special Notice</span>
                           </div>
 
                           {/* Inline edit mode */}
@@ -585,23 +585,23 @@ export default function CommunityChat() {
                                   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSaveEdit(msg._id); }
                                   if (e.key === 'Escape') { setEditingId(null); }
                                 }}
-                                className="w-full bg-amber-50 border border-amber-300 text-slate-800 rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-amber-400 font-semibold"
+                                className="w-full bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700/50 text-slate-800 dark:text-slate-200 rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-amber-400 font-semibold"
                                 rows={Math.min(editText.split('\n').length + 1, 6)}
                                 autoFocus
                               />
                               <div className="flex gap-2 justify-center">
-                                <button onClick={() => setEditingId(null)} className="text-xs px-4 py-1.5 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-700 font-semibold transition-colors">Cancel</button>
+                                <button onClick={() => setEditingId(null)} className="text-xs px-4 py-1.5 rounded-lg bg-amber-100 dark:bg-amber-900/40 hover:bg-amber-200 text-amber-700 dark:text-amber-300 font-semibold transition-colors">Cancel</button>
                                 <button onClick={() => handleSaveEdit(msg._id)} className="text-xs px-4 py-1.5 rounded-lg bg-amber-500 text-white font-bold hover:bg-amber-600 transition-colors">Save</button>
                               </div>
                             </div>
                           ) : (
-                            <p className="text-slate-800 font-bold text-[15px] sm:text-[17px] leading-relaxed break-words whitespace-pre-wrap">
+                            <p className="text-slate-800 dark:text-slate-200 font-bold text-[15px] sm:text-[17px] leading-relaxed break-words whitespace-pre-wrap">
                               {msg.text}
-                              {msg.edited && <span className="ml-1.5 text-[11px] text-amber-500/70 font-medium">(edited)</span>}
+                              {msg.edited && <span className="ml-1.5 text-[11px] text-amber-500/70 dark:text-amber-400 font-medium">(edited)</span>}
                             </p>
                           )}
 
-                          <div className="mt-4 flex items-center text-xs font-bold text-amber-600/70 bg-amber-100/50 px-3 py-1 rounded-full gap-2 shrink-0">
+                          <div className="mt-4 flex items-center text-xs font-bold text-amber-600/70 dark:text-amber-400 bg-amber-100/50 dark:bg-amber-900/40 px-3 py-1 rounded-full gap-2 shrink-0">
                             <span>Sent by {msg.sender}</span>
                             <span className="w-1 h-1 rounded-full bg-amber-300"></span>
                             <span>{formatTime(msg.createdAt || msg.timestamp)}</span>
@@ -614,8 +614,8 @@ export default function CommunityChat() {
                               title={pinnedIds.includes(msg._id) ? 'Unpin' : 'Pin notice'}
                               className={`absolute top-3 left-3 p-1.5 rounded-lg transition-colors ${
                                 pinnedIds.includes(msg._id)
-                                  ? 'opacity-100 bg-indigo-100 text-indigo-600'
-                                  : 'opacity-0 group-hover:opacity-100 bg-amber-50 hover:bg-indigo-100 text-amber-400 hover:text-indigo-600'
+                                  ? 'opacity-100 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400'
+                                  : 'opacity-0 group-hover:opacity-100 bg-amber-50 dark:bg-amber-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 text-amber-400 hover:text-indigo-600 dark:hover:text-indigo-400'
                               }`}
                             >
                               <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill={pinnedIds.includes(msg._id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/></svg>
@@ -628,14 +628,14 @@ export default function CommunityChat() {
                               <button
                                 onClick={() => handleEditMessage(msg)}
                                 title="Edit notice"
-                                className="p-1.5 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-600 transition-colors"
+                                className="p-1.5 rounded-lg bg-amber-100 dark:bg-amber-900/40 hover:bg-amber-200 text-amber-600 dark:text-amber-400 transition-colors"
                               >
                                 <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                               </button>
                               <button
                                 onClick={() => handleDeleteMessage(msg._id)}
                                 title="Delete notice"
-                                className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-500 transition-colors"
+                                className="p-1.5 rounded-lg bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 dark:hover:bg-rose-900/40 text-rose-500 dark:text-rose-400 transition-colors"
                               >
                                 <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
                               </button>
@@ -651,7 +651,7 @@ export default function CommunityChat() {
                   <Fragment key={msg._id || idx}>
                     {showDateSeparator && (
                       <div className="flex items-center justify-center my-4">
-                        <span className="px-3 py-1 text-[11px] font-semibold text-slate-500 bg-slate-200/70 rounded-full shadow-sm">
+                        <span className="px-3 py-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-200 dark:bg-slate-800/50 rounded-full shadow-sm">
                           {formatDateLabel(msg.createdAt || msg.timestamp)}
                         </span>
                       </div>
@@ -676,7 +676,7 @@ export default function CommunityChat() {
 
                         {/* Sender Name label */}
                         {!isMe && !isConsecutivePrev && (
-                          <span className="text-[12px] font-bold text-slate-500 ml-1 mb-1.5 tracking-tight">{msg.sender}</span>
+                          <span className="text-[12px] font-bold text-slate-500 dark:text-slate-400 ml-1 mb-1.5 tracking-tight">{msg.sender}</span>
                         )}
 
                         {/* Actual Chat Bubble */}
@@ -686,7 +686,7 @@ export default function CommunityChat() {
 
                           {/* ATTACHMENT */}
                           {hasAttachment && (
-                            <div className={`overflow-hidden ${msg.text ? 'mb-2' : ''} ${isMe ? 'bg-indigo-700/40 rounded-xl' : 'bg-slate-50 rounded-xl border border-slate-100'}`}>
+                            <div className={`overflow-hidden ${msg.text ? 'mb-2' : ''} ${isMe ? 'bg-indigo-700/40 rounded-xl' : 'bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800'}`}>
                               {isMsgImage ? (
                                 <a href={msg.fileUrl} target="_blank" rel="noopener noreferrer" className="block relative group/img cursor-zoom-in">
                                   <img
@@ -702,17 +702,17 @@ export default function CommunityChat() {
                                 </a>
                               ) : (
                                 <div className="p-3 sm:p-4 flex items-center gap-3 w-full sm:min-w-[260px]">
-                                  <div className={`w-11 h-11 shrink-0 rounded-xl flex items-center justify-center text-xl shadow-sm ${isMe ? 'bg-indigo-500 text-white border border-indigo-400' : 'bg-white text-slate-600 border border-slate-200'}`}>
+                                  <div className={`w-11 h-11 shrink-0 rounded-xl flex items-center justify-center text-xl shadow-sm ${isMe ? 'bg-indigo-500 text-white border border-indigo-400' : 'bg-white dark:bg-slate-900/50 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700/80'}`}>
                                     {getFileIcon(msg.fileName)}
                                   </div>
                                   <div className="flex-1 min-w-0 pr-2">
-                                    <p className={`text-[14px] leading-tight font-bold truncate ${isMe ? 'text-white' : 'text-slate-700'}`}>
+                                    <p className={`text-[14px] leading-tight font-bold truncate ${isMe ? 'text-white' : 'text-slate-700 dark:text-slate-300'}`}>
                                       {msg.fileName || "Document"}
                                     </p>
                                     <button
                                       type="button"
                                       onClick={() => handleOpenFile(msg.fileUrl, msg.fileName, msg.fileType)}
-                                      className={`text-[12px] font-bold hover:underline inline-flex items-center gap-1 mt-1 transition-colors cursor-pointer ${isMe ? 'text-indigo-200 hover:text-white' : 'text-indigo-600 hover:text-indigo-800'}`}
+                                      className={`text-[12px] font-bold hover:underline inline-flex items-center gap-1 mt-1 transition-colors cursor-pointer ${isMe ? 'text-indigo-200 hover:text-white' : 'text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-200'}`}
                                     >
                                       {isDownloadOnly(msg.fileName) ? (
                                         <>
@@ -742,13 +742,13 @@ export default function CommunityChat() {
                                   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSaveEdit(msg._id); }
                                   if (e.key === 'Escape') { setEditingId(null); }
                                 }}
-                                className="w-full bg-white/20 text-white placeholder-white/60 border border-white/30 rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-white/40"
+                                className="w-full bg-white dark:bg-slate-900/50 text-white placeholder-white/60 border border-white/30 rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-white/40"
                                 rows={Math.min(editText.split('\n').length + 1, 5)}
                                 autoFocus
                               />
                               <div className="flex gap-2 justify-end">
-                                <button onClick={() => setEditingId(null)} className="text-xs px-3 py-1 rounded-lg bg-white/20 hover:bg-white/30 text-white font-semibold transition-colors">Cancel</button>
-                                <button onClick={() => handleSaveEdit(msg._id)} className="text-xs px-3 py-1 rounded-lg bg-white text-indigo-700 font-bold hover:bg-indigo-50 transition-colors">Save</button>
+                                <button onClick={() => setEditingId(null)} className="text-xs px-3 py-1 rounded-lg bg-white dark:bg-slate-900/50 hover:bg-white/30 text-white font-semibold transition-colors">Cancel</button>
+                                <button onClick={() => handleSaveEdit(msg._id)} className="text-xs px-3 py-1 rounded-lg bg-white dark:bg-slate-900/50 text-indigo-700 dark:text-indigo-300 font-bold hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors">Save</button>
                               </div>
                             </div>
                           ) : (
@@ -762,7 +762,7 @@ export default function CommunityChat() {
 
                           {/* Timestamp & own-message controls */}
                           {editingId !== msg._id && (
-                            <div className={`flex items-center justify-end gap-1.5 mt-1.5 -mb-0.5 select-none ${hasAttachment && !msg.text ? 'absolute bottom-3 right-3 bg-black/40 text-white px-2 py-0.5 rounded-full backdrop-blur-md' : (isMe ? 'text-indigo-200' : 'text-slate-400')}`}>
+                            <div className={`flex items-center justify-end gap-1.5 mt-1.5 -mb-0.5 select-none ${hasAttachment && !msg.text ? 'absolute bottom-3 right-3 bg-black/40 text-white px-2 py-0.5 rounded-full backdrop-blur-md' : (isMe ? 'text-indigo-200' : 'text-slate-400 dark:text-slate-500')}`}>
                               <span className="text-[10px] font-bold tracking-wider">
                                 {formatTime(msg.createdAt || msg.timestamp)}
                               </span>
@@ -785,8 +785,8 @@ export default function CommunityChat() {
                                   title={pinnedIds.includes(msg._id) ? 'Unpin' : 'Pin message'}
                                   className={`transition-opacity ml-0.5 focus:outline-none ${
                                     pinnedIds.includes(msg._id)
-                                      ? (isMe ? 'opacity-100 text-indigo-200' : 'opacity-100 text-indigo-500')
-                                      : 'opacity-0 group-hover:opacity-100 ' + (isMe ? 'text-indigo-300 hover:text-white' : 'text-slate-400 hover:text-indigo-500')
+                                      ? (isMe ? 'opacity-100 text-indigo-200' : 'opacity-100 text-indigo-500 dark:text-indigo-400')
+                                      : 'opacity-0 group-hover:opacity-100 ' + (isMe ? 'text-indigo-300 hover:text-white' : 'text-slate-400 dark:text-slate-500 hover:text-indigo-500 dark:hover:text-indigo-400')
                                   }`}
                                 >
                                   <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill={pinnedIds.includes(msg._id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/></svg>
@@ -797,7 +797,7 @@ export default function CommunityChat() {
                               {(isMe || session?.user?.role === "admin") && msg._id && !msg.isOptimistic && (
                                 <button
                                   onClick={() => handleDeleteMessage(msg._id)}
-                                  className="opacity-0 group-hover:opacity-100 transition-opacity ml-0.5 text-rose-300 hover:text-rose-500 focus:outline-none"
+                                  className="opacity-0 group-hover:opacity-100 transition-opacity ml-0.5 text-rose-300 hover:text-rose-500 dark:hover:text-rose-400 focus:outline-none"
                                   title="Delete message"
                                 >
                                   <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /></svg>
@@ -833,24 +833,24 @@ export default function CommunityChat() {
         </div>
 
         {/* Input Bar Area */}
-        <div className="bg-white border-t border-slate-200 px-4 py-3 sm:px-6 sm:py-4 w-full z-20 shrink-0 relative">
+        <div className="bg-white dark:bg-slate-900/50 border-t border-slate-200 dark:border-slate-700/80 px-4 py-3 sm:px-6 sm:py-4 w-full z-20 shrink-0 relative">
 
           {/* Active File Preview */}
           {attachedFile && (
-            <div className="absolute bottom-full left-0 w-full bg-white border-t border-slate-200 p-3 flex items-center justify-between shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.03)] z-10 px-4 sm:px-6">
+            <div className="absolute bottom-full left-0 w-full bg-white dark:bg-slate-900/50 border-t border-slate-200 dark:border-slate-700/80 p-3 flex items-center justify-between shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.03)] z-10 px-4 sm:px-6">
               <div className="flex items-center gap-3 overflow-hidden">
-                <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center border border-indigo-100 shrink-0 shadow-sm text-2xl">
+                <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-xl flex items-center justify-center border border-indigo-100 dark:border-indigo-900/50 shrink-0 shadow-sm text-2xl">
                   {isImage(attachedFile.name, attachedFile.type) ? "🖼️" : getFileIcon(attachedFile.name)}
                 </div>
                 <div className="flex flex-col overflow-hidden max-w-[200px] sm:max-w-md">
-                  <span className="text-sm font-bold text-slate-800 truncate">{attachedFile.name}</span>
-                  <span className="text-xs text-slate-500 font-bold tracking-tight">{(attachedFile.size / 1024 / 1024).toFixed(2)} MB • Ready to send</span>
+                  <span className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate">{attachedFile.name}</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400 font-bold tracking-tight">{(attachedFile.size / 1024 / 1024).toFixed(2)} MB • Ready to send</span>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={clearAttachment}
-                className="w-9 h-9 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-red-100 hover:text-red-500 transition-colors shrink-0 shadow-sm"
+                className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center hover:bg-red-100 dark:hover:bg-red-900/40 hover:text-red-500 dark:hover:text-red-400 transition-colors shrink-0 shadow-sm"
                 title="Remove attachment"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -859,12 +859,12 @@ export default function CommunityChat() {
           )}
 
           {/* Input Form Loop */}
-          <form onSubmit={(e) => handleSendMessage(e, false)} className="max-w-5xl mx-auto flex items-end gap-2 sm:gap-3 w-full bg-slate-100 p-1.5 sm:p-2 rounded-3xl border border-transparent transition-all focus-within:border-indigo-300 focus-within:bg-white focus-within:shadow-[0_2px_15px_-3px_rgba(99,102,241,0.15)] relative">
+          <form onSubmit={(e) => handleSendMessage(e, false)} className="max-w-5xl mx-auto flex items-end gap-2 sm:gap-3 w-full bg-slate-100 dark:bg-slate-800 p-1.5 sm:p-2 rounded-3xl border border-transparent transition-all focus-within:border-indigo-300 focus-within:bg-white focus-within:shadow-[0_2px_15px_-3px_rgba(99,102,241,0.15)] relative">
 
             <button
               type="button"
               onClick={handleAttachClick}
-              className="p-2 sm:p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors shrink-0 outline-none"
+              className="p-2 sm:p-2.5 text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-xl transition-colors shrink-0 outline-none"
               title="Attach File"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="rotate-45 sm:w-[22px] sm:h-[22px]"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" /></svg>
@@ -893,7 +893,7 @@ export default function CommunityChat() {
                 }}
                 disabled={isUploading}
                 placeholder={isUploading ? "Sending..." : "Type a message..."}
-                className="w-full bg-transparent border-none focus:ring-0 text-slate-800 placeholder-slate-400 text-[15px] resize-none pb-0.5 pt-1.5 px-1 sm:px-2 block custom-scrollbar leading-relaxed"
+                className="w-full bg-transparent border-none focus:ring-0 text-slate-800 dark:text-slate-200 placeholder-slate-400 text-[15px] resize-none pb-0.5 pt-1.5 px-1 sm:px-2 block custom-scrollbar leading-relaxed"
                 rows={Math.min(Math.max(newMessage.split('\n').length, 1), 4)}
                 style={{ minHeight: '40px', maxHeight: '120px' }}
               />
@@ -907,7 +907,7 @@ export default function CommunityChat() {
                   onClick={(e) => handleSendMessage(e, true)}
                   disabled={isUploading || (!newMessage.trim() && !attachedFile)}
                   title="Send Special Notice"
-                  className="p-2 sm:p-2.5 bg-amber-100 text-amber-600 hover:bg-amber-500 hover:text-white rounded-xl transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed hidden sm:flex items-center justify-center group mr-2"
+                  className="p-2 sm:p-2.5 bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500 hover:text-white rounded-xl transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed hidden sm:flex items-center justify-center group mr-2"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover:animate-bounce sm:w-[22px] sm:h-[22px]"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                 </button>
@@ -938,11 +938,11 @@ export default function CommunityChat() {
 
       {/* ── Delete Confirmation Modal ── */}
       {confirmModal.open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 border border-slate-100 animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900 dark:bg-slate-950 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900/50 rounded-2xl shadow-2xl w-full max-w-sm p-6 border border-slate-100 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-200">
 
             {/* Icon */}
-            <div className="flex items-center justify-center w-14 h-14 rounded-full bg-red-100 text-red-600 mb-5 mx-auto">
+            <div className="flex items-center justify-center w-14 h-14 rounded-full bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 mb-5 mx-auto">
               <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="3 6 5 6 21 6"></polyline>
                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -951,21 +951,21 @@ export default function CommunityChat() {
               </svg>
             </div>
 
-            <h3 className="text-xl font-bold text-center text-slate-900 mb-2">Delete Message</h3>
-            <p className="text-center text-slate-500 text-sm mb-7">
+            <h3 className="text-xl font-bold text-center text-slate-900 dark:text-white mb-2">Delete Message</h3>
+            <p className="text-center text-slate-500 dark:text-slate-400 text-sm mb-7">
               This message will be permanently removed and cannot be recovered.
             </p>
 
             <div className="flex gap-3">
               <button
                 onClick={() => setConfirmModal({ open: false, messageId: null })}
-                className="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl text-slate-700 font-semibold hover:bg-slate-50 transition-colors"
+                className="flex-1 px-4 py-2.5 border border-slate-200 dark:border-slate-700/80 rounded-xl text-slate-700 dark:text-slate-300 font-semibold hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={executeDelete}
-                className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-colors shadow-sm shadow-red-200 focus:ring-4 focus:ring-red-100"
+                className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-colors shadow-sm shadow-red-200 focus:ring-4 focus:ring-red-100 dark:focus:ring-red-900/50"
               >
                 Delete
               </button>

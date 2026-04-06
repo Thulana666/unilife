@@ -27,7 +27,7 @@ export default function NotesSemesterGrid() {
   if (status === 'loading') {
     return (
       <div className="flex justify-center items-center py-20 min-h-[40vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-200 border-t-indigo-600 shadow-sm"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-200 dark:border-indigo-800/50 border-t-indigo-600 shadow-sm"></div>
       </div>
     );
   }
@@ -36,23 +36,23 @@ export default function NotesSemesterGrid() {
     <div className="space-y-6">
 
       {/* Header Section */}
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col xl:flex-row items-start xl:items-center justify-between gap-6 w-full relative overflow-hidden">
-        <div className="absolute -right-10 -top-10 w-40 h-40 bg-indigo-50 rounded-full mix-blend-multiply opacity-70"></div>
+      <div className="bg-white dark:bg-slate-900/50 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col xl:flex-row items-start xl:items-center justify-between gap-6 w-full relative overflow-hidden">
+        <div className="absolute -right-10 -top-10 w-40 h-40 bg-indigo-50 dark:bg-indigo-900/20 rounded-full mix-blend-multiply opacity-70"></div>
         <div className="relative z-10 w-full xl:w-auto">
           <div className="flex items-center gap-3 mb-2">
             <button
               onClick={() => router.push('/dashboard')}
-              className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors shrink-0"
+              className="p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors shrink-0"
               title="Go back"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
             </button>
-            <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-xl flex justify-center items-center shadow-sm">
+            <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 rounded-xl flex justify-center items-center shadow-sm">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>
             </div>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-slate-800 tracking-tight">Academic Semesters</h1>
+            <h1 className="text-2xl md:text-3xl font-extrabold text-slate-800 dark:text-slate-200 tracking-tight">Academic Semesters</h1>
           </div>
-          <p className="text-slate-500 text-sm md:text-base max-w-2xl font-medium leading-relaxed">
+          <p className="text-slate-500 dark:text-slate-400 text-sm md:text-base max-w-2xl font-medium leading-relaxed">
             Select a specific semester to view its modules, read course materials, or upload new notes.
           </p>
         </div>
@@ -64,17 +64,17 @@ export default function NotesSemesterGrid() {
           <Link
             href={`/dashboard/${sem.id}/notes`}
             key={sem.id}
-            className={`group bg-white rounded-3xl p-6 border shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden flex flex-col justify-between min-h-[160px] ${currentSemId === sem.id ? 'border-indigo-300 ring-2 ring-indigo-50/50' : 'border-slate-200'}`}
+            className={`group bg-white dark:bg-slate-900/50 rounded-3xl p-6 border shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden flex flex-col justify-between min-h-[160px] ${currentSemId === sem.id ? 'border-indigo-300 dark:border-indigo-700/50 ring-2 ring-indigo-50/50' : 'border-slate-200 dark:border-slate-700/80'}`}
           >
             <div className="absolute -right-8 -top-8 w-24 h-24 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-full transition-transform group-hover:scale-150 duration-500 z-0 opacity-60"></div>
 
             <div className="relative z-10 flex flex-col h-full">
               <div className="flex justify-between items-start mb-4">
-                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm transition-colors ${currentSemId === sem.id ? 'bg-indigo-600 text-white' : 'bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white'}`}>
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm transition-colors ${currentSemId === sem.id ? 'bg-indigo-600 text-white' : 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 group-hover:bg-indigo-600 group-hover:text-white'}`}>
                   <span className="font-extrabold text-lg">{sem.id}</span>
                 </div>
                 {currentSemId === sem.id && (
-                  <span className="bg-indigo-100 text-indigo-700 text-xs font-bold py-1 px-3 rounded-full flex items-center gap-1.5 shadow-sm">
+                  <span className="bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 text-xs font-bold py-1 px-3 rounded-full flex items-center gap-1.5 shadow-sm">
                     <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></span>
                     Current
                   </span>
@@ -82,10 +82,10 @@ export default function NotesSemesterGrid() {
               </div>
 
               <div className="mt-auto pt-2">
-                <h2 className="text-xl font-extrabold text-slate-800 group-hover:text-indigo-700 transition-colors tracking-tight">{sem.short}</h2>
-                <p className="text-sm font-medium text-slate-500 mt-1">{sem.name}</p>
+                <h2 className="text-xl font-extrabold text-slate-800 dark:text-slate-200 group-hover:text-indigo-700 dark:group-hover:text-indigo-300 transition-colors tracking-tight">{sem.short}</h2>
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">{sem.name}</p>
 
-                <div className="flex items-center gap-2 mt-4 text-sm font-bold text-indigo-600 opacity-0 group-hover:opacity-100 transform translate-x-[-10px] group-hover:translate-x-0 transition-all duration-300">
+                <div className="flex items-center gap-2 mt-4 text-sm font-bold text-indigo-600 dark:text-indigo-400 opacity-0 group-hover:opacity-100 transform translate-x-[-10px] group-hover:translate-x-0 transition-all duration-300">
                   <span>Open Modules</span>
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                 </div>

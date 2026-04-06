@@ -79,34 +79,34 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 font-sans p-4 py-10">
-      <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 font-sans p-4 py-10">
+      <div className="bg-white dark:bg-slate-900/50 p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100 dark:border-slate-800">
 
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-indigo-600 rounded-2xl mx-auto flex items-center justify-center mb-4 shadow-md transform -rotate-3">
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" y1="8" x2="19" y2="14"></line><line x1="22" y1="11" x2="16" y2="11"></line></svg>
           </div>
-          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Create UniLife Account</h1>
-          <p className="text-sm text-slate-500 mt-1 font-medium">Join the Smart Student Platform</p>
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-200 tracking-tight">Create UniLife Account</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">Join the Smart Student Platform</p>
         </div>
 
 
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100 text-center font-medium">
+          <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm rounded-lg border border-red-100 dark:border-red-900/50 text-center font-medium">
             {error}
           </div>
         )}
 
         {success && (
-          <div className="mb-4 p-3 bg-green-50 text-green-700 text-sm rounded-lg border border-green-100 text-center font-medium">
+          <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 text-sm rounded-lg border border-green-100 dark:border-green-900/50 text-center font-medium">
             {success}
           </div>
         )}
 
         <form onSubmit={handleRegister} className="space-y-4">
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1">
+            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">
               Full Name
             </label>
             <input
@@ -115,12 +115,12 @@ export default function RegisterPage() {
               onChange={(e) => setName(e.target.value)}
               placeholder="John Doe"
               required
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all placeholder:text-slate-400"
+              className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all placeholder:text-slate-400"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1">
+            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">
               SLIIT Email
             </label>
             <input
@@ -129,12 +129,12 @@ export default function RegisterPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@my.sliit.lk"
               required
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all placeholder:text-slate-400"
+              className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all placeholder:text-slate-400"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1">
+            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">
               Password
             </label>
             <div className="relative">
@@ -144,12 +144,12 @@ export default function RegisterPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 required
-                className="w-full px-4 py-3 pr-12 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all placeholder:text-slate-400"
+                className="w-full px-4 py-3 pr-12 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all placeholder:text-slate-400"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
-                className="absolute inset-y-0 right-0 flex items-center px-3 text-slate-400 hover:text-indigo-600 transition-colors"
+                className="absolute inset-y-0 right-0 flex items-center px-3 text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                 tabIndex={-1}
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
@@ -165,8 +165,8 @@ export default function RegisterPage() {
               className="overflow-hidden transition-all duration-500 ease-in-out" 
               style={{ maxHeight: password ? '200px' : '0', opacity: password ? 1 : 0, marginTop: password ? '12px' : '0' }}
             >
-              <div className="space-y-4 bg-white border border-slate-200 p-4 rounded-xl shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)]">
-                <div className="flex gap-1.5 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+              <div className="space-y-4 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/80 p-4 rounded-xl shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)]">
+                <div className="flex gap-1.5 h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                   {[1, 2, 3, 4, 5].map((index) => (
                     <div
                       key={index}
@@ -186,13 +186,13 @@ export default function RegisterPage() {
                   {requirements.map((req, idx) => {
                     const isMet = req.regex.test(password);
                     return (
-                      <div key={idx} className={`flex items-center gap-2.5 text-xs font-semibold transition-colors duration-300 ${isMet ? "text-slate-700" : "text-slate-400"}`}>
+                      <div key={idx} className={`flex items-center gap-2.5 text-xs font-semibold transition-colors duration-300 ${isMet ? "text-slate-700 dark:text-slate-300" : "text-slate-400 dark:text-slate-500"}`}>
                         {isMet ? (
-                          <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-600"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                          <div className="w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-600 dark:text-emerald-400"><polyline points="20 6 9 17 4 12"></polyline></svg>
                           </div>
                         ) : (
-                          <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                          <div className="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
                             <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
                           </div>
                         )}
@@ -207,39 +207,39 @@ export default function RegisterPage() {
 
           <div className="flex gap-4 pt-1">
             <div className="flex-1">
-              <label className="block text-sm font-semibold text-slate-700 mb-1">
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">
                 Year
               </label>
               <div className="relative">
                 <select
                   value={year}
                   onChange={(e) => setYear(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all appearance-none font-medium"
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all appearance-none font-medium"
                 >
                   <option value="1">Year 1</option>
                   <option value="2">Year 2</option>
                   <option value="3">Year 3</option>
                   <option value="4">Year 4</option>
                 </select>
-                <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-slate-500">
+                <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-slate-500 dark:text-slate-400">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
                 </div>
               </div>
             </div>
             <div className="flex-1">
-              <label className="block text-sm font-semibold text-slate-700 mb-1">
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">
                 Semester
               </label>
               <div className="relative">
                 <select
                   value={semester}
                   onChange={(e) => setSemester(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all appearance-none font-medium"
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all appearance-none font-medium"
                 >
                   <option value="1">Semester 1</option>
                   <option value="2">Semester 2</option>
                 </select>
-                <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-slate-500">
+                <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-slate-500 dark:text-slate-400">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
                 </div>
               </div>
@@ -261,9 +261,9 @@ export default function RegisterPage() {
         </form>
 
         <div className="mt-8 text-center">
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-slate-600 dark:text-slate-400">
             Already have an account?{" "}
-            <Link href="/login" className="font-semibold text-indigo-600 hover:text-indigo-700 hover:underline transition-colors">
+            <Link href="/login" className="font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 hover:underline transition-colors">
               Login
             </Link>
           </p>

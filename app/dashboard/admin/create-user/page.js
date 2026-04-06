@@ -117,10 +117,10 @@ export default function CreateUser() {
 
   if (status === "loading") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="flex flex-col items-center gap-4">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
-          <p className="text-gray-500 font-medium animate-pulse">Checking Access...</p>
+          <p className="text-gray-500 dark:text-gray-400 font-medium animate-pulse">Checking Access...</p>
         </div>
       </div>
     );
@@ -131,14 +131,14 @@ export default function CreateUser() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 font-sans py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
 
         {/* Back Button */}
         <div className="mb-6">
           <Link
             href="/dashboard/admin"
-            className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800 font-medium transition-colors"
+            className="inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-200 font-medium transition-colors"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
             Back to Admin Dashboard
@@ -147,26 +147,26 @@ export default function CreateUser() {
 
         {/* Header Section */}
         <div className="mb-8 text-center sm:text-left">
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">Create New User</h1>
-          <p className="text-slate-500 mt-2 text-lg">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">Create New User</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-2 text-lg">
             Admin can create student, lecturer, or admin accounts
           </p>
         </div>
 
         {/* Form Card */}
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden">
+        <div className="bg-white dark:bg-slate-900/50 rounded-2xl shadow-lg border border-slate-100 dark:border-slate-800 overflow-hidden">
           <div className="p-8 sm:p-10">
 
             {/* Alert Messages */}
             {error && (
-              <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-start gap-3">
+              <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 text-red-700 dark:text-red-300 px-4 py-3 rounded-xl flex items-start gap-3">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
                 <span>{error}</span>
               </div>
             )}
 
             {success && (
-              <div className="mb-6 bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl flex items-start gap-3">
+              <div className="mb-6 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 text-emerald-700 dark:text-emerald-300 px-4 py-3 rounded-xl flex items-start gap-3">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
                 <span>{success}</span>
               </div>
@@ -176,7 +176,7 @@ export default function CreateUser() {
 
               {/* Role Selection (Radio Buttons styled as pills) */}
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-3">
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
                   Account Type
                 </label>
                 <div className="grid grid-cols-3 gap-3">
@@ -187,8 +187,8 @@ export default function CreateUser() {
                       onClick={() => handleRoleChange(role)}
                       className={`py-3 px-4 border rounded-xl text-sm font-medium transition-all duration-200 flex flex-col items-center gap-1
                         ${formData.role === role
-                          ? 'border-indigo-600 bg-indigo-50 text-indigo-700 ring-1 ring-indigo-600'
-                          : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:border-slate-300'
+                          ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 ring-1 ring-indigo-600'
+                          : 'border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-900/50 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-600/80'
                         }`}
                     >
                       <span className="capitalize">{role}</span>
@@ -198,9 +198,9 @@ export default function CreateUser() {
               </div>
 
               {/* Basic Info Fields */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100 dark:border-slate-800">
                 <div className="md:col-span-2">
-                  <label htmlFor="name" className="block text-sm font-semibold text-slate-700 mb-1.5">
+                  <label htmlFor="name" className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                     Full Name
                   </label>
                   <input
@@ -210,13 +210,13 @@ export default function CreateUser() {
                     value={formData.name}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors text-slate-900"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600/80 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors text-slate-900 dark:text-white"
                     placeholder="Enter full name"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="email" className="block text-sm font-semibold text-slate-700 mb-1.5">
+                  <label htmlFor="email" className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                     Email Address
                   </label>
                   <input
@@ -226,13 +226,13 @@ export default function CreateUser() {
                     value={formData.email}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors text-slate-900"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600/80 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors text-slate-900 dark:text-white"
                     placeholder="university@example.com"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="password" className="block text-sm font-semibold text-slate-700 mb-1.5">
+                  <label htmlFor="password" className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                     Temporary Password
                   </label>
                   <div className="relative">
@@ -243,13 +243,13 @@ export default function CreateUser() {
                       value={formData.password}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-2.5 pr-12 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors text-slate-900"
+                      className="w-full px-4 py-2.5 pr-12 rounded-xl border border-slate-300 dark:border-slate-600/80 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors text-slate-900 dark:text-white"
                       placeholder="••••••••"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword((v) => !v)}
-                      className="absolute inset-y-0 right-0 flex items-center px-3 text-slate-400 hover:text-indigo-600 transition-colors"
+                      className="absolute inset-y-0 right-0 flex items-center px-3 text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                       tabIndex={-1}
                       aria-label={showPassword ? "Hide password" : "Show password"}
                     >
@@ -266,8 +266,8 @@ export default function CreateUser() {
                     className="overflow-hidden transition-all duration-500 ease-in-out" 
                     style={{ maxHeight: formData.password ? '250px' : '0', opacity: formData.password ? 1 : 0, marginTop: formData.password ? '12px' : '0' }}
                   >
-                    <div className="space-y-4 bg-white border border-slate-200 p-4 rounded-xl shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)]">
-                      <div className="flex gap-1.5 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                    <div className="space-y-4 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/80 p-4 rounded-xl shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)]">
+                      <div className="flex gap-1.5 h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                         {[1, 2, 3, 4, 5].map((index) => (
                           <div
                             key={index}
@@ -287,13 +287,13 @@ export default function CreateUser() {
                         {requirements.map((req, idx) => {
                           const isMet = req.regex.test(formData.password);
                           return (
-                            <div key={idx} className={`flex items-center gap-2.5 text-xs font-semibold transition-colors duration-300 ${isMet ? "text-slate-700" : "text-slate-400"}`}>
+                            <div key={idx} className={`flex items-center gap-2.5 text-xs font-semibold transition-colors duration-300 ${isMet ? "text-slate-700 dark:text-slate-300" : "text-slate-400 dark:text-slate-500"}`}>
                               {isMet ? (
-                                <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-600"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                <div className="w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center shrink-0">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-600 dark:text-emerald-400"><polyline points="20 6 9 17 4 12"></polyline></svg>
                                 </div>
                               ) : (
-                                <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                                <div className="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
                                   <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
                                 </div>
                               )}
@@ -309,9 +309,9 @@ export default function CreateUser() {
 
               {/* Conditional Academic Fields (For Students Only) */}
               {formData.role === "student" && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100 bg-slate-50 -mx-8 px-8 pb-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 -mx-8 px-8 pb-4">
                   <div>
-                    <label htmlFor="year" className="block text-sm font-semibold text-slate-700 mb-1.5">
+                    <label htmlFor="year" className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       Academic Year
                     </label>
                     <select
@@ -319,7 +319,7 @@ export default function CreateUser() {
                       name="year"
                       value={formData.year}
                       onChange={handleChange}
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors text-slate-900"
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600/80 bg-white dark:bg-slate-900/50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors text-slate-900 dark:text-white"
                     >
                       <option value="1">Year 1</option>
                       <option value="2">Year 2</option>
@@ -329,7 +329,7 @@ export default function CreateUser() {
                   </div>
 
                   <div>
-                    <label htmlFor="semester" className="block text-sm font-semibold text-slate-700 mb-1.5">
+                    <label htmlFor="semester" className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       Semester
                     </label>
                     <select
@@ -337,7 +337,7 @@ export default function CreateUser() {
                       name="semester"
                       value={formData.semester}
                       onChange={handleChange}
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors text-slate-900"
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600/80 bg-white dark:bg-slate-900/50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors text-slate-900 dark:text-white"
                     >
                       <option value="1">Semester 1</option>
                       <option value="2">Semester 2</option>

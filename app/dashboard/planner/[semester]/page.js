@@ -1,6 +1,7 @@
 "use client";
 import { useState, use, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import { useTheme } from "../../../../context/ThemeContext";
 import { useRouter } from "next/navigation";
 
 // ── SVG Icon Components ───────────────────────────────────────────────────────
@@ -96,12 +97,22 @@ const TABS = [
   { id: "timetable", label: "7-Day View", icon: "🕒" },
 ];
 
+
+const getPriority = (isDark) => ({
+  High: { color: isDark ? "#FCA5A5" : "#EF4444", bg: isDark ? "#7F1D1D40" : "#FEF2F2", border: isDark ? "#991B1B50" : "#FECACA", label: "High", dot: "#EF4444", tasks: "Exam · Presentation · Viva", icon: "🔴" },
+  Medium: { color: isDark ? "#FCD34D" : "#F59E0B", bg: isDark ? "#78350F40" : "#FFFBEB", border: isDark ? "#92400E50" : "#FDE68A", label: "Medium", dot: "#F59E0B", tasks: "Lab Test · Quiz", icon: "🟡" },
+  Low: { color: isDark ? "#6EE7B7" : "#10B981", bg: isDark ? "#064E3B40" : "#ECFDF5", border: isDark ? "#065F4650" : "#A7F3D0", label: "Low", dot: "#10B981", tasks: "Revision", icon: "🟢" },
+});
+
 export default function StudyPlanner({ params }) {
   const resolvedParams = use(params);
   const semester = resolvedParams.semester;
   const { data: session } = useSession();
   const router = useRouter();
   const currentUserEmail = session?.user?.email;
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
+  const PRIORITY_DATA = getPriority(isDark);
 
   const semesterLabel = (() => {
     const match = semester?.match(/year(\d+)semester(\d+)/i);
@@ -215,7 +226,7 @@ export default function StudyPlanner({ params }) {
   const monthName = currentDate.toLocaleString("default", { month: "long", year: "numeric" });
 
   return (
-    <div style={{ fontFamily: "'Inter', 'Segoe UI', sans-serif", minHeight: "100vh", background: "#F8FAFC" }}>
+    <div style={{ fontFamily: "'Inter', 'Segoe UI', sans-serif", minHeight: "100vh", background: isDark ? "#020617" : isDark ? "#020617" : "#F8FAFC" }}>
 
       {/* ── Global Styles ── */}
       <style>{`
@@ -333,7 +344,7 @@ export default function StudyPlanner({ params }) {
                 display: "flex", alignItems: "center", justifyContent: "center",
                 width: "36px", height: "36px", borderRadius: "10px",
                 background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.25)",
-                color: "white", cursor: "pointer", flexShrink: 0,
+                color: isDark ? "#0f172a" : "white", cursor: "pointer", flexShrink: 0,
               }}
               title="Go back"
             >
@@ -345,12 +356,12 @@ export default function StudyPlanner({ params }) {
                   YEAR {semesterLabel.year} · SEM {semesterLabel.sem}
                 </span>
               </div>
-              <h1 style={{ margin: 0, fontSize: "26px", fontWeight: 900, color: "white", letterSpacing: "-0.02em", lineHeight: 1.2 }}>Study Planner</h1>
+              <h1 style={{ margin: 0, fontSize: "26px", fontWeight: 900, color: isDark ? "#0f172a" : "white", letterSpacing: "-0.02em", lineHeight: 1.2 }}>Study Planner</h1>
             </div>
           </div>
           <button onClick={openCreate} className="planner-btn" style={{
             display: "flex", alignItems: "center", gap: "7px",
-            background: "white", color: "#4F46E5", border: "none",
+            background: isDark ? "#0f172a" : "white", color: "#4F46E5", border: "none",
             padding: "10px 18px", borderRadius: "10px", fontWeight: 700, fontSize: "13px",
             cursor: "pointer", boxShadow: "0 4px 16px rgba(0,0,0,0.15)", flexShrink: 0
           }}>
@@ -364,7 +375,7 @@ export default function StudyPlanner({ params }) {
             <span style={{ fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,0.75)", letterSpacing: "0.06em", textTransform: "uppercase" }}>Weekly Progress</span>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <span style={{ fontSize: "11px", fontWeight: 600, color: "rgba(255,255,255,0.6)" }}>{completed}/{tasks.length} done</span>
-              <span style={{ fontSize: "20px", fontWeight: 900, color: "white", lineHeight: 1 }}>{progress}%</span>
+              <span style={{ fontSize: "20px", fontWeight: 900, color: isDark ? "#0f172a" : "white", lineHeight: 1 }}>{progress}%</span>
             </div>
           </div>
           {/* Progress track */}
@@ -394,16 +405,16 @@ export default function StudyPlanner({ params }) {
           <div style={{ width: "240px", flexShrink: 0, display: "flex", flexDirection: "column", gap: "16px", order: 2 }}>
 
             {/* Priority Guide — floating popup */}
-            <div className="sidebar-card" style={{ background: "white", borderRadius: "20px", border: "1px solid rgba(99,102,241,0.15)", overflow: "hidden", boxShadow: "0 8px 32px rgba(99,102,241,0.13), 0 2px 8px rgba(0,0,0,0.06)" }}>
+            <div className="sidebar-card" style={{ background: isDark ? "#0f172a" : "white", borderRadius: "20px", border: "1px solid rgba(99,102,241,0.15)", overflow: "hidden", boxShadow: "0 8px 32px rgba(99,102,241,0.13), 0 2px 8px rgba(0,0,0,0.06)" }}>
               <div style={{ padding: "12px 16px", background: "linear-gradient(135deg,#F5F3FF,#EEF2FF)", borderBottom: "1px solid rgba(99,102,241,0.12)" }}>
                 <span style={{ fontSize: "10px", fontWeight: 900, color: "#6366F1", textTransform: "uppercase", letterSpacing: "0.12em" }}>📊 Priority Guide</span>
               </div>
-              {Object.entries(PRIORITY).map(([key, val], idx, arr) => (
+              {Object.entries(PRIORITY_DATA).map(([key, val], idx, arr) => (
                 <div key={key} style={{ padding: "11px 16px", borderBottom: idx < arr.length - 1 ? "1px solid #F8FAFC" : "none", display: "flex", alignItems: "center", gap: "10px" }}>
                   <div style={{ width: "9px", height: "9px", borderRadius: "50%", background: val.dot, flexShrink: 0, boxShadow: `0 0 8px ${val.dot}99` }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: "12px", fontWeight: 800, color: "#0F172A" }}>{key}</div>
-                    <div style={{ fontSize: "10px", fontWeight: 500, color: "#94A3B8", marginTop: "1px" }}>{val.tasks}</div>
+                    <div style={{ fontSize: "12px", fontWeight: 800, color: isDark ? "#f8fafc" : "#0F172A" }}>{key}</div>
+                    <div style={{ fontSize: "10px", fontWeight: 500, color: isDark ? "#64748b" : "#94A3B8", marginTop: "1px" }}>{val.tasks}</div>
                   </div>
                 </div>
               ))}
@@ -413,24 +424,24 @@ export default function StudyPlanner({ params }) {
             {(() => {
               const nextTask = tasks.filter(t => t.status === "Pending").sort((a, b) => new Date(a.date + " " + a.time) - new Date(b.date + " " + b.time))[0];
               if (!nextTask) return null;
-              const pri = PRIORITY[nextTask.priority] || PRIORITY.Low;
+              const pri = PRIORITY_DATA[nextTask.priority] || PRIORITY.Low;
               return (
                 <div className="sidebar-card" style={{ borderRadius: "20px", overflow: "hidden", boxShadow: `0 8px 32px ${pri.dot}30, 0 2px 8px rgba(0,0,0,0.06)`, border: `1px solid ${pri.border}` }}>
                   <div style={{ padding: "12px 16px", background: `linear-gradient(135deg,${pri.bg},white)`, borderBottom: `1px solid ${pri.border}`, display: "flex", alignItems: "center", gap: "8px" }}>
                     <span style={{ fontSize: "18px" }}>⏰</span>
                     <div>
                       <div style={{ fontSize: "10px", fontWeight: 900, color: pri.color, textTransform: "uppercase", letterSpacing: "0.1em" }}>Next Up</div>
-                      <div style={{ fontSize: "11px", fontWeight: 700, color: "#0F172A", lineHeight: 1.2, marginTop: "1px" }}>{nextTask.subject}</div>
+                      <div style={{ fontSize: "11px", fontWeight: 700, color: isDark ? "#f8fafc" : "#0F172A", lineHeight: 1.2, marginTop: "1px" }}>{nextTask.subject}</div>
                     </div>
                   </div>
-                  <div style={{ padding: "14px 16px", background: "white" }}>
-                    <div style={{ fontWeight: 700, fontSize: "13px", color: "#1E293B", marginBottom: "8px", lineHeight: 1.3 }}>{nextTask.title}</div>
+                  <div style={{ padding: "14px 16px", background: isDark ? "#0f172a" : "white" }}>
+                    <div style={{ fontWeight: 700, fontSize: "13px", color: isDark ? "#e2e8f0" : "#1E293B", marginBottom: "8px", lineHeight: 1.3 }}>{nextTask.title}</div>
                     <span style={{ fontSize: "10px", fontWeight: 700, padding: "3px 9px", borderRadius: "20px", background: pri.bg, color: pri.color, border: `1px solid ${pri.border}`, display: "inline-block", marginBottom: "10px" }}>{nextTask.priority}</span>
                     <div style={{ display: "flex", flexDirection: "column", gap: "4px", marginBottom: "12px" }}>
-                      <div style={{ fontSize: "11px", color: "#64748B", display: "flex", alignItems: "center", gap: "5px", fontWeight: 500 }}><IconCalendar /> {nextTask.date} · {relDate(nextTask.date)}</div>
-                      <div style={{ fontSize: "11px", color: "#64748B", display: "flex", alignItems: "center", gap: "5px", fontWeight: 500 }}><IconClock /> {nextTask.time}</div>
+                      <div style={{ fontSize: "11px", color: isDark ? "#94a3b8" : "#64748B", display: "flex", alignItems: "center", gap: "5px", fontWeight: 500 }}><IconCalendar /> {nextTask.date} · {relDate(nextTask.date)}</div>
+                      <div style={{ fontSize: "11px", color: isDark ? "#94a3b8" : "#64748B", display: "flex", alignItems: "center", gap: "5px", fontWeight: 500 }}><IconClock /> {nextTask.time}</div>
                       {nextTask.venue && (
-                        <div style={{ fontSize: "11px", color: "#64748B", display: "flex", alignItems: "center", gap: "5px", fontWeight: 500 }}><IconMapPin /> {nextTask.venue}</div>
+                        <div style={{ fontSize: "11px", color: isDark ? "#94a3b8" : "#64748B", display: "flex", alignItems: "center", gap: "5px", fontWeight: 500 }}><IconMapPin /> {nextTask.venue}</div>
                       )}
                     </div>
                     {nextTask.createdBy === currentUserEmail && (
@@ -446,28 +457,28 @@ export default function StudyPlanner({ params }) {
           <div style={{ flex: 1, minWidth: 0 }}>
 
             {/* Filters Bar */}
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginBottom: "16px", background: "white", padding: "12px 16px", borderRadius: "14px", border: "1px solid #E2E8F0", alignItems: "center" }}>
-              <input type="text" placeholder="Search tasks..." value={search} onChange={e => setSearch(e.target.value)} style={{ flex: 1, minWidth: "160px", padding: "8px 12px", borderRadius: "8px", border: "1px solid #CBD5E1", fontSize: "13px", color: "black", outline: "none" }} />
-              <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={{ padding: "8px 10px", borderRadius: "8px", border: "1px solid #CBD5E1", fontSize: "13px", color: "black", outline: "none", cursor: "pointer", background: "white" }}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginBottom: "16px", background: isDark ? "#0f172a" : "white", padding: "12px 16px", borderRadius: "14px", border: `1px solid ${isDark ? "#334155" : "#E2E8F0"}`, alignItems: "center" }}>
+              <input type="text" placeholder="Search tasks..." value={search} onChange={e => setSearch(e.target.value)} style={{ flex: 1, minWidth: "160px", padding: "8px 12px", borderRadius: "8px", border: `1px solid ${isDark ? "#475569" : "#CBD5E1"}`, fontSize: "13px", color: isDark ? "white" : "black", outline: "none", background: isDark ? "#0f172a" : "white" }} />
+              <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={{ padding: "8px 10px", borderRadius: "8px", border: `1px solid ${isDark ? "#475569" : "#CBD5E1"}`, fontSize: "13px", color: isDark ? "white" : "black", outline: "none", cursor: "pointer", background: isDark ? "#0f172a" : "white" }}>
                 <option value="all">Any Status</option><option value="Pending">Pending</option><option value="Completed">Completed</option>
               </select>
-              <select value={filterPriority} onChange={e => setFilterPriority(e.target.value)} style={{ padding: "8px 10px", borderRadius: "8px", border: "1px solid #CBD5E1", fontSize: "13px", color: "black", outline: "none", cursor: "pointer", background: "white" }}>
+              <select value={filterPriority} onChange={e => setFilterPriority(e.target.value)} style={{ padding: "8px 10px", borderRadius: "8px", border: `1px solid ${isDark ? "#475569" : "#CBD5E1"}`, fontSize: "13px", color: isDark ? "white" : "black", outline: "none", cursor: "pointer", background: isDark ? "#0f172a" : "white" }}>
                 <option value="all">Any Priority</option><option value="High">High</option><option value="Medium">Medium</option><option value="Low">Low</option>
               </select>
-              <select value={filterSubject} onChange={e => setFilterSubject(e.target.value)} style={{ padding: "8px 10px", borderRadius: "8px", border: "1px solid #CBD5E1", fontSize: "13px", color: "black", outline: "none", cursor: "pointer", background: "white", maxWidth: "120px", textOverflow: "ellipsis" }}>
+              <select value={filterSubject} onChange={e => setFilterSubject(e.target.value)} style={{ padding: "8px 10px", borderRadius: "8px", border: `1px solid ${isDark ? "#475569" : "#CBD5E1"}`, fontSize: "13px", color: isDark ? "white" : "black", outline: "none", cursor: "pointer", background: isDark ? "#0f172a" : "white", maxWidth: "120px", textOverflow: "ellipsis" }}>
                 <option value="all">Any Subject</option>{subjects.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
 
             {/* Tab Bar */}
-            <div style={{ display: "flex", gap: "4px", background: "#F1F5F9", borderRadius: "12px", padding: "4px", marginBottom: "20px", width: "fit-content" }}>
+            <div style={{ display: "flex", gap: "4px", background: isDark ? "#1e293b" : "#F1F5F9", borderRadius: "12px", padding: "4px", marginBottom: "20px", width: "fit-content" }}>
               {TABS.map(tab => (
                 <button key={tab.id} onClick={() => setView(tab.id)} className="tab-btn" style={{
                   display: "flex", alignItems: "center", gap: "6px",
                   padding: "9px 18px", borderRadius: "9px", border: "none", cursor: "pointer",
                   fontWeight: 600, fontSize: "13px",
-                  background: view === tab.id ? "white" : "transparent",
-                  color: view === tab.id ? "#4F46E5" : "#64748B",
+                  background: view === tab.id ? isDark ? "#0f172a" : "white" : "transparent",
+                  color: view === tab.id ? "#4F46E5" : isDark ? "#94a3b8" : "#64748B",
                   boxShadow: view === tab.id ? "0 2px 8px rgba(0,0,0,0.08)" : "none",
                 }}>
                   <span>{tab.icon}</span> {tab.label}
@@ -480,14 +491,14 @@ export default function StudyPlanner({ params }) {
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                 {filteredTasks.length === 0 ? (
                   <div style={{
-                    background: "white", borderRadius: "16px", padding: "60px 40px",
-                    textAlign: "center", border: "2px dashed #E2E8F0"
+                    background: isDark ? "#0f172a" : "white", borderRadius: "16px", padding: "60px 40px",
+                    textAlign: "center", border: `2px dashed ${isDark ? "#334155" : "#E2E8F0"}`
                   }}>
                     <div style={{ fontSize: "48px", marginBottom: "12px" }}>📭</div>
-                    <p style={{ margin: 0, fontWeight: 700, color: "#1E293B", fontSize: "16px" }}>No tasks found</p>
-                    <p style={{ margin: "6px 0 20px", color: "#94A3B8", fontSize: "14px" }}>Try adjusting your filters or add a new task</p>
+                    <p style={{ margin: 0, fontWeight: 700, color: isDark ? "#e2e8f0" : "#1E293B", fontSize: "16px" }}>No tasks found</p>
+                    <p style={{ margin: "6px 0 20px", color: isDark ? "#64748b" : "#94A3B8", fontSize: "14px" }}>Try adjusting your filters or add a new task</p>
                     <button onClick={openCreate} className="planner-btn" style={{
-                      background: "#4F46E5", color: "white", border: "none",
+                      background: "#4F46E5", color: isDark ? "#0f172a" : "white", border: "none",
                       padding: "10px 20px", borderRadius: "10px", fontWeight: 600, fontSize: "13px", cursor: "pointer"
                     }}>
                       + Add Task
@@ -495,30 +506,30 @@ export default function StudyPlanner({ params }) {
                   </div>
                 ) : filteredTasks.map(t => (
                   <div key={t._id} className="task-card" style={{
-                    background: "white", borderRadius: "14px", padding: "16px 20px",
+                    background: isDark ? "#0f172a" : "white", borderRadius: "14px", padding: "16px 20px",
                     display: "flex", alignItems: "center", gap: "14px",
-                    borderLeft: `4px solid ${PRIORITY[t.priority]?.color || "#CBD5E1"}`,
-                    opacity: t.status === "Completed" ? 0.7 : 1,
+                    borderLeft: `4px solid ${PRIORITY_DATA[t.priority]?.color || (isDark ? "#475569" : "#CBD5E1")}`,
+                    opacity: t.status === "Completed" ? 0.6 : 1,
                   }}>
                     {/* Checkbox */}
                     {t.createdBy === currentUserEmail ? (
                       <button onClick={() => handleToggle(t._id, t.status)} style={{
                         width: "24px", height: "24px", borderRadius: "7px", cursor: "pointer",
-                        border: t.status === "Completed" ? "none" : "2px solid #CBD5E1",
-                        background: t.status === "Completed" ? "#10B981" : "white",
+                        border: t.status === "Completed" ? "none" : `2px solid ${isDark ? "#475569" : "#CBD5E1"}`,
+                        background: t.status === "Completed" ? "#10B981" : isDark ? "#0f172a" : "white",
                         display: "flex", alignItems: "center", justifyContent: "center",
                         flexShrink: 0, transition: "all 0.2s ease", padding: 0,
-                        color: "white"
+                        color: isDark ? "#0f172a" : "white"
                       }}>
                         {t.status === "Completed" && <IconCheck />}
                       </button>
                     ) : (
                       <div style={{
                         width: "24px", height: "24px", borderRadius: "7px",
-                        border: t.status === "Completed" ? "none" : "2px solid #E2E8F0",
-                        background: t.status === "Completed" ? "#10B981" : "#F8FAFC",
+                        border: t.status === "Completed" ? "none" : `2px solid ${isDark ? "#334155" : "#E2E8F0"}`,
+                        background: t.status === "Completed" ? "#10B981" : isDark ? "#020617" : "#F8FAFC",
                         display: "flex", alignItems: "center", justifyContent: "center",
-                        flexShrink: 0, color: "white", opacity: 0.6
+                        flexShrink: 0, color: isDark ? "#0f172a" : "white", opacity: 0.6
                       }}>
                         {t.status === "Completed" && <IconCheck />}
                       </div>
@@ -530,32 +541,32 @@ export default function StudyPlanner({ params }) {
                         <span style={{
                           fontWeight: 700, fontSize: "14px",
                           textDecoration: t.status === "Completed" ? "line-through" : "none",
-                          color: t.status === "Completed" ? "#94A3B8" : "#0F172A",
+                          color: t.status === "Completed" ? isDark ? "#64748b" : "#94A3B8" : isDark ? "#f8fafc" : "#0F172A",
                         }}>
                           {t.subject}: {t.title}
                         </span>
                         <span style={{
                           fontSize: "11px", fontWeight: 700, padding: "2px 8px", borderRadius: "6px",
-                          background: PRIORITY[t.priority]?.bg, color: PRIORITY[t.priority]?.color,
-                          border: `1px solid ${PRIORITY[t.priority]?.border}`,
+                          background: PRIORITY_DATA[t.priority]?.bg, color: PRIORITY_DATA[t.priority]?.color,
+                          border: `1px solid ${PRIORITY_DATA[t.priority]?.border}`,
                         }}>
                           {t.priority}
                         </span>
                         {t.status === "Completed" && (
-                          <span style={{ fontSize: "11px", fontWeight: 700, padding: "2px 8px", borderRadius: "6px", background: "#ECFDF5", color: "#16A34A", border: "1px solid #BBF7D0" }}>
+                          <span style={{ fontSize: "11px", fontWeight: 700, padding: "2px 8px", borderRadius: "6px", background: isDark ? "#064e3b" : "#ECFDF5", color: isDark ? "#6ee7b7" : "#16A34A", border: `1px solid ${isDark ? "#065f46" : "#BBF7D0"}` }}>
                             Done
                           </span>
                         )}
                       </div>
                       <div style={{ display: "flex", alignItems: "center", gap: "14px", flexWrap: "wrap" }}>
-                        <span style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", color: "#64748B", fontWeight: 500 }}>
-                          <IconCalendar /> {t.date} <span style={{ color: "#94A3B8" }}>·</span> {relDate(t.date)}
+                        <span style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", color: isDark ? "#94a3b8" : "#64748B", fontWeight: 500 }}>
+                          <IconCalendar /> {t.date} <span style={{ color: isDark ? "#64748b" : "#94A3B8" }}>·</span> {relDate(t.date)}
                         </span>
-                        <span style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", color: "#64748B", fontWeight: 500 }}>
+                        <span style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", color: isDark ? "#94a3b8" : "#64748B", fontWeight: 500 }}>
                           <IconClock /> {t.time}
                         </span>
                         {t.venue && (
-                          <span style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", color: "#64748B", fontWeight: 500, maxWidth: "200px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          <span style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", color: isDark ? "#94a3b8" : "#64748B", fontWeight: 500, maxWidth: "200px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                             <IconMapPin /> 
                             {t.venue.startsWith("http") ? (
                               <a href={t.venue} target="_blank" rel="noopener noreferrer" style={{ color: "#3B82F6", textDecoration: "none" }} onClick={e => e.stopPropagation()}>{t.venue}</a>
@@ -569,15 +580,15 @@ export default function StudyPlanner({ params }) {
                     {t.createdBy === currentUserEmail && (
                       <div style={{ display: "flex", gap: "6px", flexShrink: 0 }}>
                         <button className="action-btn planner-btn" onClick={() => openEdit(t)} title="Edit" style={{
-                          width: "34px", height: "34px", borderRadius: "9px", border: "1px solid #E2E8F0",
-                          background: "white", color: "#4F46E5", cursor: "pointer",
+                          width: "34px", height: "34px", borderRadius: "9px", border: `1px solid ${isDark ? "#334155" : "#E2E8F0"}`,
+                          background: isDark ? "#0f172a" : "white", color: "#4F46E5", cursor: "pointer",
                           display: "flex", alignItems: "center", justifyContent: "center"
                         }}>
                           <IconEdit />
                         </button>
                         <button className="action-btn planner-btn" onClick={() => setDeleteConfirm(t._id)} title="Delete" style={{
-                          width: "34px", height: "34px", borderRadius: "9px", border: "1px solid #E2E8F0",
-                          background: "white", color: "#EF4444", cursor: "pointer",
+                          width: "34px", height: "34px", borderRadius: "9px", border: `1px solid ${isDark ? "#334155" : "#E2E8F0"}`,
+                          background: isDark ? "#0f172a" : "white", color: "#EF4444", cursor: "pointer",
                           display: "flex", alignItems: "center", justifyContent: "center"
                         }}>
                           <IconTrash />
@@ -591,23 +602,23 @@ export default function StudyPlanner({ params }) {
 
             {/* ── CALENDAR VIEW ── */}
             {view === "calendar" && (
-              <div style={{ background: "white", borderRadius: "16px", padding: "24px", border: "1px solid #E2E8F0" }}>
+              <div style={{ background: isDark ? "#0f172a" : "white", borderRadius: "16px", padding: "24px", border: `1px solid ${isDark ? "#334155" : "#E2E8F0"}` }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
-                  <button onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1))} className="planner-btn" style={{ width: "36px", height: "36px", border: "1px solid #E2E8F0", borderRadius: "9px", background: "white", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "#374151" }}>
+                  <button onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1))} className="planner-btn" style={{ width: "36px", height: "36px", border: `1px solid ${isDark ? "#334155" : "#E2E8F0"}`, borderRadius: "9px", background: isDark ? "#0f172a" : "white", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: isDark ? "#cbd5e1" : "#374151" }}>
                     <IconChevronLeft />
                   </button>
-                  <h3 style={{ margin: 0, fontSize: "17px", fontWeight: 800, color: "#0F172A" }}>{monthName}</h3>
-                  <button onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))} className="planner-btn" style={{ width: "36px", height: "36px", border: "1px solid #E2E8F0", borderRadius: "9px", background: "white", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "#374151" }}>
+                  <h3 style={{ margin: 0, fontSize: "17px", fontWeight: 800, color: isDark ? "#f8fafc" : "#0F172A" }}>{monthName}</h3>
+                  <button onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))} className="planner-btn" style={{ width: "36px", height: "36px", border: `1px solid ${isDark ? "#334155" : "#E2E8F0"}`, borderRadius: "9px", background: isDark ? "#0f172a" : "white", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: isDark ? "#cbd5e1" : "#374151" }}>
                     <IconChevronRight />
                   </button>
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: "1px", background: "#F1F5F9", borderRadius: "12px", overflow: "hidden", border: "1px solid #E2E8F0" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: "1px", background: isDark ? "#1e293b" : "#F1F5F9", borderRadius: "12px", overflow: "hidden", border: `1px solid ${isDark ? "#334155" : "#E2E8F0"}` }}>
                   {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(d => (
-                    <div key={d} style={{ background: "#F8FAFC", padding: "10px 4px", textAlign: "center", fontSize: "11px", fontWeight: 700, color: "#94A3B8", letterSpacing: "0.05em" }}>{d}</div>
+                    <div key={d} style={{ background: isDark ? "#020617" : "#F8FAFC", padding: "10px 4px", textAlign: "center", fontSize: "11px", fontWeight: 700, color: isDark ? "#64748b" : "#94A3B8", letterSpacing: "0.05em" }}>{d}</div>
                   ))}
                   {Array.from({ length: startDay }).map((_, i) => (
-                    <div key={`e${i}`} style={{ background: "white", minHeight: "90px" }} />
+                    <div key={`e${i}`} style={{ background: isDark ? "#0f172a" : "white", minHeight: "90px" }} />
                   ))}
                   {Array.from({ length: daysInMonth }).map((_, i) => {
                     const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}-${String(i + 1).padStart(2, "0")}`;
@@ -615,20 +626,20 @@ export default function StudyPlanner({ params }) {
                     const isToday = dateStr === new Date().toISOString().split("T")[0];
                     return (
                       <div key={i} className="cal-day" style={{
-                        background: isToday ? "#EEF2FF" : "white",
+                        background: isToday ? (isDark ? "#1e1b4b" : "#EEF2FF") : (isDark ? "#0f172a" : "white"),
                         minHeight: "90px", padding: "8px", position: "relative",
                         borderTop: isToday ? "2px solid #6366F1" : "none",
                       }}>
-                        <span style={{ fontSize: "13px", fontWeight: isToday ? 800 : 500, color: isToday ? "#4F46E5" : "#374151", display: "block", marginBottom: "5px" }}>
+                        <span style={{ fontSize: "13px", fontWeight: isToday ? 800 : 500, color: isToday ? "#4F46E5" : isDark ? "#cbd5e1" : "#374151", display: "block", marginBottom: "5px" }}>
                           {i + 1}
                         </span>
                         <div style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
                           {dayTasks.slice(0, 3).map(dt => (
                             <div key={dt._id} title={`${dt.subject}: ${dt.title}`} style={{
                               fontSize: "10px", padding: "4px 6px", borderRadius: "6px",
-                              background: PRIORITY[dt.priority]?.bg,
-                              color: PRIORITY[dt.priority]?.color,
-                              borderLeft: `2px solid ${PRIORITY[dt.priority]?.dot}`,
+                              background: PRIORITY_DATA[dt.priority]?.bg,
+                              color: PRIORITY_DATA[dt.priority]?.color,
+                              borderLeft: `2px solid ${PRIORITY_DATA[dt.priority]?.dot}`,
                               fontWeight: 600,
                             }}>
                               <div style={{ fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{dt.subject}: {dt.title}</div>
@@ -636,7 +647,7 @@ export default function StudyPlanner({ params }) {
                             </div>
                           ))}
                           {dayTasks.length > 3 && (
-                            <span style={{ fontSize: "10px", color: "#94A3B8", fontWeight: 600 }}>+{dayTasks.length - 3} more</span>
+                            <span style={{ fontSize: "10px", color: isDark ? "#64748b" : "#94A3B8", fontWeight: 600 }}>+{dayTasks.length - 3} more</span>
                           )}
                         </div>
                       </div>
@@ -648,24 +659,24 @@ export default function StudyPlanner({ params }) {
 
             {/* ── 7-DAY VIEW ── */}
             {view === "timetable" && (
-              <div style={{ background: "white", borderRadius: "16px", padding: "24px", border: "1px solid #E2E8F0" }}>
-                <h3 style={{ margin: "0 0 20px", fontSize: "16px", fontWeight: 800, color: "#0F172A" }}>Weekly Schedule</h3>
+              <div style={{ background: isDark ? "#0f172a" : "white", borderRadius: "16px", padding: "24px", border: `1px solid ${isDark ? "#334155" : "#E2E8F0"}` }}>
+                <h3 style={{ margin: "0 0 20px", fontSize: "16px", fontWeight: 800, color: isDark ? "#f8fafc" : "#0F172A" }}>Weekly Schedule</h3>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: "10px" }}>
                   {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map(day => {
                     const dayTasks = filteredTasks.filter(t => t.day === day).sort((a, b) => a.time.localeCompare(b.time));
                     return (
-                      <div key={day} style={{ background: "#F8FAFC", borderRadius: "12px", overflow: "hidden", border: "1px solid #E2E8F0" }}>
-                        <div style={{ padding: "10px 8px", background: "#F1F5F9", textAlign: "center", borderBottom: "1px solid #E2E8F0" }}>
-                          <span style={{ fontSize: "11px", fontWeight: 800, color: "#374151", textTransform: "uppercase", letterSpacing: "0.08em" }}>{day.slice(0, 3)}</span>
+                      <div key={day} style={{ background: isDark ? "#020617" : "#F8FAFC", borderRadius: "12px", overflow: "hidden", border: `1px solid ${isDark ? "#334155" : "#E2E8F0"}` }}>
+                        <div style={{ padding: "10px 8px", background: isDark ? "#1e293b" : "#F1F5F9", textAlign: "center", borderBottom: `1px solid ${isDark ? "#334155" : "#E2E8F0"}` }}>
+                          <span style={{ fontSize: "11px", fontWeight: 800, color: isDark ? "#cbd5e1" : "#374151", textTransform: "uppercase", letterSpacing: "0.08em" }}>{day.slice(0, 3)}</span>
                         </div>
                         <div style={{ padding: "8px", display: "flex", flexDirection: "column", gap: "6px", minHeight: "120px" }}>
                           {dayTasks.length === 0 ? (
-                            <p style={{ fontSize: "11px", color: "#CBD5E1", fontWeight: 600, textAlign: "center", marginTop: "20px" }}>Free</p>
+                            <p style={{ fontSize: "11px", color: isDark ? "#475569" : "#CBD5E1", fontWeight: 600, textAlign: "center", marginTop: "20px" }}>Free</p>
                           ) : dayTasks.map(t => (
                             <div key={t._id} style={{
                               padding: "8px", borderRadius: "8px",
-                              background: t.status === "Completed" ? "#F0FDF4" : "white",
-                              borderLeft: `3px solid ${t.status === "Completed" ? "#10B981" : PRIORITY[t.priority]?.color}`,
+                              background: t.status === "Completed" ? (isDark ? "#064e3b" : "#F0FDF4") : (isDark ? "#0f172a" : "white"),
+                              borderLeft: `3px solid ${t.status === "Completed" ? "#10B981" : PRIORITY_DATA[t.priority]?.color}`,
                               boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
                               position: "relative"
                             }}>
@@ -674,14 +685,14 @@ export default function StudyPlanner({ params }) {
                                   position: "absolute", top: "6px", right: "6px",
                                   width: "16px", height: "16px", borderRadius: "50%",
                                   background: "linear-gradient(135deg,#10B981,#059669)",
-                                  color: "white", fontSize: "9px", fontWeight: 900,
+                                  color: isDark ? "#0f172a" : "white", fontSize: "9px", fontWeight: 900,
                                   display: "flex", alignItems: "center", justifyContent: "center",
                                   boxShadow: "0 2px 6px rgba(16,185,129,0.5)"
                                 }}>✓</span>
                               )}
                               <div style={{ fontSize: "10px", fontWeight: 800, color: t.status === "Completed" ? "#6EE7B7" : "#4F46E5", marginBottom: "3px" }}>{t.time}</div>
-                              <div style={{ fontSize: "11px", fontWeight: 700, color: t.status === "Completed" ? "#94A3B8" : "#1E293B", textDecoration: t.status === "Completed" ? "line-through" : "none" }}>{t.subject}</div>
-                              <div style={{ fontSize: "10px", color: "#94A3B8", fontWeight: 500, marginTop: "2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.title}</div>
+                              <div style={{ fontSize: "11px", fontWeight: 700, color: t.status === "Completed" ? isDark ? "#64748b" : "#94A3B8" : isDark ? "#e2e8f0" : "#1E293B", textDecoration: t.status === "Completed" ? "line-through" : "none" }}>{t.subject}</div>
+                              <div style={{ fontSize: "10px", color: isDark ? "#64748b" : "#94A3B8", fontWeight: 500, marginTop: "2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.title}</div>
                             </div>
                           ))}
                         </div>
@@ -704,19 +715,19 @@ export default function StudyPlanner({ params }) {
             display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9000
           }}>
             <div className="modal-box" onClick={e => e.stopPropagation()} style={{
-              background: "white", borderRadius: "20px", padding: "32px", width: "360px",
+              background: isDark ? "#0f172a" : "white", borderRadius: "20px", padding: "32px", width: "360px",
               boxShadow: "0 24px 64px rgba(0,0,0,0.18)", textAlign: "center"
             }}>
               <div style={{ width: "56px", height: "56px", borderRadius: "16px", background: "#FEF2F2", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", color: "#EF4444" }}>
                 <IconTrash />
               </div>
-              <h3 style={{ margin: "0 0 8px", fontSize: "18px", fontWeight: 800, color: "#0F172A" }}>Delete Task?</h3>
-              <p style={{ margin: "0 0 24px", fontSize: "14px", color: "#64748B" }}>This action cannot be undone.</p>
+              <h3 style={{ margin: "0 0 8px", fontSize: "18px", fontWeight: 800, color: isDark ? "#f8fafc" : "#0F172A" }}>Delete Task?</h3>
+              <p style={{ margin: "0 0 24px", fontSize: "14px", color: isDark ? "#94a3b8" : "#64748B" }}>This action cannot be undone.</p>
               <div style={{ display: "flex", gap: "10px" }}>
-                <button onClick={() => setDeleteConfirm(null)} className="planner-btn" style={{ flex: 1, padding: "12px", borderRadius: "10px", border: "1px solid #E2E8F0", background: "white", fontWeight: 600, fontSize: "14px", cursor: "pointer", color: "#374151" }}>
+                <button onClick={() => setDeleteConfirm(null)} className="planner-btn" style={{ flex: 1, padding: "12px", borderRadius: "10px", border: `1px solid ${isDark ? "#334155" : "#E2E8F0"}`, background: isDark ? "#0f172a" : "white", fontWeight: 600, fontSize: "14px", cursor: "pointer", color: isDark ? "#cbd5e1" : "#374151" }}>
                   Cancel
                 </button>
-                <button onClick={() => handleDelete(deleteConfirm)} className="planner-btn" style={{ flex: 1, padding: "12px", borderRadius: "10px", border: "none", background: "#EF4444", color: "white", fontWeight: 700, fontSize: "14px", cursor: "pointer" }}>
+                <button onClick={() => handleDelete(deleteConfirm)} className="planner-btn" style={{ flex: 1, padding: "12px", borderRadius: "10px", border: "none", background: "#EF4444", color: isDark ? "#0f172a" : "white", fontWeight: 700, fontSize: "14px", cursor: "pointer" }}>
                   Delete
                 </button>
               </div>
@@ -733,23 +744,23 @@ export default function StudyPlanner({ params }) {
             display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9000
           }}>
             <div className="modal-box" onClick={e => e.stopPropagation()} style={{
-              background: "white", borderRadius: "24px", padding: "32px", width: "480px",
+              background: isDark ? "#0f172a" : "white", borderRadius: "24px", padding: "32px", width: "480px",
               boxShadow: "0 24px 64px rgba(0,0,0,0.18)", maxHeight: "90vh", overflowY: "auto"
             }}>
               {/* Modal Header */}
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
                 <div>
-                  <h2 style={{ margin: 0, fontSize: "20px", fontWeight: 800, color: "#0F172A" }}>
+                  <h2 style={{ margin: 0, fontSize: "20px", fontWeight: 800, color: isDark ? "#f8fafc" : "#0F172A" }}>
                     {editingTask ? "Edit Task" : "New Task"}
                   </h2>
-                  <p style={{ margin: "4px 0 0", fontSize: "13px", color: "#94A3B8" }}>
+                  <p style={{ margin: "4px 0 0", fontSize: "13px", color: isDark ? "#64748b" : "#94A3B8" }}>
                     {editingTask ? "Update task details" : "Add a new study task"}
                   </p>
                 </div>
                 <button onClick={() => setIsModalOpen(false)} style={{
-                  width: "36px", height: "36px", border: "1px solid #E2E8F0", borderRadius: "9px",
-                  background: "white", cursor: "pointer", display: "flex", alignItems: "center",
-                  justifyContent: "center", color: "#64748B"
+                  width: "36px", height: "36px", border: `1px solid ${isDark ? "#334155" : "#E2E8F0"}`, borderRadius: "9px",
+                  background: isDark ? "#0f172a" : "white", cursor: "pointer", display: "flex", alignItems: "center",
+                  justifyContent: "center", color: isDark ? "#94a3b8" : "#64748B"
                 }}>
                   <IconClose />
                 </button>
@@ -759,62 +770,62 @@ export default function StudyPlanner({ params }) {
                 {/* Module + Date */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                   <div>
-                    <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "#374151", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Module Code</label>
+                    <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: isDark ? "#cbd5e1" : "#374151", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Module Code</label>
                     <input
                       type="text" placeholder="e.g. ITPM" required
                       value={formData.subject}
                       onChange={e => setFormData({ ...formData, subject: e.target.value.toUpperCase() })}
-                      style={{ width: "100%", padding: "11px 14px", borderRadius: "10px", border: "1.5px solid #E2E8F0", fontSize: "14px", fontWeight: 600, background: "#FAFAFA", color: "black" }}
+                      style={{ width: "100%", padding: "11px 14px", borderRadius: "10px", border: `1.5px solid ${isDark ? "#334155" : "#E2E8F0"}`, fontSize: "14px", fontWeight: 600, background: isDark ? "#1e293b" : "#FAFAFA", color: isDark ? "white" : "black" }}
                     />
                   </div>
                   <div>
-                    <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "#374151", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Date</label>
+                    <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: isDark ? "#cbd5e1" : "#374151", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Date</label>
                     <input
                       type="date" required value={formData.date}
                       onChange={e => setFormData({ ...formData, date: e.target.value })}
-                      style={{ width: "100%", padding: "11px 14px", borderRadius: "10px", border: "1.5px solid #E2E8F0", fontSize: "14px", fontWeight: 600, background: "#FAFAFA", color: "black" }}
+                      style={{ width: "100%", padding: "11px 14px", borderRadius: "10px", border: `1.5px solid ${isDark ? "#334155" : "#E2E8F0"}`, fontSize: "14px", fontWeight: 600, background: isDark ? "#1e293b" : "#FAFAFA", color: isDark ? "white" : "black" }}
                     />
                   </div>
                 </div>
 
                 {/* Title */}
                 <div>
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "#374151", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Task Title</label>
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: isDark ? "#cbd5e1" : "#374151", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Task Title</label>
                   <input
                     type="text" placeholder="e.g. Final Presentation" required
                     value={formData.title}
                     onChange={e => setFormData({ ...formData, title: e.target.value })}
-                    style={{ width: "100%", padding: "11px 14px", borderRadius: "10px", border: "1.5px solid #E2E8F0", fontSize: "14px", fontWeight: 600, background: "#FAFAFA", color: "black" }}
+                    style={{ width: "100%", padding: "11px 14px", borderRadius: "10px", border: `1.5px solid ${isDark ? "#334155" : "#E2E8F0"}`, fontSize: "14px", fontWeight: 600, background: isDark ? "#1e293b" : "#FAFAFA", color: isDark ? "white" : "black" }}
                   />
                 </div>
 
                 {/* Venue / Link */}
                 <div>
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "#374151", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Venue or Meeting Link <span style={{ color: "#94A3B8", fontWeight: 500 }}>(Optional)</span></label>
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: isDark ? "#cbd5e1" : "#374151", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Venue or Meeting Link <span style={{ color: isDark ? "#64748b" : "#94A3B8", fontWeight: 500 }}>(Optional)</span></label>
                   <input
                     type="text" placeholder="e.g. F701 or https://zoom.us/..."
                     value={formData.venue || ""}
                     onChange={e => setFormData({ ...formData, venue: e.target.value })}
-                    style={{ width: "100%", padding: "11px 14px", borderRadius: "10px", border: "1.5px solid #E2E8F0", fontSize: "14px", fontWeight: 600, background: "#FAFAFA", color: "black" }}
+                    style={{ width: "100%", padding: "11px 14px", borderRadius: "10px", border: `1.5px solid ${isDark ? "#334155" : "#E2E8F0"}`, fontSize: "14px", fontWeight: 600, background: isDark ? "#1e293b" : "#FAFAFA", color: isDark ? "white" : "black" }}
                   />
                 </div>
 
                 {/* Time + Priority */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                   <div>
-                    <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "#374151", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Time</label>
+                    <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: isDark ? "#cbd5e1" : "#374151", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Time</label>
                     <input
                       type="time" value={formData.time}
                       onChange={e => setFormData({ ...formData, time: e.target.value })}
-                      style={{ width: "100%", padding: "11px 14px", borderRadius: "10px", border: "1.5px solid #E2E8F0", fontSize: "14px", fontWeight: 600, background: "#FAFAFA", color: "black" }}
+                      style={{ width: "100%", padding: "11px 14px", borderRadius: "10px", border: `1.5px solid ${isDark ? "#334155" : "#E2E8F0"}`, fontSize: "14px", fontWeight: 600, background: isDark ? "#1e293b" : "#FAFAFA", color: isDark ? "white" : "black" }}
                     />
                   </div>
                   <div>
-                    <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "#374151", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Priority</label>
+                    <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: isDark ? "#cbd5e1" : "#374151", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Priority</label>
                     <select
                       value={formData.priority}
                       onChange={e => setFormData({ ...formData, priority: e.target.value })}
-                      style={{ width: "100%", padding: "11px 14px", borderRadius: "10px", border: "1.5px solid #E2E8F0", fontSize: "14px", fontWeight: 600, background: "#FAFAFA", cursor: "pointer", color: "black" }}
+                      style={{ width: "100%", padding: "11px 14px", borderRadius: "10px", border: `1.5px solid ${isDark ? "#334155" : "#E2E8F0"}`, fontSize: "14px", fontWeight: 600, background: isDark ? "#1e293b" : "#FAFAFA", cursor: "pointer", color: isDark ? "white" : "black" }}
                     >
                       <option value="High">🔴 High</option>
                       <option value="Medium">🟠 Medium</option>
@@ -826,15 +837,15 @@ export default function StudyPlanner({ params }) {
                 {/* Actions */}
                 <div style={{ display: "flex", gap: "10px", marginTop: "8px" }}>
                   <button type="button" onClick={() => setIsModalOpen(false)} className="planner-btn" style={{
-                    flex: 1, padding: "13px", borderRadius: "12px", border: "1px solid #E2E8F0",
-                    background: "white", fontWeight: 600, fontSize: "14px", cursor: "pointer", color: "#374151"
+                    flex: 1, padding: "13px", borderRadius: "12px", border: `1px solid ${isDark ? "#334155" : "#E2E8F0"}`,
+                    background: isDark ? "#0f172a" : "white", fontWeight: 600, fontSize: "14px", cursor: "pointer", color: isDark ? "#cbd5e1" : "#374151"
                   }}>
                     Cancel
                   </button>
                   <button type="submit" className="planner-btn" style={{
                     flex: 2, padding: "13px", borderRadius: "12px", border: "none",
                     background: "linear-gradient(135deg, #4F46E5, #7C3AED)",
-                    color: "white", fontWeight: 700, fontSize: "14px", cursor: "pointer",
+                    color: isDark ? "#0f172a" : "white", fontWeight: 700, fontSize: "14px", cursor: "pointer",
                     boxShadow: "0 4px 16px rgba(79,70,229,0.3)"
                   }}>
                     {editingTask ? "Update Task" : "Create Task"}

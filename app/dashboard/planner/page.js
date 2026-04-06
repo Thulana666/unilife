@@ -27,10 +27,10 @@ export default function PlannerRedirect() {
 
     // Show a brief loading state while redirecting
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[#F4F7FE]">
+        <div className="min-h-screen flex items-center justify-center bg-[#F4F7FE] dark:bg-slate-900">
             <div className="flex flex-col items-center gap-4">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#4318FF]"></div>
-                <p className="text-[#707EAE] font-bold text-sm tracking-widest animate-pulse">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#4318FF] dark:border-indigo-400"></div>
+                <p className="text-[#707EAE] dark:text-slate-400 font-bold text-sm tracking-widest animate-pulse">
                     LOADING YOUR PLANNER...
                 </p>
             </div>
