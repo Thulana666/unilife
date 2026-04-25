@@ -2,7 +2,7 @@
 const config = {
   testEnvironment: "node",
   transform: {
-    "^.+\\.js$": "babel-jest",
+    "^.+\\.js$": ["babel-jest", { configFile: "./babel-jest.config.js" }],
   },
   // Map @/ path alias used throughout the Next.js app
   moduleNameMapper: {
