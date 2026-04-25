@@ -17,6 +17,12 @@ export const metadata = {
   description: "Smart Student Productivity Platform",
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+};
+
 export default function RootLayout({ children }) {
 
   return (
