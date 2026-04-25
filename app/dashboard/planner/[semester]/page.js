@@ -270,10 +270,43 @@ export default function StudyPlanner({ params }) {
         .cal-day { transition: all 0.15s ease; }
         .cal-day:hover { background: #F1F5F9 !important; }
         ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 99px; }
+
+        /* Mobile Responsive */
+        .planner-header { padding: 16px 20px 24px; }
+        .planner-body   { padding: 16px 20px; }
+        .planner-layout { display: flex; gap: 20px; align-items: flex-start; flex-direction: row; }
+        .planner-sidebar { width: 240px; flex-shrink: 0; display: flex; flex-direction: column; gap: 16px; order: 2; }
+        .planner-main   { flex: 1; min-width: 0; }
+        .planner-tabs   { display: flex; gap: 4px; border-radius: 12px; padding: 4px; margin-bottom: 20px; width: fit-content; }
+        .week-grid      { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
+        .modal-box-task { width: 480px; padding: 32px; }
+        .modal-box-del  { width: 360px; }
+        .toast-area     { position: fixed; bottom: 28px; right: 28px; display: flex; flex-direction: column; gap: 14px; align-items: flex-end; pointer-events: none; z-index: 9999; }
+        .toast-inner    { width: 360px; }
+        @media (max-width: 768px) {
+          .planner-header { padding: 14px 16px 20px; }
+          .planner-body   { padding: 12px 12px; }
+          .planner-layout { flex-direction: column !important; gap: 16px; }
+          .planner-sidebar { width: 100% !important; order: 2; flex-direction: row !important; flex-wrap: wrap !important; }
+          .planner-sidebar > * { flex: 1 1 260px; min-width: 0; }
+          .planner-main   { width: 100%; order: 1; }
+          .planner-tabs   { width: 100% !important; }
+          .planner-tabs button { flex: 1; padding: 9px 8px !important; font-size: 12px !important; justify-content: center; }
+          .week-grid      { grid-template-columns: repeat(3, 1fr) !important; gap: 8px; }
+          .modal-box-task { width: calc(100vw - 32px) !important; max-width: 480px; padding: 24px 20px !important; }
+          .modal-box-del  { width: calc(100vw - 32px) !important; max-width: 360px; }
+          .toast-area     { bottom: 16px !important; right: 8px !important; left: 8px !important; align-items: stretch !important; }
+          .toast-inner    { width: 100% !important; }
+        }
+        @media (max-width: 480px) {
+          .planner-sidebar { flex-direction: column !important; }
+          .planner-sidebar > * { flex: 1 1 100%; }
+          .week-grid      { grid-template-columns: repeat(2, 1fr) !important; }
+        }
       `}</style>
 
       {/* ── WOW Live Notification Toasts — Bottom Right ── */}
-      <div style={{ position: "fixed", bottom: "28px", right: "28px", zIndex: 9999, display: "flex", flexDirection: "column", gap: "14px", alignItems: "flex-end", pointerEvents: "none" }}>
+      <div className="toast-area" style={{ zIndex: 9999, pointerEvents: "none" }}>
         {toasts.map(toast => {
           const isErr = toast.type === "error";
           const isInfo = toast.type === "info";
@@ -283,7 +316,7 @@ export default function StudyPlanner({ params }) {
               ? { grad: "linear-gradient(135deg,#6366F1,#4F46E5)", glow: "rgba(99,102,241,0.45)", bg: "rgba(255,255,255,0.97)", border: "rgba(99,102,241,0.22)", iconBg: "linear-gradient(135deg,#A5B4FC,#6366F1)", ring: "rgba(99,102,241,0.3)", textColor: "#1E1B4B", subColor: "#3730A3", emoji: "ℹ️", label: "Notice" }
               : { grad: "linear-gradient(135deg,#11998e,#38ef7d)", glow: "rgba(17,153,142,0.45)", bg: "rgba(255,255,255,0.97)", border: "rgba(17,153,142,0.22)", iconBg: "linear-gradient(135deg,#6EE7B7,#10B981)", ring: "rgba(17,153,142,0.3)", textColor: "#064E3B", subColor: "#065F46", emoji: toast.msg.includes("🎉") ? "🎉" : toast.msg.includes("✏️") ? "✏️" : "✅", label: "Success" };
           return (
-            <div key={toast.id} className="toast-card" style={{ pointerEvents: "auto", width: "360px", borderRadius: "22px", overflow: "hidden", boxShadow: `0 30px 70px rgba(0,0,0,0.2), 0 0 0 1px ${cfg.border}, 0 0 40px ${cfg.glow}`, backdropFilter: "blur(24px)", background: cfg.bg, position: "relative" }}>
+            <div key={toast.id} className="toast-card toast-inner" style={{ pointerEvents: "auto", borderRadius: "22px", overflow: "hidden", boxShadow: `0 30px 70px rgba(0,0,0,0.2), 0 0 0 1px ${cfg.border}, 0 0 40px ${cfg.glow}`, backdropFilter: "blur(24px)", background: cfg.bg, position: "relative" }}>
               {/* Gradient top stripe */}
               <div style={{ height: "5px", background: cfg.grad }} />
 
@@ -301,7 +334,7 @@ export default function StudyPlanner({ params }) {
                 </div>
 
                 {/* Text */}
-                <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="planner-main">
                   <div style={{ fontSize: "14px", fontWeight: 900, color: cfg.textColor, letterSpacing: "-0.02em", marginBottom: "3px" }}>{cfg.label}!</div>
                   <div style={{ fontSize: "12px", fontWeight: 500, color: cfg.subColor, opacity: 0.85, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {toast.msg.replace(/[🎉✏️🚀✅]/g, "").trim()}
@@ -323,9 +356,9 @@ export default function StudyPlanner({ params }) {
 
 
       {/* ── Header ── */}
-      <div style={{
+      <div className="planner-header" style={{
         background: "linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)",
-        padding: "18px 28px 28px", borderRadius: "0 0 28px 28px",
+        borderRadius: "0 0 28px 28px",
         boxShadow: "0 8px 32px rgba(79,70,229,0.3)",
         position: "relative", overflow: "hidden"
       }}>
@@ -397,12 +430,12 @@ export default function StudyPlanner({ params }) {
 
       </div>
 
-      <div style={{ padding: "20px 28px" }}>
+      <div className="planner-body">
 
-        <div style={{ display: "flex", gap: "20px", alignItems: "flex-start" }}>
+        <div className="planner-layout">
 
           {/* ── Right Sidebar ── */}
-          <div style={{ width: "240px", flexShrink: 0, display: "flex", flexDirection: "column", gap: "16px", order: 2 }}>
+          <div className="planner-sidebar">
 
             {/* Priority Guide — floating popup */}
             <div className="sidebar-card" style={{ background: isDark ? "#0f172a" : "white", borderRadius: "20px", border: "1px solid rgba(99,102,241,0.15)", overflow: "hidden", boxShadow: "0 8px 32px rgba(99,102,241,0.13), 0 2px 8px rgba(0,0,0,0.06)" }}>
@@ -471,7 +504,7 @@ export default function StudyPlanner({ params }) {
             </div>
 
             {/* Tab Bar */}
-            <div style={{ display: "flex", gap: "4px", background: isDark ? "#1e293b" : "#F1F5F9", borderRadius: "12px", padding: "4px", marginBottom: "20px", width: "fit-content" }}>
+            <div className="planner-tabs" style={{ background: isDark ? "#1e293b" : "#F1F5F9" }}>
               {TABS.map(tab => (
                 <button key={tab.id} onClick={() => setView(tab.id)} className="tab-btn" style={{
                   display: "flex", alignItems: "center", gap: "6px",
@@ -661,7 +694,7 @@ export default function StudyPlanner({ params }) {
             {view === "timetable" && (
               <div style={{ background: isDark ? "#0f172a" : "white", borderRadius: "16px", padding: "24px", border: `1px solid ${isDark ? "#334155" : "#E2E8F0"}` }}>
                 <h3 style={{ margin: "0 0 20px", fontSize: "16px", fontWeight: 800, color: isDark ? "#f8fafc" : "#0F172A" }}>Weekly Schedule</h3>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: "10px" }}>
+                <div className="week-grid">
                   {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map(day => {
                     const dayTasks = filteredTasks.filter(t => t.day === day).sort((a, b) => a.time.localeCompare(b.time));
                     return (
@@ -714,8 +747,8 @@ export default function StudyPlanner({ params }) {
             position: "fixed", inset: 0, background: "rgba(15,23,42,0.5)", backdropFilter: "blur(6px)",
             display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9000
           }}>
-            <div className="modal-box" onClick={e => e.stopPropagation()} style={{
-              background: isDark ? "#0f172a" : "white", borderRadius: "20px", padding: "32px", width: "360px",
+            <div className="modal-box modal-box-del" onClick={e => e.stopPropagation()} style={{
+              background: isDark ? "#0f172a" : "white", borderRadius: "20px",
               boxShadow: "0 24px 64px rgba(0,0,0,0.18)", textAlign: "center"
             }}>
               <div style={{ width: "56px", height: "56px", borderRadius: "16px", background: "#FEF2F2", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", color: "#EF4444" }}>
@@ -743,8 +776,8 @@ export default function StudyPlanner({ params }) {
             position: "fixed", inset: 0, background: "rgba(15,23,42,0.5)", backdropFilter: "blur(6px)",
             display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9000
           }}>
-            <div className="modal-box" onClick={e => e.stopPropagation()} style={{
-              background: isDark ? "#0f172a" : "white", borderRadius: "24px", padding: "32px", width: "480px",
+            <div className="modal-box modal-box-task" onClick={e => e.stopPropagation()} style={{
+              background: isDark ? "#0f172a" : "white", borderRadius: "24px",
               boxShadow: "0 24px 64px rgba(0,0,0,0.18)", maxHeight: "90vh", overflowY: "auto"
             }}>
               {/* Modal Header */}

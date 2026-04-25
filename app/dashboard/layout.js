@@ -163,7 +163,7 @@ function NotificationBell({ session }) {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -10, scale: 0.95 }}
                         transition={{ duration: 0.2, ease: "easeOut" }}
-                        className="absolute right-0 top-[calc(100%+8px)] w-96 max-h-[480px] flex flex-col bg-white dark:bg-slate-900/50 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700/80 overflow-hidden z-[9999]"
+                        className="absolute right-0 top-[calc(100%+8px)] w-[calc(100vw-32px)] sm:w-96 max-w-[calc(100vw-16px)] max-h-[480px] flex flex-col bg-white dark:bg-slate-900/50 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700/80 overflow-hidden z-[9999]"
                     >
 
                         {/* Panel Header */}
